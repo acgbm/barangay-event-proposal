@@ -1,0 +1,98 @@
+.proposal-container {
+    width: 450px; /* Smaller size */
+    padding: 25px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.15);
+    position: absolute;
+    top: 50%;
+    left: 60%; /* Adjusted for sidebar */
+    transform: translate(-50%, -50%);
+  }
+  
+  .proposal-container h2 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+  }
+  
+  input,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border 0.3s ease-in-out;
+  }
+  
+  input:focus,
+  textarea:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  textarea {
+    min-height: 80px; /* Smaller textarea */
+    resize: vertical;
+  }
+  
+  input[type="file"] {
+    border: none;
+    padding: 5px;
+  }
+  
+  button {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+  }
+  
+  button:hover {
+    background: #0056b3;
+  }
+  
+  button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .message {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: green;
+    margin-bottom: 10px;
+  }
+  
+  /* 📱 Responsive Design */
+  @media (max-width: 768px) {
+    .proposal-container {
+      width: 90%;
+      left: 50%;
+      padding: 20px;
+    }
+  }
+  

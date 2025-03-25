@@ -15,7 +15,7 @@ const Sidebar = ({ role }) => {
     ],
     staff: [
       { name: "Dashboard", path: "/staff-dashboard" },
-      { name: "Submit Proposal", path: "/submit-proposal" },
+      { name: "Submit Proposal", path: "/staff-proposal" },
       { name: "Events", path: "/staff-events" },
       { name: "Account", path: "/staff-account" },
     ],
@@ -48,7 +48,6 @@ const Sidebar = ({ role }) => {
       </ul>
       <button className="logout-btn" onClick={handleLogout}>Logout</button>
       {/* Logout Button */}
-      <button className="logout-btn" onClick={handleLogout}>Logout</button>
     </div>
   );
 };

@@ -1,63 +1,75 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import "./Login.css";
+import logo from "../assets/bg.png"; // Adjust your logo path
+import { getDoc, doc } from "firebase/firestore"; 
+import { db } from "../firebaseConfig";  // Ensure db is correctly imported from firebase config
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
-
     try {
-      // Authenticate user
       const userCredential = await login(email, password);
       const user = userCredential.user;
-
-      // Firestore instance
-      const db = getFirestore();
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        const userRole = userData.role;
-
-        // Redirect based on role
-        if (userRole === "admin") navigate("/admin-dashboard");
-        else if (userRole === "staff") navigate("/staff-dashboard");
-        else if (userRole === "official") navigate("/official-dashboard");
-        else setError("Unauthorized role");
-      } else {
-        setError("User role not found in Firestore.");
+  
+      // Fetch user role from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid)); // Ensure Firestore is imported
+      const userData = userDoc.data();
+  
+      if (!userData || !userData.role) {
+        throw new Error("User role not found");
       }
+  
+      const role = userData.role;
+  
+      Swal.fire({
+        title: "Success",
+        text: "Logged in successfully!",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        if (role === "admin") navigate("/admin-dashboard");
+        else if (role === "staff") navigate("/staff-dashboard");
+        else if (role === "official") navigate("/official-dashboard");
+        else navigate("/dashboard");
+      });
+  
     } catch (err) {
-      setError("Invalid email or password.");
+      Swal.fire("Error", "Invalid username or password", "error");
     }
-  };
+  };  
 
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Login</button>
-      {error && <p>{error}</p>}
-    </form>
+    <div className="login-container">
+      <img src={logo} alt="Logo" className="login-logo" />
+
+      <form className="login-form" onSubmit={handleLogin}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit" className="login-button">Sign in</button>
+      </form>
+    </div>
   );
 };
 
