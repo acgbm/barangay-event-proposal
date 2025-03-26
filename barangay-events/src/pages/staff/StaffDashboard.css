@@ -1,0 +1,48 @@
+.staff-dashboard {
+    padding: 20px;
+  }
+  
+  .proposals-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .proposals-table th, .proposals-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .proposals-table th {
+    background-color: #f4f4f4;
+  }
+  
+  .status-approved {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .status-rejected {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .status-pending {
+    color: orange;
+    font-weight: bold;
+  }
+  
+  .attachment-btn {
+    background-color: #1D71F2;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .attachment-btn:hover {
+    background-color: #1558a3;
+  }
+  
