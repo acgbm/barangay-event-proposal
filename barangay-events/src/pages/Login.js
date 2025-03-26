@@ -29,18 +29,40 @@ const Login = () => {
       }
   
       const role = userData.role;
+
+      let successMessage = "Logged in successfully!";
+      let navigateTo = "/dashboard";
+      let title = "Success";
+      let icon = "success";
+
+      // Customize message and redirect based on user role
+      switch (role) {
+        case "admin":
+          successMessage = "Welcome Admin!";
+          navigateTo = "/admin-dashboard";
+          break;
+        case "staff":
+          successMessage = "Welcome Staff Member!";
+          navigateTo = "/staff-dashboard";
+          break;
+        case "official":
+          successMessage = "Welcome Official User!";
+          navigateTo = "/official-dashboard";
+          break;
+        default:
+          successMessage = "Welcome User!";
+          navigateTo = "/user-dashboard";
+          break;
+      }
   
       Swal.fire({
-        title: "Success",
-        text: "Logged in successfully!",
-        icon: "success",
+        title: title,
+        text: successMessage,
+        icon: icon,
         timer: 1500,
         showConfirmButton: false,
       }).then(() => {
-        if (role === "admin") navigate("/admin-dashboard");
-        else if (role === "staff") navigate("/staff-dashboard");
-        else if (role === "official") navigate("/official-dashboard");
-        else navigate("/dashboard");
+        navigate(navigateTo);
       });
   
     } catch (err) {
@@ -55,7 +77,7 @@ const Login = () => {
       <form className="login-form" onSubmit={handleLogin}>
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required

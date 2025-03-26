@@ -1,0 +1,160 @@
+/* Ensure everything is scoped to the ManageAccounts component */
+.manage-accounts {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+    margin-top: 50px; /* Ensures top content is visible */
+  }
+  
+  .manage-accounts h2, .manage-accounts h3 {
+    font-size: 1.4rem; /* Smaller heading */
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .manage-accounts form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .manage-accounts input,
+  .manage-accounts select,
+  .manage-accounts button {
+    padding: 8px;
+    font-size: 0.85rem; /* Smaller font size for inputs */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .manage-accounts input[type="date"],
+  .manage-accounts input[type="tel"] {
+    width: 100%;
+  }
+  
+  .manage-accounts button {
+    background-color: #1D71F2;
+    color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  
+  .manage-accounts button:hover {
+    background-color: #155fb8;
+  }
+  
+  .manage-accounts button:disabled {
+    background-color: #bbb;
+    cursor: not-allowed;
+  }
+  
+  .manage-accounts p {
+    color: red;
+    font-size: 0.85rem;
+  }
+  
+  /* List of Accounts */
+  .manage-accounts ul {
+    list-style: none;
+    margin-top: 20px;
+  }
+  
+  .manage-accounts li {
+    background-color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 0.85rem;
+  }
+  
+  .manage-accounts li button {
+    margin-left: 10px;
+    font-size: 0.75rem; /* Smaller buttons */
+  }
+  
+  /* Edit Mode Styles */
+  .manage-accounts li.editing {
+    background-color: #f9f9f9;
+    padding: 10px;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 600px) {
+    .manage-accounts {
+      padding: 10px;
+      margin-top: 20px; /* Adjusts for smaller screens */
+    }
+  
+    .manage-accounts h2,
+    .manage-accounts h3 {
+      font-size: 1.3rem; /* Smaller headings on small screens */
+    }
+  
+    .manage-accounts form {
+      width: 100%;
+      margin: 0 10px;
+    }
+  
+    .manage-accounts input,
+    .manage-accounts select,
+    .manage-accounts button {
+      padding: 6px;
+      font-size: 0.8rem; /* Smaller inputs */
+    }
+  
+    .manage-accounts button {
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+  
+    .manage-accounts ul {
+      margin-top: 15px;
+    }
+  
+    .manage-accounts li {
+      padding: 10px;
+      font-size: 0.8rem;
+    }
+  
+    .manage-accounts li button {
+      font-size: 0.7rem;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .manage-accounts h2,
+    .manage-accounts h3 {
+      font-size: 1.2rem;
+    }
+  
+    .manage-accounts form {
+      margin: 0 5px;
+    }
+  
+    .manage-accounts input,
+    .manage-accounts select,
+    .manage-accounts button {
+      padding: 5px;
+      font-size: 0.7rem;
+    }
+  
+    .manage-accounts button {
+      padding: 6px 10px;
+    }
+  
+    .manage-accounts li {
+      padding: 8px;
+      font-size: 0.75rem;
+    }
+  
+    .manage-accounts li button {
+      font-size: 0.6rem;
+    }
+  }
+  
