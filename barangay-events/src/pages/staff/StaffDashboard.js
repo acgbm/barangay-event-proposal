@@ -32,31 +32,27 @@ const StaffDashboard = () => {
     }
   };
 
-  const handleViewFeedback = (feedback) => {
-    // Ensure feedback is an array, or default to an empty array
-    const feedbackArray = Array.isArray(feedback) ? feedback : [feedback];
-  
-    if (!feedbackArray.length || feedbackArray[0] === "" || feedbackArray[0] === undefined) {
+  const handleViewFeedback = (feedbackArray) => {
+    if (!feedbackArray || feedbackArray.length === 0) {
       Swal.fire({
         icon: "info",
         title: "No Feedback",
-        text: "No feedback has been provided by officials.",
+        text: "No rejection feedback available.",
       });
       return;
     }
   
-    const feedbackList = feedbackArray
-      .map((fb, index) => `<p>${index + 1}. ${fb}</p>`)
-      .join("");
+    // Format the feedback properly
+    const feedbackText = feedbackArray
+      .map((entry, index) => `${index + 1}. ${entry.feedback}`) // Extract feedback text
+      .join("<br><br>"); // Proper HTML formatting
   
     Swal.fire({
+      icon: "error",
       title: "Rejected Feedback",
-      html: feedbackList,
-      icon: "warning",
-      confirmButtonText: "Close",
-      confirmButtonColor: "#d33",
+      html: `<div style="text-align:left">${feedbackText}</div>`, // Properly format for HTML display
     });
-  };
+  };  
   
   return (
     <div className="staff-dashboard">
@@ -84,12 +80,10 @@ const StaffDashboard = () => {
                 </td>
                 <td>
                   {proposal.status === "Rejected" ? (
-                    <button
-                      className="feedback-btn"
-                      onClick={() => handleViewFeedback(proposal.rejectionFeedback || [])}
-                    >
-                      View Feedback
-                    </button>
+                    <button onClick={() => handleViewFeedback(proposal.rejectionFeedback)}>
+                    View Feedback
+                  </button>
+                  
                   ) : (
                     "N/A"
                   )}

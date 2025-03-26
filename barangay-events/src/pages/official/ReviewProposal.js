@@ -80,6 +80,7 @@ const ReviewProposals = () => {
   
       const proposalData = proposalSnap.data();
       let votes = proposalData.votes || { approve: [], reject: [] };
+      let rejectionFeedback = proposalData.rejectionFeedback || []; // Ensure feedback is an array
   
       if (votes.approve.includes(userId) || votes.reject.includes(userId)) {
         Swal.fire({
@@ -91,7 +92,6 @@ const ReviewProposals = () => {
       }
   
       // If rejecting, prompt for feedback
-      let rejectionFeedback = "";
       if (voteType === "reject") {
         const { value: feedback } = await Swal.fire({
           title: "Reject Proposal",
@@ -113,7 +113,8 @@ const ReviewProposals = () => {
         });
   
         if (!feedback) return; // If cancelled, do nothing
-        rejectionFeedback = feedback;
+  
+        rejectionFeedback.push({ officialId: userId, feedback }); // Append feedback
       }
   
       votes[voteType].push(userId);
@@ -122,17 +123,17 @@ const ReviewProposals = () => {
       if (votes.approve.length >= officialsCount) newStatus = "Approved";
       if (votes.reject.length >= officialsCount) newStatus = "Rejected";
   
-      await updateDoc(proposalRef, { 
-        votes, 
-        status: newStatus, 
-        rejectionFeedback: voteType === "reject" ? rejectionFeedback : "" // Store feedback
+      await updateDoc(proposalRef, {
+        votes,
+        status: newStatus,
+        rejectionFeedback, // Store the updated array
       });
   
       Swal.fire({
         icon: voteType === "approve" ? "success" : "error",
         title: voteType === "approve" ? "Vote Submitted" : "Rejected",
-        text: voteType === "approve" 
-          ? "You have voted to approve this proposal." 
+        text: voteType === "approve"
+          ? "You have voted to approve this proposal."
           : "Proposal rejected with feedback.",
       });
   
