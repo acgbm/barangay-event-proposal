@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { db } from "../../firebaseConfig"; // Firebase Firestore
+import { db, auth } from "../../firebaseConfig"; // Firebase Firestore & Auth
 import { supabase } from "../../firebaseConfig"; // Supabase Storage
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import "./StaffProposal.css"; // Ensure this file is styled
@@ -26,10 +26,16 @@ const StaffProposal = () => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-  
+
     try {
+      // Get the current logged-in user
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User is not authenticated.");
+      }
+
       let fileURL = "";
-  
+
       if (file) {
         // Upload file to Supabase Storage with upsert enabled
         const { data, error } = await supabase.storage
@@ -38,20 +44,20 @@ const StaffProposal = () => {
             cacheControl: "3600",
             upsert: true, // 🔥 Allows overwriting files if they exist
           });
-  
+
         if (error) {
           throw new Error(`Upload Error: ${error.message}`);
         }
-  
+
         // Get the public URL of the uploaded file
         const { data: publicData } = supabase.storage
           .from("proposals")
           .getPublicUrl(`staff/${file.name}`);
-  
+
         fileURL = publicData.publicUrl;
       }
-  
-      // Save proposal data in Firestore
+
+      // Save proposal data in Firestore, including `userId` (or `userEmail`)
       await addDoc(collection(db, "proposals"), {
         title,
         description,
@@ -59,8 +65,10 @@ const StaffProposal = () => {
         date,
         fileURL,
         createdAt: serverTimestamp(),
+        userId: user.uid, // 🔹 Store user ID
+        userEmail: user.email, // 🔹 Store user email
       });
-  
+
       setMessage("✅ Proposal submitted successfully!");
       setTitle("");
       setDescription("");
@@ -73,7 +81,6 @@ const StaffProposal = () => {
     }
     setLoading(false);
   };
-  
 
   return (
     <div className="proposal-container">

@@ -1,174 +1,63 @@
-/* Modern styling for Review Proposals */
-
-.review-proposals-container {
-  width: 90%;
-  margin: 0 auto;
-  padding: 40px; /* Increased padding */
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-  text-align: center;
-  font-size: 32px;
-  color: #333;
-  font-weight: 700;
-  margin-bottom: 30px;
-}
-
-.proposals-list {
-  display: flex;
-  flex-wrap: nowrap; /* Prevent wrapping */
-  gap: 30px;
-  justify-content: flex-start;
-  overflow-x: auto; /* Allow horizontal scrolling if the content overflows */
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-}
-
-.proposal-card {
-  background: #fff;
-  border-radius: 12px;
+.review-container {
   padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  width: 300px; /* Fixed width for each card */
-  height: 270px;
-  flex-shrink: 0; /* Prevent shrinking */
-  transition: transform 0.3s ease;
-  position: relative; /* Added to enable absolute positioning for buttons */
 }
 
-.proposal-card:hover {
-  transform: scale(1.05);
-}
-
-.proposal-card h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2d2d2d;
-  margin-bottom: 10px;
-}
-
-.proposal-card p {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 10px;
-}
-
-/* Ensure buttons are always at the bottom of the card */
-.voting-buttons {
+.proposals-wrapper {
   display: flex;
-  gap: 10px;
-  position: absolute;
-  bottom: 20px; /* Fix the position of the buttons to the bottom */
-  left: 50%;
-  transform: translateX(-50%); /* Center the buttons horizontally */
-  width: 90%; /* Ensure buttons fit inside the card */
+  gap: 20px;
 }
 
-.file-button,
-.voting-buttons button {
-  width: 100%;
-  padding: 12px;
-  border: none;
+.proposals-section {
+  flex: 1;
+  background: #f8f9fa;
+  padding: 15px;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
 }
 
-.file-button {
-  background-color: #007bff;
-  color: white;
-}
-
-.file-button:hover {
-  background-color: #0056b3;
-}
-
-.approve-button {
-  background-color: #28a745;
-  color: white;
-}
-
-.approve-button:hover {
-  background-color: #218838;
-}
-
-.reject-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.reject-button:hover {
-  background-color: #c82333;
-}
-
-/* Popup styling */
-/* Popup styling */
-.file-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
+.proposals-table {
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  border-collapse: collapse;
 }
 
-.file-popup-content {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  width: 80%;
-  max-width: 800px;
-  position: relative;
+.proposals-table th, .proposals-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 
-.close-popup {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
-  background-color: #ff0000;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 18px;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.close-popup:hover {
-  background-color: #cc0000;
-}
-
-.close-popup:focus {
-  outline: none;
-}
-
-.close-popup::before {
-  font-size: 22px;
+.status-approved {
+  color: green;
   font-weight: bold;
-  color: white;
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .proposal-card {
-    width: 100%;
-  }
+.status-rejected {
+  color: red;
+  font-weight: bold;
+}
 
-  .file-popup-content {
-    width: 90%;
-  }
+.status-pending {
+  color: orange;
+  font-weight: bold;
+}
+
+.approve-btn {
+  background: green;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.reject-btn {
+  background: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* 🔹 Ensure the image fully fits within the viewport */
+.attachment-popup img {
+  max-width: 90vw; /* Fit within 90% of the viewport width */
+  max-height: 80vh; /* Fit within 80% of the viewport height */
+  object-fit: contain; /* Prevent cropping */
 }
