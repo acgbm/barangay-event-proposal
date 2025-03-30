@@ -72,22 +72,6 @@ const ReviewProposals = () => {
       return;
     }
   
-    // Confirm Approval before submitting
-    if (voteType === "approve") {
-      const { isConfirmed } = await Swal.fire({
-        title: "Confirm Approval",
-        text: "Are you sure you want to approve this proposal?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, Approve",
-        cancelButtonText: "Cancel",
-        confirmButtonColor: "#28a745",
-        cancelButtonColor: "#d33",
-      });
-  
-      if (!isConfirmed) return; // If cancelled, do nothing
-    }
-  
     try {
       const proposalRef = doc(db, "proposals", proposalId);
       const proposalSnap = await getDoc(proposalRef);
@@ -96,26 +80,52 @@ const ReviewProposals = () => {
   
       const proposalData = proposalSnap.data();
       let votes = proposalData.votes || { approve: [], reject: [] };
-      let rejectionFeedback = proposalData.rejectionFeedback || []; // Ensure feedback is an array
+      let rejectionFeedback = proposalData.rejectionFeedback || [];
   
-      if (votes.approve.includes(userId) || votes.reject.includes(userId)) {
-        Swal.fire({
+      const hasApproved = votes.approve.includes(userId);
+      const hasRejected = votes.reject.includes(userId);
+  
+      // **If user already voted, ask for confirmation before allowing vote change**
+      if (hasApproved || hasRejected) {
+        const { isConfirmed: changeConfirmed } = await Swal.fire({
+          title: "Change Vote?",
+          text: `You have already voted. Are you sure you want to change your vote to ${voteType === "approve" ? "approve" : "reject"}?`,
           icon: "warning",
-          title: "Already Voted",
-          text: "You have already voted on this proposal.",
+          showCancelButton: true,
+          confirmButtonText: "Yes, Change Vote",
+          cancelButtonText: "Cancel",
+          confirmButtonColor: "#28a745",
+          cancelButtonColor: "#d33",
         });
-        return;
+  
+        if (!changeConfirmed) return; // If cancelled, do nothing
       }
   
-      // If rejecting, prompt for feedback
+      // **Confirm before voting (for both approve and reject)**
+      const { isConfirmed } = await Swal.fire({
+        title: voteType === "approve" ? "Confirm Approval" : "Confirm Rejection",
+        text: `Are you sure you want to ${voteType === "approve" ? "approve" : "reject"} this proposal?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: voteType === "approve" ? "Yes, Approve" : "Yes, Reject",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: voteType === "approve" ? "#28a745" : "#d33",
+        cancelButtonColor: "#d33",
+      });
+  
+      if (!isConfirmed) return; // If cancelled, do nothing
+  
+      // **Remove user's previous vote**
+      votes.approve = votes.approve.filter((id) => id !== userId);
+      votes.reject = votes.reject.filter((id) => id !== userId);
+  
+      // **Handle rejection feedback**
       if (voteType === "reject") {
         const { value: feedback } = await Swal.fire({
           title: "Reject Proposal",
           input: "textarea",
           inputPlaceholder: "Enter feedback for rejection...",
-          inputAttributes: {
-            "aria-label": "Enter feedback",
-          },
+          inputAttributes: { "aria-label": "Enter feedback" },
           showCancelButton: true,
           confirmButtonText: "Reject",
           cancelButtonText: "Cancel",
@@ -130,9 +140,10 @@ const ReviewProposals = () => {
   
         if (!feedback) return; // If cancelled, do nothing
   
-        rejectionFeedback.push({ officialId: userId, feedback }); // Append feedback
+        rejectionFeedback.push({ officialId: userId, feedback });
       }
   
+      // **Add new vote**
       votes[voteType].push(userId);
   
       // **80% Approval Calculation**
@@ -143,7 +154,7 @@ const ReviewProposals = () => {
       if (votes.approve.length >= approvalThreshold) {
         newStatus = "Approved";
   
-        // Notify when proposal is approved
+        // **Notify when proposal is approved**
         Swal.fire({
           icon: "success",
           title: "Proposal Approved!",
@@ -157,7 +168,7 @@ const ReviewProposals = () => {
       await updateDoc(proposalRef, {
         votes,
         status: newStatus,
-        rejectionFeedback, // Store the updated array
+        rejectionFeedback,
       });
   
       Swal.fire({
@@ -176,7 +187,8 @@ const ReviewProposals = () => {
     } catch (error) {
       console.error("Error voting:", error.message);
     }
-  };  
+  };
+  
 
   const checkProposalDeadlines = async () => {
     try {
