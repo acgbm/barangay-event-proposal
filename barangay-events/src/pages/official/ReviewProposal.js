@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
 import "./ReviewProposal.css";
 
@@ -72,123 +72,126 @@ const ReviewProposals = () => {
       return;
     }
   
-    try {
-      const proposalRef = doc(db, "proposals", proposalId);
-      const proposalSnap = await getDoc(proposalRef);
+    // Confirmation for changing vote
+    const proposalRef = doc(db, "proposals", proposalId);
+    const proposalSnap = await getDoc(proposalRef);
+    if (!proposalSnap.exists()) return;
+    const proposalData = proposalSnap.data();
+    let votes = proposalData.votes || { approve: [], reject: [] };
   
-      if (!proposalSnap.exists()) return;
-  
-      const proposalData = proposalSnap.data();
-      let votes = proposalData.votes || { approve: [], reject: [] };
-      let rejectionFeedback = proposalData.rejectionFeedback || [];
-  
-      const hasApproved = votes.approve.includes(userId);
-      const hasRejected = votes.reject.includes(userId);
-  
-      // **If user already voted, ask for confirmation before allowing vote change**
-      if (hasApproved || hasRejected) {
-        const { isConfirmed: changeConfirmed } = await Swal.fire({
-          title: "Change Vote?",
-          text: `You have already voted. Are you sure you want to change your vote to ${voteType === "approve" ? "approve" : "reject"}?`,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Yes, Change Vote",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#28a745",
-          cancelButtonColor: "#d33",
-        });
-  
-        if (!changeConfirmed) return; // If cancelled, do nothing
-      }
-  
-      // **Confirm before voting (for both approve and reject)**
+    if (votes.approve.includes(userId) || votes.reject.includes(userId)) {
       const { isConfirmed } = await Swal.fire({
-        title: voteType === "approve" ? "Confirm Approval" : "Confirm Rejection",
-        text: `Are you sure you want to ${voteType === "approve" ? "approve" : "reject"} this proposal?`,
+        title: "Change Vote?",
+        text: "You have already voted. Do you want to change your vote?",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonText: voteType === "approve" ? "Yes, Approve" : "Yes, Reject",
+        confirmButtonText: "Yes, Change Vote",
         cancelButtonText: "Cancel",
-        confirmButtonColor: voteType === "approve" ? "#28a745" : "#d33",
+        confirmButtonColor: "#28a745",
         cancelButtonColor: "#d33",
       });
   
-      if (!isConfirmed) return; // If cancelled, do nothing
-  
-      // **Remove user's previous vote**
+      if (!isConfirmed) return;
+      
+      // Remove previous vote
       votes.approve = votes.approve.filter((id) => id !== userId);
       votes.reject = votes.reject.filter((id) => id !== userId);
+    }
   
-      // **Handle rejection feedback**
-      if (voteType === "reject") {
-        const { value: feedback } = await Swal.fire({
-          title: "Reject Proposal",
-          input: "textarea",
-          inputPlaceholder: "Enter feedback for rejection...",
-          inputAttributes: { "aria-label": "Enter feedback" },
-          showCancelButton: true,
-          confirmButtonText: "Reject",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#d33",
-          preConfirm: (feedback) => {
-            if (!feedback.trim()) {
-              Swal.showValidationMessage("Feedback is required to reject the proposal.");
-            }
-            return feedback;
-          },
-        });
+    // Confirm approval
+    if (voteType === "approve") {
+      const { isConfirmed } = await Swal.fire({
+        title: "Confirm Approval",
+        text: "Are you sure you want to approve this proposal?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Approve",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#d33",
+      });
   
-        if (!feedback) return; // If cancelled, do nothing
+      if (!isConfirmed) return;
+    }
   
-        rejectionFeedback.push({ officialId: userId, feedback });
-      }
+    // Handle rejection feedback
+    let rejectionFeedback = proposalData.rejectionFeedback || [];
+    if (voteType === "reject") {
+      const { value: feedback } = await Swal.fire({
+        title: "Reject Proposal",
+        input: "textarea",
+        inputPlaceholder: "Enter feedback for rejection...",
+        showCancelButton: true,
+        confirmButtonText: "Reject",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#d33",
+        preConfirm: (feedback) => {
+          if (!feedback.trim()) {
+            Swal.showValidationMessage("Feedback is required to reject the proposal.");
+          }
+          return feedback;
+        },
+      });
   
-      // **Add new vote**
-      votes[voteType].push(userId);
+      if (!feedback) return;
+      rejectionFeedback.push({ officialId: userId, feedback });
+    }
   
-      // **80% Approval Calculation**
-      const totalOfficials = officialsCount;
-      const approvalThreshold = Math.ceil(totalOfficials * 0.8); // 80% of total officials
-      let newStatus = "Pending";
+    // Add new vote
+    votes[voteType].push(userId);
   
-      if (votes.approve.length >= approvalThreshold) {
-        newStatus = "Approved";
+    // **80% Approval Calculation**
+    const totalOfficials = officialsCount;
+    const approvalThreshold = Math.ceil(totalOfficials * 0.8);
+    let newStatus = "Pending";
   
-        // **Notify when proposal is approved**
-        Swal.fire({
-          icon: "success",
-          title: "Proposal Approved!",
-          text: "This proposal has been officially approved.",
-          confirmButtonColor: "#28a745",
-        });
-      } else if (votes.reject.length >= totalOfficials) {
-        newStatus = "Rejected";
-      }
+    if (votes.approve.length >= approvalThreshold) {
+      newStatus = "Approved";
   
-      await updateDoc(proposalRef, {
-        votes,
-        status: newStatus,
-        rejectionFeedback,
+      // ✅ Add Firestore Notification
+      await addDoc(collection(db, "notifications"), {
+        message: `Proposal "${proposalData.title}" has been approved.`,
+        timestamp: serverTimestamp(),
+        type: "Approved",
       });
   
       Swal.fire({
-        icon: voteType === "approve" ? "success" : "error",
-        title: voteType === "approve" ? "Vote Submitted" : "Rejected",
-        text: voteType === "approve"
-          ? "You have voted to approve this proposal."
-          : "Proposal rejected with feedback.",
+        icon: "success",
+        title: "Proposal Approved!",
+        text: "This proposal has been officially approved.",
+        confirmButtonColor: "#28a745",
       });
+    } else if (votes.reject.length >= totalOfficials) {
+      newStatus = "Rejected";
   
-      setProposals((prev) =>
-        prev.map((p) =>
-          p.id === proposalId ? { ...p, votes, status: newStatus, rejectionFeedback } : p
-        )
-      );
-    } catch (error) {
-      console.error("Error voting:", error.message);
+      // ❌ Add Firestore Notification
+      await addDoc(collection(db, "notifications"), {
+        message: `Proposal "${proposalData.title}" has been rejected.`,
+        timestamp: serverTimestamp(),
+        type: "Rejected",
+      });
     }
-  };
   
+    await updateDoc(proposalRef, {
+      votes,
+      status: newStatus,
+      rejectionFeedback,
+    });
+  
+    Swal.fire({
+      icon: voteType === "approve" ? "success" : "error",
+      title: voteType === "approve" ? "Vote Submitted" : "Rejected",
+      text: voteType === "approve"
+        ? "You have voted to approve this proposal."
+        : "Proposal rejected with feedback.",
+    });
+  
+    setProposals((prev) =>
+      prev.map((p) =>
+        p.id === proposalId ? { ...p, votes, status: newStatus, rejectionFeedback } : p
+      )
+    );
+  };   
 
   const checkProposalDeadlines = async () => {
     try {
