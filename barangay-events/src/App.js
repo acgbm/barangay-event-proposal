@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageAccounts from "./pages/admin/ManageAccounts";
+import VerifyEmail from "./pages/VerifyEmail";
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffProposal from "./pages/staff/StaffProposal";
 import OfficialDashboard from "./pages/official/OfficialDashboard";
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Admin Pages */}
           <Route element={<Layout role="admin" />}>

@@ -19,8 +19,8 @@ const Login = () => {
       const userCredential = await login(email, password);
       const user = userCredential.user;
   
-      // Fetch user role from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid)); // Ensure Firestore is imported
+      // Fetch user role & verification status from Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
       const userData = userDoc.data();
   
       if (!userData || !userData.role) {
@@ -28,6 +28,13 @@ const Login = () => {
       }
   
       const role = userData.role;
+      const isVerified = userData.verified; // Get verification status
+
+      // Block unverified users (except admins)
+      if (!isVerified && role !== "admin") {
+        Swal.fire("Error", "Please verify your email before logging in.", "error");
+        return;
+      }
 
       let successMessage = "Logged in successfully!";
       let navigateTo = "/dashboard";
@@ -70,7 +77,7 @@ const Login = () => {
   };  
 
   return (
-    <div className="login-page"> {/* Added login-page class here */}
+    <div className="login-page">
       <div className="login-container">
         <img src={logo} alt="Logo" className="login-logo" />
 
