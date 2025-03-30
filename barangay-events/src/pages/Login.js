@@ -7,7 +7,6 @@ import logo from "../assets/bg.png"; // Adjust your logo path
 import { getDoc, doc } from "firebase/firestore"; 
 import { db } from "../firebaseConfig";  // Ensure db is correctly imported from firebase config
 
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,26 +70,28 @@ const Login = () => {
   };  
 
   return (
-    <div className="login-container">
-      <img src={logo} alt="Logo" className="login-logo" />
+    <div className="login-page"> {/* Added login-page class here */}
+      <div className="login-container">
+        <img src={logo} alt="Logo" className="login-logo" />
 
-      <form className="login-form" onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" className="login-button">Sign in</button>
-      </form>
+        <form className="login-form" onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit" className="login-button">Sign in</button>
+        </form>
+      </div>
     </div>
   );
 };
