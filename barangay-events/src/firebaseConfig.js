@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, sendEmailVerification } from "firebase/auth"; // Added sendEmailVerification
+import { getAuth, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth"; // Added sendEmailVerification
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = "https://mqrrkgmhmdhwlyzbkaoc.supabase.co";
@@ -28,7 +28,17 @@ const sendVerificationEmail = async (user) => {
   }
 };
 
-export { db, auth, sendVerificationEmail }; // Exported sendVerificationEmail
+// Function to send a password reset email
+const sendPasswordReset = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true, message: "Password reset email sent!" };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export { db, auth, sendVerificationEmail, sendPasswordReset }; // Exported sendVerificationEmail
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
