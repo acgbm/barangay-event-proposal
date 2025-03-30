@@ -98,121 +98,51 @@ const ManageAccounts = () => {
   };
 
   return (
-    <div>
-      <h2>Manage Accounts</h2>
+    <div className="manage-accounts">
+  <h2>Manage Accounts</h2>
 
-      <form onSubmit={handleCreateAccount}>
-        <input 
-          type="text" 
-          placeholder="Full Name" 
-          value={fullName} 
-          onChange={(e) => setFullName(e.target.value)} 
-          required 
-        />
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          required 
-        />
-        <input 
-          type="date" 
-          value={dob} 
-          onChange={(e) => setDob(e.target.value)} 
-          required 
-        />
-        <input 
-          type="tel" 
-          placeholder="Phone Number" 
-          value={phone} 
-          onChange={(e) => setPhone(e.target.value.replace(/\D/, ""))} 
-          required 
-        />
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="staff">Staff</option>
-          <option value="official">Official</option>
-        </select>
-        <button type="submit">Create Account</button>
-        {error && <p>{error}</p>}
-      </form>
+  <form onSubmit={handleCreateAccount}>
+    <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+    <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+    <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+    <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
+    <input type="tel" placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/, ""))} required />
+    <select value={role} onChange={(e) => setRole(e.target.value)}>
+      <option value="staff">Staff</option>
+      <option value="official">Official</option>
+    </select>
+    <button type="submit">Create</button>
+  </form>
 
-      <h3>Existing Accounts</h3>
-      <table className="accounts-table">
-        <thead>
-          <tr>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Date of Birth</th>
-            <th>Phone</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {accounts.map((user) => (
-            <tr key={user.id}>
-              {editMode === user.id ? (
-                <>
-                  <td>
-                    <input 
-                      type="text" 
-                      value={fullName} 
-                      onChange={(e) => setFullName(e.target.value)} 
-                      placeholder="Full Name"
-                    />
-                  </td>
-                  <td>
-                    <input 
-                      type="date" 
-                      value={dob} 
-                      onChange={(e) => setDob(e.target.value)} 
-                    />
-                  </td>
-                  <td>
-                    <input 
-                      type="tel" 
-                      value={phone} 
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/, ""))} 
-                      placeholder="Phone Number"
-                    />
-                  </td>
-                  <td>
-                    <select value={role} onChange={(e) => setRole(e.target.value)}>
-                      <option value="staff">Staff</option>
-                      <option value="official">Official</option>
-                    </select>
-                  </td>
-                  <td>
-                    <button onClick={() => handleEditAccount(user.id)}>Save</button>
-                    <button onClick={() => setEditMode(null)}>Cancel</button>
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td>{user.fullName}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>{user.dob}</td>
-                  <td>{user.phone}</td>
-                  <td>
-                    <button onClick={() => setEditMode(user.id)}>Edit</button>
-                    <button onClick={() => handleDeleteAccount(user.id)}>Delete</button>
-                  </td>
-                </>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+  <h3>Existing Accounts</h3>
+  <table className="accounts-table">
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Date of Birth</th>
+        <th>Phone</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {accounts.map((user) => (
+        <tr key={user.id}>
+          <td>{user.fullName}</td>
+          <td>{user.email}</td>
+          <td>{user.role}</td>
+          <td>{user.dob}</td>
+          <td>{user.phone}</td>
+          <td>
+            <button onClick={() => setEditMode(user.id)}>Edit</button>
+            <button onClick={() => handleDeleteAccount(user.id)} style={{ backgroundColor: "#dc3545" }}>Remove</button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
   );
 };
 
