@@ -9,6 +9,7 @@ const StaffProposal = () => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
+  const [note, setNote] = useState(""); // Added note field
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -57,12 +58,13 @@ const StaffProposal = () => {
         fileURL = publicData.publicUrl;
       }
 
-      // Save proposal data in Firestore, including `userId` (or `userEmail`)
+      // Save proposal data in Firestore, including `userId`, `userEmail`, and `note`
       await addDoc(collection(db, "proposals"), {
         title,
         description,
         location,
         date,
+        note, // Save the note
         fileURL,
         createdAt: serverTimestamp(),
         userId: user.uid, // 🔹 Store user ID
@@ -74,6 +76,7 @@ const StaffProposal = () => {
       setDescription("");
       setLocation("");
       setDate("");
+      setNote(""); // Reset note field
       setFile(null);
     } catch (error) {
       console.error("❌ Error submitting proposal:", error.message);
@@ -118,6 +121,13 @@ const StaffProposal = () => {
           min={minDate} // Prevent past dates
           required
         />
+
+        <label>Note:</label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Additional comments or instructions (optional)"
+        ></textarea>
 
         <label>Attachment (Permits, Budget Plans, etc.):</label>
         <input type="file" onChange={handleFileChange} />

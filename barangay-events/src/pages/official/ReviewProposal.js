@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { db, auth } from "../../firebaseConfig"; // Firebase Firestore & Auth
-import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
+import { db, auth } from "../../firebaseConfig";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import Swal from "sweetalert2";
 import "./ReviewProposal.css";
 
@@ -72,6 +72,22 @@ const ReviewProposals = () => {
       return;
     }
   
+    // Confirm Approval before submitting
+    if (voteType === "approve") {
+      const { isConfirmed } = await Swal.fire({
+        title: "Confirm Approval",
+        text: "Are you sure you want to approve this proposal?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Approve",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#d33",
+      });
+  
+      if (!isConfirmed) return; // If cancelled, do nothing
+    }
+  
     try {
       const proposalRef = doc(db, "proposals", proposalId);
       const proposalSnap = await getDoc(proposalRef);
@@ -119,9 +135,24 @@ const ReviewProposals = () => {
   
       votes[voteType].push(userId);
   
+      // **80% Approval Calculation**
+      const totalOfficials = officialsCount;
+      const approvalThreshold = Math.ceil(totalOfficials * 0.8); // 80% of total officials
       let newStatus = "Pending";
-      if (votes.approve.length >= officialsCount) newStatus = "Approved";
-      if (votes.reject.length >= officialsCount) newStatus = "Rejected";
+  
+      if (votes.approve.length >= approvalThreshold) {
+        newStatus = "Approved";
+  
+        // Notify when proposal is approved
+        Swal.fire({
+          icon: "success",
+          title: "Proposal Approved!",
+          text: "This proposal has been officially approved.",
+          confirmButtonColor: "#28a745",
+        });
+      } else if (votes.reject.length >= totalOfficials) {
+        newStatus = "Rejected";
+      }
   
       await updateDoc(proposalRef, {
         votes,
@@ -146,6 +177,40 @@ const ReviewProposals = () => {
       console.error("Error voting:", error.message);
     }
   };  
+
+  const checkProposalDeadlines = async () => {
+    try {
+      const proposalsSnapshot = await getDocs(collection(db, "proposals"));
+      const today = new Date();
+
+      for (const docSnap of proposalsSnapshot.docs) {
+        const proposalData = docSnap.data();
+        const proposalRef = doc(db, "proposals", docSnap.id);
+
+        if (!proposalData.date || proposalData.status !== "Pending") continue;
+
+        const eventDate = new Date(proposalData.date);
+        const oneDayBefore = new Date(eventDate);
+        oneDayBefore.setDate(eventDate.getDate() - 1);
+
+        if (today >= oneDayBefore) {
+          await updateDoc(proposalRef, { status: "Rejected" });
+
+          Swal.fire({
+            icon: "info",
+            title: "Proposal Auto Declined",
+            text: `The proposal "${proposalData.title}" has been automatically rejected due to the deadline.`,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error checking deadlines:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    checkProposalDeadlines();
+  }, []);
 
   const handleViewAttachment = (fileURL) => {
     if (!fileURL) {
@@ -186,8 +251,9 @@ const ReviewProposals = () => {
             <th>Description</th>
             <th>Location</th>
             <th>Date</th>
+            <th>Note</th>
             <th>Submitted By</th>
-            <th>Attachment</th> {/* ✅ Fix: Attachment Column */}
+            <th>Attachment</th>
             <th>Votes</th>
             <th>Actions</th>
           </tr>
@@ -201,11 +267,12 @@ const ReviewProposals = () => {
                 <td>{proposal.description}</td>
                 <td>{proposal.location}</td>
                 <td>{proposal.date}</td>
+                <td>{proposal.note || "No note provided"}</td>
                 <td>{proposal.submitterName}</td>
                 <td>
                   <button
                     className="attachment-btn"
-                    onClick={() => handleViewAttachment(proposal.fileURL)} // ✅ FIXED: Use fileURL
+                    onClick={() => handleViewAttachment(proposal.fileURL)}
                   >
                     View
                   </button>
@@ -232,7 +299,6 @@ const ReviewProposals = () => {
         </tbody>
       </table>
 
-      {/* Voted Proposals Table */}
       <h3>Voted Proposals</h3>
       <table className="proposals-table">
         <thead>
