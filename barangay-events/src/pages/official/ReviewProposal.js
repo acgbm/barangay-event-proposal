@@ -197,20 +197,26 @@ const ReviewProposals = () => {
     try {
       const proposalsSnapshot = await getDocs(collection(db, "proposals"));
       const today = new Date();
-
+  
       for (const docSnap of proposalsSnapshot.docs) {
         const proposalData = docSnap.data();
         const proposalRef = doc(db, "proposals", docSnap.id);
-
+  
         if (!proposalData.date || proposalData.status !== "Pending") continue;
-
+  
         const eventDate = new Date(proposalData.date);
         const oneDayBefore = new Date(eventDate);
         oneDayBefore.setDate(eventDate.getDate() - 1);
-
+  
         if (today >= oneDayBefore) {
           await updateDoc(proposalRef, { status: "Rejected" });
-
+  
+          await addDoc(collection(db, "notifications"), {
+            message: `Proposal "${proposalData.title}" has been automatically rejected due to the deadline.`,
+            timestamp: serverTimestamp(),
+            type: "Rejected",
+          });
+  
           Swal.fire({
             icon: "info",
             title: "Proposal Auto Declined",
@@ -221,7 +227,7 @@ const ReviewProposals = () => {
     } catch (error) {
       console.error("Error checking deadlines:", error.message);
     }
-  };
+  };  
 
   useEffect(() => {
     checkProposalDeadlines();

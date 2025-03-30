@@ -20,45 +20,77 @@ const StaffDashboard = () => {
     return () => unsubscribe();
   }, []);
 
-  const fetchUserProposals = async (uid) => {
-    try {
-      const proposalsSnapshot = await getDocs(
-        query(collection(db, "proposals"), where("userId", "==", uid))
-      );
-      const userProposals = proposalsSnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }));
+// ✅ Auto-Reject Proposals Past Deadline (Even Without Votes)
+const checkForAutoRejection = async () => {
+  try {
+    const proposalsSnapshot = await getDocs(collection(db, "proposals"));
+    const currentDate = new Date();
 
-      setProposals(userProposals);
-      checkForNotifications(userProposals); // ✅ Check for new approvals/rejections
-    } catch (error) {
-      console.error("Error fetching proposals:", error.message);
-    }
-  };
+    const proposalsToReject = proposalsSnapshot.docs.filter((docSnap) => {
+      const proposal = docSnap.data();
+      const deadline = new Date(proposal.deadline); // Ensure deadline is a valid date
+      const hasVotes = proposal.votes?.approve.length > 0 || proposal.votes?.reject.length > 0;
 
-  const checkForNotifications = (userProposals) => {
-    const newNotifications = userProposals.filter(
-      (proposal) => proposal.status && !proposal.notified
-    );
-
-    if (newNotifications.length > 0) {
-      setNotifications(newNotifications);
-      newNotifications.forEach((proposal) => showNotification(proposal));
-    }
-  };
-
-  const showNotification = async (proposal) => {
-    await Swal.fire({
-      icon: proposal.status === "Approved" ? "success" : "error",
-      title: `Proposal ${proposal.status}!`,
-      text: `Your event proposal "${proposal.title}" has been ${proposal.status.toLowerCase()}.`,
+      return deadline < currentDate && !hasVotes && proposal.status !== "Rejected"; // Auto-reject condition
     });
 
-    // ✅ Mark as notified in Firestore
-    const proposalRef = doc(db, "proposals", proposal.id);
-    await updateDoc(proposalRef, { notified: true });
-  };
+    for (const proposalDoc of proposalsToReject) {
+      const proposalRef = doc(db, "proposals", proposalDoc.id);
+      await updateDoc(proposalRef, { status: "Rejected", notified: false }); // ✅ Ensure notification triggers
+    }
+  } catch (error) {
+    console.error("Error auto-rejecting proposals:", error.message);
+  }
+};
+
+// ✅ Fetch Proposals and Check for Notifications
+const fetchUserProposals = async (uid) => {
+  try {
+    const proposalsSnapshot = await getDocs(
+      query(collection(db, "proposals"), where("userId", "==", uid))
+    );
+    const userProposals = proposalsSnapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }));
+
+    setProposals(userProposals);
+    checkForNotifications(userProposals);
+  } catch (error) {
+    console.error("Error fetching proposals:", error.message);
+  }
+};
+
+// ✅ Notify Staff of Approved or Rejected Proposals
+const checkForNotifications = (userProposals) => {
+  const newNotifications = userProposals.filter(
+    (proposal) =>
+      (proposal.status === "Approved" || proposal.status === "Rejected") &&
+      proposal.notified !== true
+  );
+
+  if (newNotifications.length > 0) {
+    setNotifications(newNotifications);
+    newNotifications.forEach((proposal) => showNotification(proposal));
+  }
+};
+
+const showNotification = async (proposal) => {
+  await Swal.fire({
+    icon: proposal.status === "Approved" ? "success" : "error",
+    title: `Proposal ${proposal.status}!`,
+    text: `Your event proposal "${proposal.title}" has been ${proposal.status.toLowerCase()}.`,
+  });
+
+  // ✅ Mark as notified in Firestore
+  const proposalRef = doc(db, "proposals", proposal.id);
+  await updateDoc(proposalRef, { notified: true });
+};
+
+// ✅ Run Auto-Rejection Periodically (e.g., on Dashboard Load)
+useEffect(() => {
+  checkForAutoRejection();
+}, []);
 
   const handleViewFeedback = (feedbackArray) => {
     if (!feedbackArray || feedbackArray.length === 0) {
