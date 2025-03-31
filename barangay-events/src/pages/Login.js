@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./Login.css";
 import logo from "../assets/bg.png"; // Adjust your logo path
-import { getDoc, doc, collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, getDoc, doc, collection, query, where, getDocs, } from "firebase/firestore";
 import { db } from "../firebaseConfig";  
-import { getAuth, sendPasswordResetEmail } from "firebase/auth";  
+import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "firebase/auth";  
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -89,15 +89,36 @@ const Login = () => {
     }
   
     try {
+      // Step 1: Check Firestore for a matching email and DOB
+      const userRef = collection(db, "users"); 
+      const q = query(userRef, where("email", "==", email), where("dob", "==", dob));
+      const querySnapshot = await getDocs(q);
+  
+      if (querySnapshot.empty) {
+        Swal.fire("Error", "Invalid email or date of birth.", "error");
+        return;
+      }
+  
+      // Step 2: Send password reset email
       await sendPasswordResetEmail(auth, email);
-      Swal.fire(
-        "Success",
-        "A password reset link has been sent to your email.",
-        "success"
-      );
+      Swal.fire("Success", "A password reset link has been sent to your email.", "success");
     } catch (error) {
+      console.error("Error fetching user:", error);
       Swal.fire("Error", error.message, "error");
     }
+  }; 
+  
+  // Function to get user data by email from Firestore
+  const getUserByEmail = async (email) => {
+    const db = getFirestore();
+    const usersRef = collection(db, "users"); // Adjust collection name if needed
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+  
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs[0].data(); // Returns user data if found
+    }
+    return null;
   };
 
   return (
