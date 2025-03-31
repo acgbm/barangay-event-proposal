@@ -197,6 +197,7 @@ const ReviewProposals = () => {
     try {
       const proposalsSnapshot = await getDocs(collection(db, "proposals"));
       const today = new Date();
+      today.setHours(0, 0, 0, 0); // Ensure we compare only the date (not time)
   
       for (const docSnap of proposalsSnapshot.docs) {
         const proposalData = docSnap.data();
@@ -205,10 +206,12 @@ const ReviewProposals = () => {
         if (!proposalData.date || proposalData.status !== "Pending") continue;
   
         const eventDate = new Date(proposalData.date);
+        eventDate.setHours(0, 0, 0, 0); // Remove time component for accurate comparison
+  
         const oneDayBefore = new Date(eventDate);
         oneDayBefore.setDate(eventDate.getDate() - 1);
   
-        if (today >= oneDayBefore) {
+        if (today.getTime() === oneDayBefore.getTime()) {
           await updateDoc(proposalRef, { status: "Rejected" });
   
           await addDoc(collection(db, "notifications"), {
@@ -230,7 +233,13 @@ const ReviewProposals = () => {
   };  
 
   useEffect(() => {
-    checkProposalDeadlines();
+    checkProposalDeadlines(); // Run immediately when the component mounts
+  
+    const interval = setInterval(() => {
+      checkProposalDeadlines(); // Run every hour
+    }, 60 * 60 * 1000);
+  
+    return () => clearInterval(interval); // Cleanup interval when component unmounts
   }, []);
 
   const handleViewAttachment = (fileURL) => {
