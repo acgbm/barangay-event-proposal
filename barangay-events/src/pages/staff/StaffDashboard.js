@@ -250,16 +250,16 @@ const StaffDashboard = () => {
                 </td>
                 <td>
                   {proposal.status === "Rejected" ? (
-                    <>
-                      <button onClick={() => handleViewFeedback(proposal.rejectionFeedback)}>
+                    <div className="action-buttons">
+                      <button className="view-feedback-btn" onClick={() => handleViewFeedback(proposal.rejectionFeedback)}>
                         View Feedback
                       </button>
-                      <button onClick={() => handleResubmitProposal(proposal)}>
+                      <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
                         Resubmit Proposal
                       </button>
-                    </>
+                    </div>
                   ) : proposal.status === "Done" ? (
-                    <button onClick={() => handleResubmitProposal(proposal)}>
+                    <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
                       Resubmit Proposal
                     </button>
                   ) : (

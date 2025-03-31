@@ -1,93 +1,132 @@
 /* Main container for staff dashboard */
 .staff-dashboard {
-    margin-left: 200px; /* Adjusted to fit the sidebar */
-    padding: 20px;
-    transition: margin-left 0.3s ease-in-out;
-    font-family: "Google Sans", Roboto, Arial, sans-serif;
-  }
-  
-  /* Page title */
-  .staff-dashboard h1 {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
-  /* Dashboard sections */
-  .dashboard-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns */
-    gap: 20px;
-  }
-  
-  /* Each dashboard card */
-  .dashboard-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
-  }
-  
-  .dashboard-card:hover {
-    transform: scale(1.05);
-  }
-  
-  /* Card titles */
-  .dashboard-card h2 {
-    font-size: 18px;
-    font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 10px;
-  }
-  
-  /* Card content */
-  .dashboard-card p {
-    font-size: 14px;
-    color: #666;
-  }
-  
-  /* Make buttons inside the dashboard uniform */
-  .dashboard-btn {
-    margin-top: 10px;
-    background: #4da8da;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s ease-in-out;
-  }
-  
-  .dashboard-btn:hover {
-    background: #1e88e5;
-  }
-  
-  /* Responsive Adjustments */
-  @media (max-width: 1024px) {
-    .staff-dashboard {
+  margin-left: 200px; /* Adjusted to fit the sidebar */
+  padding: 20px;
+  transition: margin-left 0.3s ease-in-out;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+}
+
+/* Page title */
+.staff-dashboard h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+}
+
+/* Dashboard sections */
+.dashboard-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 20px;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+}
+
+/* Each dashboard card */
+.dashboard-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.dashboard-card:hover {
+  transform: scale(1.05);
+}
+
+/* Card titles */
+.dashboard-card h2 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+/* Card content */
+.dashboard-card p {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Make buttons inside the dashboard uniform */
+.dashboard-btn {
+  margin-top: 10px;
+  background: #4da8da;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.dashboard-btn:hover {
+  background: #1e88e5;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.view-feedback-btn {
+  background: #ff9800;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.view-feedback-btn:hover {
+  background: #e68900;
+}
+
+.resubmit-btn {
+  background: #4caf50;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.resubmit-btn:hover {
+  background: #388e3c;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .staff-dashboard {
       margin-left: 180px; /* Slightly smaller sidebar spacing */
-    }
-  
-    .dashboard-container {
-      grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
-    }
   }
-  
-  @media (max-width: 768px) {
-    .staff-dashboard {
+
+  .dashboard-container {
+      grid-template-columns: repeat(2, 1fr); /* 2 columns on medium screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .staff-dashboard {
       margin-left: 70px; /* Sidebar collapses, adjust margin */
       padding: 15px;
-    }
-  
-    .dashboard-container {
-      grid-template-columns: 1fr; /* 1 column on smaller screens */
-    }
-  
-    .dashboard-card {
-      padding: 15px;
-    }
   }
-  
+
+  .dashboard-container {
+      grid-template-columns: 1fr; /* 1 column on smaller screens */
+  }
+
+  .dashboard-card {
+      padding: 15px;
+  }
+
+  .action-buttons {
+      flex-direction: column;
+  }
+}
