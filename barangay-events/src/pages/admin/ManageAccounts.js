@@ -27,6 +27,11 @@ const ManageAccounts = () => {
   const [phone, setPhone] = useState("");
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
+  const [editMode, setEditMode] = useState(null);
+  const [editFullName, setEditFullName] = useState("");
+  const [editDob, setEditDob] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editRole, setEditRole] = useState("");
   const db = getFirestore();
   const auth = getAuth();
 
@@ -42,7 +47,8 @@ const ManageAccounts = () => {
       const usersList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      }))
+      .filter((user) => user.role !== "admin"); // Hide admin accounts
 
       setAccounts(usersList);
     };
@@ -119,7 +125,43 @@ const ManageAccounts = () => {
         text: err.message,
       });
     }
-  };  
+  };
+  
+  const handleEditAccount = async (userId) => {
+    try {
+      await updateDoc(doc(db, "users", userId), {
+        fullName: editFullName,
+        dob: editDob,
+        phone: editPhone,
+        role: editRole,
+      });
+  
+      setAccounts(
+        accounts.map((user) =>
+          user.id === userId
+            ? { ...user, fullName: editFullName, dob: editDob, phone: editPhone, role: editRole }
+            : user
+        )
+      );
+  
+      setEditMode(null); // Exit edit mode after saving
+  
+      Swal.fire({
+        icon: "success",
+        title: "Account Updated",
+        text: "The account has been successfully updated.",
+      });
+    } catch (err) {
+      console.error("Error updating account:", err);
+  
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: err.message,
+      });
+    }
+  };
+  
 
   const handleDeleteAccount = async (userId) => {
     try {
@@ -177,22 +219,93 @@ const ManageAccounts = () => {
           </tr>
         </thead>
         <tbody>
-          {accounts.map((user) => (
-            <tr key={user.id}>
-              <td>{user.fullName}</td>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
-              <td>{user.dob}</td>
-              <td>{user.phone}</td>
-              <td>{user.verified ? "✅ Verified" : "❌ Not Verified"}</td>
-              <td>
-                {user.role !== "admin" && (
-                  <button onClick={() => handleDeleteAccount(user.id)} style={{ backgroundColor: "#dc3545" }}>Remove</button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
+            {accounts
+              .filter((user) => user.role !== "admin") // Hide admin accounts
+              .map((user) => (
+                <tr key={user.id}>
+                  <td>
+                    {editMode === user.id ? (
+                      <input
+                        type="text"
+                        value={editFullName}
+                        onChange={(e) => setEditFullName(e.target.value)}
+                      />
+                    ) : (
+                      user.fullName
+                    )}
+                  </td>
+                  <td>{user.email}</td>
+                  <td>
+                    {editMode === user.id ? (
+                      <select value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                        <option value="staff">Staff</option>
+                        <option value="official">Official</option>
+                      </select>
+                    ) : (
+                      user.role
+                    )}
+                  </td>
+                  <td>
+                    {editMode === user.id ? (
+                      <input
+                        type="date"
+                        value={editDob}
+                        onChange={(e) => setEditDob(e.target.value)}
+                      />
+                    ) : (
+                      user.dob
+                    )}
+                  </td>
+                  <td>
+                    {editMode === user.id ? (
+                      <input
+                        type="tel"
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                      />
+                    ) : (
+                      user.phone
+                    )}
+                  </td>
+                  <td>{user.verified ? "✅ Verified" : "❌ Not Verified"}</td>
+                  <td>
+                    {editMode === user.id ? (
+                      <>
+                        <button
+                          onClick={() => handleEditAccount(user.id)}
+                          style={{ backgroundColor: "#28a745", marginRight: "5px" }}
+                        >
+                          Save
+                        </button>
+                        <button onClick={() => setEditMode(null)} style={{ backgroundColor: "#6c757d" }}>
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditMode(user.id);
+                            setEditFullName(user.fullName);
+                            setEditDob(user.dob);
+                            setEditPhone(user.phone);
+                            setEditRole(user.role);
+                          }}
+                          style={{ backgroundColor: "#007bff", marginRight: "5px" }}
+                        >
+                          Edit
+                        </button>
+                        {user.role !== "admin" && (
+                          <button onClick={() => handleDeleteAccount(user.id)} style={{ backgroundColor: "#dc3545" }}>
+                            Remove
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
       </table>
     </div>
   );
