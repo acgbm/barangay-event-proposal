@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  getFirestore,
-  collection,
-  setDoc,
-  doc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
+import { getFirestore, collection, setDoc, doc, getDocs, getDoc, updateDoc, deleteDoc,
 } from "firebase/firestore";
 import {
   getAuth,
@@ -164,31 +156,86 @@ const ManageAccounts = () => {
   
 
   const handleDeleteAccount = async (userId) => {
-    try {
-      await deleteDoc(doc(db, "users", userId));
-
-      const userToDelete = auth.currentUser;
-      if (userToDelete && userToDelete.uid === userId) {
-        await deleteUser(userToDelete);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action will permanently delete the account!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteDoc(doc(db, "users", userId));
+  
+          const userToDelete = auth.currentUser;
+          if (userToDelete && userToDelete.uid === userId) {
+            await deleteUser(userToDelete);
+          }
+  
+          setAccounts(accounts.filter((user) => user.id !== userId));
+  
+          Swal.fire({
+            icon: "success",
+            title: "Account Deleted",
+            text: "The account has been removed successfully.",
+          });
+        } catch (err) {
+          console.error("Error deleting account:", err);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Failed to delete account.",
+          });
+        }
       }
+    });
+  };  
 
-      setAccounts(accounts.filter((user) => user.id !== userId));
-
-      Swal.fire({
-        icon: "success",
-        title: "Account Deleted",
-        text: "The account has been removed successfully.",
-      });
-    } catch (err) {
-      console.error("Error deleting account:", err);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to delete account.",
-      });
-    }
+  const handleToggleAccountStatus = async (userId, isDisabled) => {
+    const action = isDisabled ? "enable" : "disable";
+  
+    Swal.fire({
+      title: `Are you sure you want to ${action} this account?`,
+      text: `This will ${isDisabled ? "allow" : "prevent"} the user from logging in.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Yes, ${action} it!`,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await updateDoc(doc(db, "users", userId), {
+            disabled: !isDisabled, // Toggle the status
+          });
+  
+          setAccounts(
+            accounts.map((user) =>
+              user.id === userId ? { ...user, disabled: !isDisabled } : user
+            )
+          );
+  
+          Swal.fire({
+            icon: "success",
+            title: isDisabled ? "Account Enabled" : "Account Disabled",
+            text: isDisabled
+              ? "The account has been re-enabled and can log in again."
+              : "The account has been disabled and cannot log in.",
+          });
+        } catch (err) {
+          console.error("Error updating account status:", err);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Failed to update account status.",
+          });
+        }
+      }
+    });
   };
-
+  
   return (
     <div className="manage-accounts">
       <h2>Manage Accounts</h2>
@@ -295,9 +342,22 @@ const ManageAccounts = () => {
                         >
                           Edit
                         </button>
-                        {user.role !== "admin" && (
-                          <button onClick={() => handleDeleteAccount(user.id)} style={{ backgroundColor: "#dc3545" }}>
-                            Remove
+                        {user.verified ? (
+                          <button
+                            onClick={() => handleToggleAccountStatus(user.id, user.disabled)}
+                            style={{
+                              backgroundColor: user.disabled ? "#28a745" : "#6c757d", // Green for enable, Gray for disable
+                              cursor: "pointer",
+                            }}
+                          >
+                            {user.disabled ? "Enable Account" : "Disable Account"}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleDeleteAccount(user.id)}
+                            style={{ backgroundColor: "#dc3545" }}
+                          >
+                            Delete Account
                           </button>
                         )}
                       </>

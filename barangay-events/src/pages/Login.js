@@ -24,7 +24,7 @@ const Login = () => {
       const userCredential = await login(email, password);
       const user = userCredential.user;
   
-      // Fetch user role & verification status from Firestore
+      // Fetch user data from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
       const userData = userDoc.data();
   
@@ -33,20 +33,24 @@ const Login = () => {
       }
   
       const role = userData.role;
-      const isVerified = userData.verified; // Get verification status
-
+      const isVerified = userData.verified;
+      const isDisabled = userData.disabled; // Check if account is disabled
+  
+      // Block disabled accounts
+      if (isDisabled) {
+        Swal.fire("Error", "This account has been disabled.", "error");
+        return;
+      }
+  
       // Block unverified users (except admins)
       if (!isVerified && role !== "admin") {
         Swal.fire("Error", "Please verify your email before logging in.", "error");
         return;
       }
-
+  
       let successMessage = "Logged in successfully!";
       let navigateTo = "/dashboard";
-      let title = "Success";
-      let icon = "success";
-
-      // Customize message and redirect based on user role
+  
       switch (role) {
         case "admin":
           successMessage = "Welcome Admin!";
@@ -67,9 +71,9 @@ const Login = () => {
       }
   
       Swal.fire({
-        title: title,
+        title: "Success",
         text: successMessage,
-        icon: icon,
+        icon: "success",
         timer: 1500,
         showConfirmButton: false,
       }).then(() => {
@@ -79,7 +83,7 @@ const Login = () => {
     } catch (err) {
       Swal.fire("Error", "Invalid username or password", "error");
     }
-  };  
+  };    
 
   // Forgot Password Handler
   const handleForgotPassword = async () => {
