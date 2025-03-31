@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
 import { supabase } from "../../firebaseConfig";
-import { collection, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
 import "./StaffDashboard.css";
 
@@ -136,30 +136,29 @@ const StaffDashboard = () => {
     });
   };
 
-  // ✅ Resubmit Rejected or Done Proposals
   const handleResubmitProposal = async (proposal) => {
     const { value: formValues } = await Swal.fire({
       title: "Edit Proposal Before Resubmitting",
       html: `
         <div style="text-align:left; font-size: 12px; padding: 5px 10px;">
-        <label for="swal-title" style="font-weight: bold; font-size: 12px;">Event Title</label>
-        <input id="swal-title" class="swal2-input" style="width: 90%; font-size: 12px; padding: 5px;" placeholder="Enter event title" value="${proposal.title}">
-
-        <label for="swal-description" style="font-weight: bold; font-size: 12px;">Description</label>
-        <textarea id="swal-description" class="swal2-textarea" style="width: 90%; font-size: 12px; height: 50px; padding: 5px;" placeholder="Enter event description">${proposal.description}</textarea>
-
-        <label for="swal-location" style="font-weight: bold; font-size: 12px;">Location</label>
-        <input id="swal-location" class="swal2-input" style="width: 90%; font-size: 12px; padding: 5px;" placeholder="Enter event location" value="${proposal.location || ""}">
-
-        <label for="swal-date" style="font-weight: bold; font-size: 12px;">Date</label>
-        <input id="swal-date" class="swal2-input" type="date" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.date}">
-
-        <label for="swal-note" style="font-weight: bold; font-size: 12px;">Note</label>
-        <textarea id="swal-note" class="swal2-textarea" style="width: 90%; font-size: 12px; height: 50px; padding: 5px;" placeholder="Additional notes (optional)">${proposal.note || ""}</textarea>
-
-        <label for="swal-attachment" style="font-weight: bold; font-size: 12px;">Attachment</label>
-        <input id="swal-attachment" class="swal2-file" type="file" style="font-size: 12px; padding: 3px;">
-      </div>
+          <label for="swal-title" style="font-weight: bold; font-size: 12px;">Event Title</label>
+          <input id="swal-title" class="swal2-input" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.title}">
+          
+          <label for="swal-description" style="font-weight: bold; font-size: 12px;">Description</label>
+          <textarea id="swal-description" class="swal2-textarea" style="width: 90%; font-size: 12px; height: 50px; padding: 5px;">${proposal.description}</textarea>
+          
+          <label for="swal-location" style="font-weight: bold; font-size: 12px;">Location</label>
+          <input id="swal-location" class="swal2-input" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.location || ""}">
+          
+          <label for="swal-date" style="font-weight: bold; font-size: 12px;">Date</label>
+          <input id="swal-date" class="swal2-input" type="date" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.date}">
+          
+          <label for="swal-note" style="font-weight: bold; font-size: 12px;">Note</label>
+          <textarea id="swal-note" class="swal2-textarea" style="width: 90%; font-size: 12px; height: 50px; padding: 5px;">${proposal.note || ""}</textarea>
+          
+          <label for="swal-attachment" style="font-weight: bold; font-size: 12px;">Attachment</label>
+          <input id="swal-attachment" class="swal2-file" type="file" style="font-size: 12px; padding: 3px;">
+        </div>
       `,
       showCancelButton: true,
       confirmButtonText: "Resubmit",
@@ -178,8 +177,7 @@ const StaffDashboard = () => {
     if (!formValues) return;
   
     try {
-      const proposalRef = doc(db, "proposals", proposal.id);
-      let fileURL = proposal.fileURL || ""; // Keep existing file if not changed
+      let fileURL = ""; // Store new file URL if uploaded
   
       // ✅ Handle file upload to Supabase
       if (formValues.attachment) {
@@ -203,25 +201,28 @@ const StaffDashboard = () => {
         fileURL = publicData.publicUrl;
       }
   
-      // ✅ Update proposal in Firestore
-      await updateDoc(proposalRef, {
+      // ✅ Create a new proposal in Firestore
+      const proposalsRef = collection(db, "proposals"); // Reference to proposals collection
+      await addDoc(proposalsRef, {
+        userId: proposal.userId, // Keep the same owner
         title: formValues.title,
         description: formValues.description,
         location: formValues.location,
         date: formValues.date,
         note: formValues.note,
         fileURL, // Store file URL
-        status: "Pending",
+        status: "Pending", // Mark as new submission
         notified: false,
+        createdAt: serverTimestamp(), // Track submission time
       });
   
-      Swal.fire("Resubmitted!", "Your proposal has been resubmitted for approval.", "success");
+      Swal.fire("Resubmitted!", "Your proposal has been resubmitted as a new entry.", "success");
       fetchUserProposals(userId);
     } catch (error) {
       console.error("Error resubmitting proposal:", error.message);
       Swal.fire("Error", "Failed to resubmit the proposal. Try again later.", "error");
     }
-  };
+  };      
 
   return (
     <div className="staff-dashboard">
