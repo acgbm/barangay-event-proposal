@@ -3,6 +3,7 @@
     margin-left: 200px; /* Adjusted to fit the sidebar */
     padding: 20px;
     transition: margin-left 0.3s ease-in-out;
+    font-family: "Google Sans", Roboto, Arial, sans-serif;
   }
   
   /* Page title */

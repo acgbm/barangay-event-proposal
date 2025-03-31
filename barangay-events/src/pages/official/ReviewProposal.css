@@ -6,6 +6,7 @@
   align-items: flex-start;
   width: 100%;
   margin-left: 250px; /* Ensures it doesn't overlap with sidebar */
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
 }
 
 /* ✅ Wrapper for sections */
@@ -16,6 +17,7 @@
   max-width: 1500px;
   flex-wrap: wrap;
   justify-content: space-between; /* Distributes content evenly */
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
 }
 
 /* ✅ Proposal Sections */

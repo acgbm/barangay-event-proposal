@@ -8,6 +8,7 @@ import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffProposal from "./pages/staff/StaffProposal";
 import Events from "./pages/staff/Events"; 
 import OfficialDashboard from "./pages/official/OfficialDashboard";
+import OfficialEvents from "./pages/official/OfficialEvents";
 import ReviewProposal from "./pages/official/ReviewProposal";
 import Layout from "./components/Layout"; // Sidebar wrapper
 
@@ -37,6 +38,7 @@ function App() {
           <Route element={<Layout role="official" />}>
             <Route path="/official-dashboard" element={<OfficialDashboard />} />
             <Route path="/review-proposals" element={<ReviewProposal />} />
+            <Route path="/official-events" element={<OfficialEvents />} />
           </Route>
         </Routes>
       </Router>
