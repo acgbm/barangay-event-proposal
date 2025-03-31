@@ -18,7 +18,7 @@ const Sidebar = ({ role }) => {
     staff: [
       { name: "Dashboard", path: "/staff-dashboard", icon: "fas fa-home" },
       { name: "Submit Proposal", path: "/staff-proposal", icon: "fas fa-file-alt" },
-      { name: "Events", path: "/staff-events", icon: "fas fa-calendar" },
+      { name: "Events", path: "/events", icon: "fas fa-calendar" },
       { name: "Account", path: "/staff-account", icon: "fas fa-user" },
     ],
     official: [

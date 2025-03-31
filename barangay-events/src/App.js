@@ -6,6 +6,7 @@ import ManageAccounts from "./pages/admin/ManageAccounts";
 import VerifyEmail from "./pages/VerifyEmail";
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffProposal from "./pages/staff/StaffProposal";
+import Events from "./pages/staff/Events"; 
 import OfficialDashboard from "./pages/official/OfficialDashboard";
 import ReviewProposal from "./pages/official/ReviewProposal";
 import Layout from "./components/Layout"; // Sidebar wrapper
@@ -29,6 +30,7 @@ function App() {
           <Route element={<Layout role="staff" />}>
             <Route path="/staff-dashboard" element={<StaffDashboard />} />
             <Route path="/staff-proposal" element={<StaffProposal />} />
+            <Route path="/events" element={<Events />} />
           </Route>
 
           {/* Official Pages */}
