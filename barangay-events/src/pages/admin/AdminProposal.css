@@ -1,0 +1,134 @@
+/* AdminProposal.css */
+
+/* Main container for AdminProposal */
+.admin-proposal {
+    margin-left: 200px; /* Adjusted to fit the sidebar */
+    padding: 20px;
+    transition: margin-left 0.3s ease-in-out;
+    font-family: "Google Sans", Roboto, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the content horizontally */
+    min-height: 100vh;
+  }
+  
+  /* Page title */
+  .admin-proposal h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    font-family: "Google Sans", Roboto, Arial, sans-serif;
+  }
+  
+  /* Table container */
+  .table-container {
+    width: 100%;
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
+    display: flex;
+    justify-content: center; /* Centers the table horizontally */
+    margin-top: 20px;
+  }
+  
+  /* Table styling */
+  .table {
+    width: 100%;
+    max-width: 1200px; /* Prevent the table from stretching too much on large screens */
+    border-collapse: collapse;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: white;
+  }
+  
+  .table th,
+  .table td {
+    padding: 15px;
+    text-align: left;
+    font-size: 14px;
+    border: 1px solid #ddd;
+  }
+  
+  .table th {
+    background-color: #4da8da;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .table td {
+    background-color: #fff;
+  }
+  
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .rescheduleButton,
+  .cancelButton {
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease-in-out;
+    border: none;
+  }
+  
+  .rescheduleButton {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .rescheduleButton:hover {
+    background-color: #388e3c;
+  }
+  
+  .cancelButton {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .cancelButton:hover {
+    background-color: #e53935;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .admin-proposal {
+      margin-left: 180px; /* Slightly smaller sidebar spacing */
+    }
+  
+    .table-container {
+      margin-top: 15px;
+    }
+  
+    .table th,
+    .table td {
+      padding: 12px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .admin-proposal {
+      margin-left: 70px; /* Sidebar collapses, adjust margin */
+      padding: 15px;
+    }
+  
+    .table th,
+    .table td {
+      padding: 10px;
+      font-size: 12px;
+    }
+  
+    .rescheduleButton,
+    .cancelButton {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  
+    .action-buttons {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+  

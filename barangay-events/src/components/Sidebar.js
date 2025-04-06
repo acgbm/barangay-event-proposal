@@ -14,6 +14,7 @@ const Sidebar = ({ role }) => {
     admin: [
       { name: "Dashboard", path: "/admin-dashboard", icon: "fas fa-home" },
       { name: "Manage Accounts", path: "/manage-accounts", icon: "fas fa-users" },
+      { name: "Proposals", path: "/admin-proposals", icon: "fas fa-users" },
     ],
     staff: [
       { name: "Dashboard", path: "/staff-dashboard", icon: "fas fa-home" },
