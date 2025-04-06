@@ -69,6 +69,7 @@ const StaffProposal = () => {
         createdAt: serverTimestamp(),
         userId: user.uid, // 🔹 Store user ID
         userEmail: user.email, // 🔹 Store user email
+        status: "Pending",
       });
 
       setMessage("✅ Proposal submitted successfully!");

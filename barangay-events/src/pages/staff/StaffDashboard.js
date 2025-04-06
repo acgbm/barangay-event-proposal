@@ -97,7 +97,7 @@ const StaffDashboard = () => {
     // Filter proposals for new notifications (approved, rejected, and declined)
     const newNotifications = userProposals.filter(
       (proposal) =>
-        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined (Missed Deadline)") &&
+        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled") || proposal.status === "Cancelled" &&
         proposal.notified !== true
     );
   
@@ -125,6 +125,14 @@ const StaffDashboard = () => {
       icon = "error";
       title = "Proposal Declined (Missed Deadline)!";
       text = `Your event proposal "${proposal.title}" was declined because the deadline was missed.`;
+    } else if (proposal.status === "Rescheduled") {
+      icon = "info";
+      title = "Event Rescheduled!";
+      text = `The event "${proposal.title}" has been rescheduled.`;
+    } else if (proposal.status === "Cancelled") {
+      icon = "error";
+      title = "Event Cancelled!";
+      text = `The event "${proposal.title}" has been cancelled.`;
     }
   
     // Show the notification with the appropriate message
@@ -138,6 +146,7 @@ const StaffDashboard = () => {
     const proposalRef = doc(db, "proposals", proposal.id);
     await updateDoc(proposalRef, { notified: true });
   };
+
   
 
   // ✅ Run Auto-Update Functions on Dashboard Load
@@ -146,18 +155,33 @@ const StaffDashboard = () => {
     updatePastEventsToDone();
   }, []);
 
-  // ✅ Handle Viewing Feedback for Rejected Proposals
-  const handleViewFeedback = (feedbackArray) => {
-    if (!feedbackArray || feedbackArray.length === 0) {
-      Swal.fire({
-        icon: "info",
-        title: "No Feedback",
-        text: "No rejection feedback available.",
-      });
-      return;
-    }
+  // ✅ Handle Viewing Feedback for Rejected and Cancelled Proposals
+const handleViewFeedback = (feedbackArray, status) => {
+  let feedbackText = "";
 
-    const feedbackText = feedbackArray
+  if (status === "Rejected" && (!feedbackArray || feedbackArray.length === 0)) {
+    Swal.fire({
+      icon: "info",
+      title: "No Feedback",
+      text: "No rejection feedback available.",
+    });
+    return;
+  }
+
+  if (status === "Cancelled") {
+    feedbackText = feedbackArray && feedbackArray.length > 0 
+      ? feedbackArray
+          .map((entry, index) => `${index + 1}. ${entry.feedback}`)
+          .join("<br><br>")
+      : "No cancellation feedback available.";
+
+    Swal.fire({
+      icon: "error",
+      title: "Cancelled Event Feedback",
+      html: `<div style="text-align:left">${feedbackText}</div>`,
+    });
+  } else if (status === "Rejected") {
+    feedbackText = feedbackArray
       .map((entry, index) => `${index + 1}. ${entry.feedback}`)
       .join("<br><br>");
 
@@ -166,6 +190,7 @@ const StaffDashboard = () => {
       title: "Rejected Feedback",
       html: `<div style="text-align:left">${feedbackText}</div>`,
     });
+    }
   };
 
   const handleResubmitProposal = async (proposal) => {

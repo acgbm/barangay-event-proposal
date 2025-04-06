@@ -29,10 +29,9 @@ const AdminProposal = () => {
 
   // Handle event rescheduling
   const handleReschedule = async (proposal) => {
-
     // Get the current date in YYYY-MM-DD format
-  const currentDate = new Date().toISOString().split("T")[0]; // Format as 'YYYY-MM-DD'
-
+    const currentDate = new Date().toISOString().split("T")[0]; // Format as 'YYYY-MM-DD'
+  
     const { value: newDate } = await Swal.fire({
       title: "Reschedule Event",
       input: "date",
@@ -46,23 +45,24 @@ const AdminProposal = () => {
       },
       inputAttributes: {
         min: currentDate, // Disables selecting past dates
-      },  
+      },
     });
-
+  
     if (newDate) {
       try {
         const proposalRef = doc(db, "proposals", proposal.id);
         await updateDoc(proposalRef, {
           date: newDate,
+          status: "Rescheduled", // Update the status to "Rescheduled"
         });
-
+  
         // Notify both staff and official side about the rescheduling
         Swal.fire({
           icon: "success",
           title: "Event Rescheduled",
           text: `The event "${proposal.title}" has been rescheduled to ${newDate}.`,
         });
-
+  
         fetchProposals(); // Re-fetch proposals to update the view
       } catch (error) {
         Swal.fire({
@@ -93,7 +93,7 @@ const AdminProposal = () => {
         const proposalRef = doc(db, "proposals", proposal.id);
         await updateDoc(proposalRef, {
           status: "Cancelled",
-          cancellationReason: reason,
+          cancellationReason: reason, // Store the reason for cancellation
         });
 
         // Notify both staff and official side about the cancellation
@@ -119,12 +119,16 @@ const AdminProposal = () => {
     switch (status) {
       case "Approved":
         return "green";
+      case "Pending":
+        return "black"; // Blue color for pending events
       case "Rejected":
         return "red";
       case "Declined (Missed Deadline)":
         return "orange";
       case "Cancelled":
         return "gray";
+      case "Rescheduled":
+        return "blue"; // Blue color for rescheduled events
       default:
         return "black";
     }
@@ -153,13 +157,20 @@ const AdminProposal = () => {
                   {proposal.status}
                 </td>
                 <td className="action-buttons">
-                  {proposal.status === "Approved" ? (
+                  {proposal.status === "Approved" && (
                     <>
                       <button className="rescheduleButton" onClick={() => handleReschedule(proposal)}>Reschedule</button>
                       <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
                     </>
-                  ) : (
-                    <span>No actions available</span> // Display text for rejected or declined proposals
+                  )}
+                  {proposal.status === "Rescheduled" && (
+                    <>
+                      <button className="rescheduleButton" onClick={() => handleReschedule(proposal)}>Reschedule Again</button>
+                      <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
+                    </>
+                  )}
+                  {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)") && (
+                    <span>No actions available</span> // Display text for cancelled, rejected, or declined proposals
                   )}
                 </td>
               </tr>
