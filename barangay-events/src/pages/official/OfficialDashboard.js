@@ -131,19 +131,19 @@ const OfficialDashboard = () => {
 
       <div className="statistics">
         <div className="stat-item">
-          <h3>Upcoming Proposals</h3>
+          <h3>Upcoming Events</h3>
           <p>{statistics.upcoming}</p>
         </div>
         <div className="stat-item">
-          <h3>Pending Proposals</h3>
+          <h3>Pending Events</h3>
           <p>{statistics.pending}</p>
         </div>
         <div className="stat-item">
-          <h3>Cancelled Proposals</h3>
+          <h3>Cancelled Events</h3>
           <p>{statistics.cancelled}</p>
         </div>
         <div className="stat-item">
-          <h3>Rejected Proposals</h3>
+          <h3>Rejected Events</h3>
           <p>{statistics.rejected}</p>
         </div>
       </div>

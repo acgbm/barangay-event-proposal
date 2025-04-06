@@ -1,0 +1,83 @@
+.admin-dashboard {
+    padding: 2rem 3rem;
+    margin-left: 250px; /* Adjust for sidebar */
+    box-sizing: border-box;
+    font-family: "Google Sans", Roboto, Arial, sans-serif;
+  }
+  
+  .admin-dashboard h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .statistics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat-item {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    padding: 1.2rem;
+    text-align: center;
+  }
+  
+  .stat-item h3 {
+    font-size: 1.1rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-item p {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  
+  .chart-section {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .report-generation {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .report-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    margin-right: 1rem;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .report-btn:hover {
+    background-color: #357ab8;
+  }
+  
+  @media (max-width: 768px) {
+    .admin-dashboard {
+      margin-left: 0;
+      padding: 1.5rem;
+    }
+  
+    .report-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 0.8rem;
+    }
+  }
+  
