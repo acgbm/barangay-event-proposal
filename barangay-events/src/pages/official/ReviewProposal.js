@@ -232,18 +232,18 @@ const ReviewProposals = () => {
         oneDayBefore.setDate(eventDate.getDate() - 1);
   
         if (today.getTime() === oneDayBefore.getTime()) {
-          await updateDoc(proposalRef, { status: "Rejected" });
+          await updateDoc(proposalRef, { status: "Declined (Missed Deadline)" });
   
           await addDoc(collection(db, "notifications"), {
-            message: `Proposal "${proposalData.title}" has been automatically rejected due to the deadline.`,
+            message: `Proposal "${proposalData.title}" has been automatically declined due to missing the deadline.`,
             timestamp: serverTimestamp(),
-            type: "Rejected",
+            type: "Declined",
           });
   
           Swal.fire({
             icon: "info",
             title: "Proposal Auto Declined",
-            text: `The proposal "${proposalData.title}" has been automatically rejected due to the deadline.`,
+            text: `The proposal "${proposalData.title}" has been automatically declined due to missing the deadline.`,
           });
         }
       }

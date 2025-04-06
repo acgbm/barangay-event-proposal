@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
 import { supabase } from "../../firebaseConfig";
-import { collection, getDocs, query, where, updateDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, updateDoc, doc, addDoc, serverTimestamp, } from "firebase/firestore";
 import Swal from "sweetalert2";
 import "./StaffDashboard.css";
 
@@ -32,13 +32,14 @@ const StaffDashboard = () => {
         const deadline = new Date(proposal.deadline);
         const hasVotes = proposal.votes?.approve.length > 0 || proposal.votes?.reject.length > 0;
 
-        return deadline < currentDate && !hasVotes && proposal.status !== "Rejected";
+        return deadline < currentDate && !hasVotes && proposal.status !== "Declined (Missed Deadline)";
       });
 
       for (const proposalDoc of proposalsToReject) {
         const proposalRef = doc(db, "proposals", proposalDoc.id);
-        await updateDoc(proposalRef, { status: "Rejected", notified: false });
-      }
+        await updateDoc(proposalRef, { status: "Declined (Missed Deadline)", notified: false });
+        console.log("Updated:", proposalDoc.id);
+      }      
     } catch (error) {
       console.error("Error auto-rejecting proposals:", error.message);
     }
@@ -83,30 +84,61 @@ const StaffDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const run = async () => {
+      await checkForAutoRejection(); // Mark overdue proposals
+      await fetchUserProposals();        // Then refresh the table
+    };
+    run();
+  }, []);
+
   // ✅ Notify Staff of Approved or Rejected Proposals
   const checkForNotifications = (userProposals) => {
+    // Filter proposals for new notifications (approved, rejected, and declined)
     const newNotifications = userProposals.filter(
       (proposal) =>
-        (proposal.status === "Approved" || proposal.status === "Rejected") &&
+        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined (Missed Deadline)") &&
         proposal.notified !== true
     );
-
+  
     if (newNotifications.length > 0) {
       setNotifications(newNotifications);
       newNotifications.forEach((proposal) => showNotification(proposal));
     }
   };
-
+  
   const showNotification = async (proposal) => {
+    let icon = "";
+    let title = "";
+    let text = "";
+  
+    // Set notification details based on proposal status
+    if (proposal.status === "Approved") {
+      icon = "success";
+      title = "Proposal Approved!";
+      text = `Your event proposal "${proposal.title}" has been approved.`;
+    } else if (proposal.status === "Rejected") {
+      icon = "error";
+      title = "Proposal Rejected!";
+      text = `Your event proposal "${proposal.title}" has been rejected.`;
+    } else if (proposal.status === "Declined (Missed Deadline)") {
+      icon = "error";
+      title = "Proposal Declined (Missed Deadline)!";
+      text = `Your event proposal "${proposal.title}" was declined because the deadline was missed.`;
+    }
+  
+    // Show the notification with the appropriate message
     await Swal.fire({
-      icon: proposal.status === "Approved" ? "success" : "error",
-      title: `Proposal ${proposal.status}!`,
-      text: `Your event proposal "${proposal.title}" has been ${proposal.status.toLowerCase()}.`,
+      icon: icon,
+      title: title,
+      text: text,
     });
-
+  
+    // Update the proposal document to mark it as notified
     const proposalRef = doc(db, "proposals", proposal.id);
     await updateDoc(proposalRef, { notified: true });
   };
+  
 
   // ✅ Run Auto-Update Functions on Dashboard Load
   useEffect(() => {
@@ -239,41 +271,43 @@ const StaffDashboard = () => {
           </tr>
         </thead>
         <tbody>
-          {proposals.length > 0 ? (
-            proposals.map((proposal) => (
-              <tr key={proposal.id}>
-                <td>{proposal.title}</td>
-                <td>{proposal.description}</td>
-                <td>{proposal.date}</td>
-                <td className={`status-${proposal.status?.toLowerCase() || "pending"}`}>
-                  {proposal.status || "Pending"}
-                </td>
-                <td>
-                  {proposal.status === "Rejected" ? (
-                    <div className="action-buttons">
-                      <button className="view-feedback-btn" onClick={() => handleViewFeedback(proposal.rejectionFeedback)}>
-                        View Feedback
-                      </button>
-                      <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
-                        Resubmit Proposal
-                      </button>
-                    </div>
-                  ) : proposal.status === "Done" ? (
-                    <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
-                      Resubmit Proposal
-                    </button>
-                  ) : (
-                    "N/A"
-                  )}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5">No proposals submitted yet.</td>
-            </tr>
-          )}
-        </tbody>
+              {proposals.length > 0 ? (
+                proposals.map((proposal) => (
+                  <tr key={proposal.id}>
+                    <td>{proposal.title}</td>
+                    <td>{proposal.description}</td>
+                    <td>{proposal.date}</td>
+                    <td className={`status-${proposal.status?.toLowerCase().replace(/\s+/g, "-") || "pending"}`}>
+                      {proposal.status || "Pending"}
+                    </td>
+                    <td>
+                      {proposal.status === "Rejected" ? (
+                        <div className="action-buttons">
+                          <button className="view-feedback-btn" onClick={() => handleViewFeedback(proposal.rejectionFeedback)}>
+                            View Feedback
+                          </button>
+                          <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
+                            Resubmit Proposal
+                          </button>
+                        </div>
+                      ) : proposal.status === "Declined (Missed Deadline)" ? (
+                        <div className="action-buttons">
+                          <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
+                            Resubmit Proposal
+                          </button>
+                        </div>
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">No proposals submitted yet.</td>
+                </tr>
+              )}
+            </tbody>
       </table>
     </div>
   );
