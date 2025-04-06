@@ -64,7 +64,7 @@ const StaffProposal = () => {
         description,
         location,
         date,
-        note, // Save the note
+        note: note || "", // Save the note
         fileURL,
         createdAt: serverTimestamp(),
         userId: user.uid, // 🔹 Store user ID
