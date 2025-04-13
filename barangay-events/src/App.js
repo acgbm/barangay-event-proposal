@@ -8,9 +8,11 @@ import VerifyEmail from "./pages/VerifyEmail";
 import StaffDashboard from "./pages/staff/StaffDashboard";
 import StaffProposal from "./pages/staff/StaffProposal";
 import Events from "./pages/staff/Events"; 
+import StaffAccount from "./pages/staff/StaffAccount"; // Assuming you have a StaffAccount component
 import OfficialDashboard from "./pages/official/OfficialDashboard";
 import OfficialEvents from "./pages/official/OfficialEvents";
 import ReviewProposal from "./pages/official/ReviewProposal";
+import OfficialAccount from "./pages/official/OfficialAccount"; // Assuming you have a OfficialAccount component
 import Layout from "./components/Layout"; // Sidebar wrapper
 
 function App() {
@@ -34,6 +36,7 @@ function App() {
             <Route path="/staff-dashboard" element={<StaffDashboard />} />
             <Route path="/staff-proposal" element={<StaffProposal />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/staff-account" element={<StaffAccount />} />
           </Route>
 
           {/* Official Pages */}
@@ -41,6 +44,7 @@ function App() {
             <Route path="/official-dashboard" element={<OfficialDashboard />} />
             <Route path="/review-proposals" element={<ReviewProposal />} />
             <Route path="/official-events" element={<OfficialEvents />} />
+            <Route path="/official-account" element={<OfficialAccount />} />
           </Route>
         </Routes>
       </Router>
