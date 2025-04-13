@@ -46,7 +46,13 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       const snapshot = await getDocs(collection(db, "users"));
-      setStaffCount(snapshot.docs.length);
+      const filteredUsers = snapshot.docs.filter(
+        (doc) => {
+          const role = doc.data().role?.toLowerCase();
+          return role === "staff" || role === "official";
+        }
+      );
+      setStaffCount(filteredUsers.length);
     } catch (err) {
       console.error("Error fetching users:", err);
     }
@@ -80,33 +86,51 @@ const AdminDashboard = () => {
   };
 
   const downloadExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(proposals);
+    const formattedData = proposals.map((p) => ({
+      Title: p.title || "N/A",
+      Status: p.status || "N/A",
+      "Event Date": p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+      "Submitted By": p.submittedBy || "N/A",
+      "Date Submitted": p.dateSubmitted
+        ? new Date(p.dateSubmitted).toLocaleDateString()
+        : "N/A",
+      Location: p.location || "N/A",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Proposals");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Proposals Report");
+
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(file, "proposals.xlsx");
+    saveAs(file, "proposals_report.xlsx");
   };
 
   const downloadPDF = () => {
     const doc = new jsPDF();
+    doc.setFontSize(14);
     doc.text("Proposals Report", 14, 16);
-  
+
     const tableData = proposals.map((p) => [
-      p.title,
-      p.status,
-      new Date(p.date).toLocaleDateString(),
+      p.title || "N/A",
+      p.status || "N/A",
+      p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+      p.submittedBy || "N/A",
+      p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
+      p.location || "N/A",
     ]);
-  
+
     autoTable(doc, {
-      head: [["Title", "Status", "Date"]],
+      head: [["Title", "Status", "Event Date", "Submitted By", "Date Submitted", "Location"]],
       body: tableData,
-      startY: 20,
+      startY: 22,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [74, 144, 226] },
     });
-  
-    doc.save("proposals.pdf");
+
+    doc.save("proposals_report.pdf");
   };
-  
+
   const chartData = [
     { name: "Upcoming", count: statistics.upcoming },
     { name: "Pending", count: statistics.pending },
