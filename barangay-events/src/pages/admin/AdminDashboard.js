@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -34,14 +34,38 @@ const AdminDashboard = () => {
 
   const fetchProposals = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "proposals"));
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setProposals(data);
-      computeStatistics(data);
+      const proposalsSnapshot = await getDocs(collection(db, "proposals"));
+      const fetchedProposals = [];
+    
+      // Fetch user data for each proposal to populate `submittedBy` with full name
+      for (const docSnap of proposalsSnapshot.docs) {
+        const proposalData = docSnap.data();
+        const createdAt = proposalData.createdAt?.toDate?.() || null;
+    
+        let fullName = "Unknown";  // Default value if fullName is not found
+    
+        if (proposalData.userId) {
+          const userRef = doc(db, "users", proposalData.userId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            fullName = userSnap.data().fullName || "Unknown"; // Use fullName directly
+          }
+        }
+    
+        fetchedProposals.push({
+          ...proposalData,
+          id: docSnap.id,
+          submittedBy: fullName,
+          dateSubmitted: createdAt,
+        });
+      }
+    
+      setProposals(fetchedProposals);
+      computeStatistics(fetchedProposals);
     } catch (err) {
       console.error("Error fetching proposals:", err);
     }
-  };
+  };  
 
   const fetchUsers = async () => {
     try {
