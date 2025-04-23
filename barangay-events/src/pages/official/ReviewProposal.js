@@ -172,7 +172,14 @@ const ReviewProposals = () => {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const email = userSnap.data().email;
-            sendApprovalEmail(email, proposalData.title);  // Send email
+            sendApprovalEmail(
+              email,
+              proposalData.title,
+              proposalData.location,
+              proposalData.date ? new Date(proposalData.date).toLocaleDateString() : "N/A",
+              proposalData.description
+            );
+              // Send email
           }
         }
         
@@ -224,26 +231,28 @@ const ReviewProposals = () => {
   };
 
       // This function sends an approval email to the user
-    const sendApprovalEmail = (userEmail, proposalTitle) => {
-      const templateParams = {
-        to_email: userEmail, // User's email
-        subject: `Your proposal "${proposalTitle}" has been approved!`,
-        message: `Congratulations! Your proposal titled "${proposalTitle}" has been officially approved by the board.`
-      };
-
-      emailjs.send(
-        'service_h7jndq1',     // Replace with your EmailJS service ID
-        'template_0ost73n',    // Replace with your EmailJS template ID
-        templateParams,        // Template parameters
-        'egepsG0sxQl7xodfy'      // Replace with your EmailJS public key (user ID)
-      )
-      .then(response => {
-        console.log('Email sent successfully:', response);
-      })
-      .catch(error => {
-        console.error('Error sending email:', error);
-      });
-    };
+      const sendApprovalEmail = (userEmail, title, location, date, description) => {
+        const templateParams = {
+          to_email: userEmail,
+          title: title,
+          location: location,
+          date: date,
+          description: description,
+        };
+      
+        emailjs.send(
+          'service_h7jndq1',
+          'template_0ost73n',
+          templateParams,
+          'egepsG0sxQl7xodfy'
+        )
+        .then(response => {
+          console.log('Email sent successfully:', response);
+        })
+        .catch(error => {
+          console.error('Error sending email:', error);
+        });
+      };      
   
   const checkProposalDeadlines = async () => {
     try {
