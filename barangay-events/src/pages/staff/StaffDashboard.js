@@ -9,11 +9,29 @@ const StaffDashboard = () => {
   const [proposals, setProposals] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    declined: 0
+  });
 
   // Format date function
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  // Calculate stats from proposals
+  const calculateStats = (proposals) => {
+    const stats = {
+      total: proposals.length,
+      pending: proposals.filter(p => p.status === "Pending").length,
+      approved: proposals.filter(p => p.status === "Approved").length,
+      declined: proposals.filter(p => ["Rejected", "Declined (Missed Deadline)"].includes(p.status)).length
+    };
+    setStats(stats);
   };
 
   useEffect(() => {
@@ -74,6 +92,7 @@ const StaffDashboard = () => {
 
   // ✅ Fetch Proposals and Check for Notifications
   const fetchUserProposals = async (uid) => {
+    setIsLoading(true);
     try {
       const proposalsSnapshot = await getDocs(
         query(collection(db, "proposals"), where("userId", "==", uid))
@@ -84,9 +103,17 @@ const StaffDashboard = () => {
       }));
 
       setProposals(userProposals);
+      calculateStats(userProposals);
       checkForNotifications(userProposals);
     } catch (error) {
       console.error("Error fetching proposals:", error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to fetch proposals. Please try again later.',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -290,65 +317,96 @@ const handleViewFeedback = (feedbackArray, status) => {
 
   return (
     <div className="staff-dashboard">
-      <h2>My Proposals</h2>
-      <table className="proposals-table">
-        <thead>
-          <tr>
-            <th>Event Title</th>
-            <th>Description</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {proposals.length > 0 ? (
-            proposals.map((proposal) => (
-              <tr key={proposal.id}>
-                <td data-label="Event Title">{proposal.title}</td>
-                <td data-label="Description">
-                  <div className="description-cell">
-                    {proposal.description}
-                  </div>
-                </td>
-                <td data-label="Date">{formatDate(proposal.date)}</td>
-                <td data-label="Status">
-                  <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
-                    {proposal.status}
-                  </span>
-                </td>
-                <td data-label="Actions">
-                  {(proposal.status === "Rejected" || proposal.status === "Cancelled") && (
-                    <div className="action-buttons">
-                      <button
-                        className="action-btn view-feedback-btn"
-                        onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
-                      >
-                        View Feedback
-                      </button>
-                      <button
-                        className="action-btn resubmit-btn"
-                        onClick={() => handleResubmitProposal(proposal)}
-                      >
-                        Resubmit
-                      </button>
-                    </div>
-                  )}
-                </td>
+      <h1>Dashboard</h1>
+      
+      <div className="quick-stats">
+        <div className="stat-card">
+          <h3>Total Proposals</h3>
+          <div className="stat-value">{stats.total}</div>
+        </div>
+        <div className="stat-card">
+          <h3>Pending Review</h3>
+          <div className="stat-value">{stats.pending}</div>
+        </div>
+        <div className="stat-card">
+          <h3>Approved</h3>
+          <div className="stat-value">{stats.approved}</div>
+        </div>
+        <div className="stat-card">
+          <h3>Declined</h3>
+          <div className="stat-value">{stats.declined}</div>
+        </div>
+      </div>
+
+      <div className="table-wrapper">
+        <h2>My Proposals</h2>
+        {isLoading ? (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+          </div>
+        ) : (
+          <table className="proposals-table">
+            <thead>
+              <tr>
+                <th>Event Title</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="no-proposals">
-                <div className="no-data-message">
-                  <i className="fas fa-file-alt"></i>
-                  <p>No proposals submitted yet</p>
-                </div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {proposals.length > 0 ? (
+                proposals.map((proposal) => (
+                  <tr key={proposal.id}>
+                    <td>{proposal.title}</td>
+                    <td>
+                      <div className="description-cell" title={proposal.description}>
+                        {proposal.description}
+                      </div>
+                    </td>
+                    <td>{formatDate(proposal.date)}</td>
+                    <td>
+                      <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
+                        {proposal.status}
+                      </span>
+                    </td>
+                    <td>
+                      {(proposal.status === "Rejected" || 
+                        proposal.status === "Cancelled" || 
+                        proposal.status === "Declined (Missed Deadline)") && (
+                        <div className="action-buttons">
+                          <button
+                            className="action-btn view-feedback-btn"
+                            onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
+                          >
+                            View Feedback
+                          </button>
+                          <button
+                            className="action-btn resubmit-btn"
+                            onClick={() => handleResubmitProposal(proposal)}
+                          >
+                            Resubmit
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5">
+                    <div className="no-data-message">
+                      <i className="fas fa-file-alt"></i>
+                      <p>No proposals submitted yet</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 };
