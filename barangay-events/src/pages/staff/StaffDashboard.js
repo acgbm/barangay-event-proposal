@@ -10,6 +10,12 @@ const StaffDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [userId, setUserId] = useState(null);
 
+  // Format date function
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -285,7 +291,6 @@ const handleViewFeedback = (feedbackArray, status) => {
   return (
     <div className="staff-dashboard">
       <h2>My Proposals</h2>
-
       <table className="proposals-table">
         <thead>
           <tr>
@@ -297,43 +302,52 @@ const handleViewFeedback = (feedbackArray, status) => {
           </tr>
         </thead>
         <tbody>
-              {proposals.length > 0 ? (
-                proposals.map((proposal) => (
-                  <tr key={proposal.id}>
-                    <td>{proposal.title}</td>
-                    <td>{proposal.description}</td>
-                    <td>{proposal.date}</td>
-                    <td className={`status-${proposal.status?.toLowerCase().replace(/\s+/g, "-") || "pending"}`}>
-                      {proposal.status || "Pending"}
-                    </td>
-                    <td>
-                      {proposal.status === "Rejected" ? (
-                        <div className="action-buttons">
-                          <button className="view-feedback-btn" onClick={() => handleViewFeedback(proposal.rejectionFeedback)}>
-                            View Feedback
-                          </button>
-                          <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
-                            Resubmit Proposal
-                          </button>
-                        </div>
-                      ) : proposal.status === "Declined (Missed Deadline)" ? (
-                        <div className="action-buttons">
-                          <button className="resubmit-btn" onClick={() => handleResubmitProposal(proposal)}>
-                            Resubmit Proposal
-                          </button>
-                        </div>
-                      ) : (
-                        "N/A"
-                      )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5">No proposals submitted yet.</td>
-                </tr>
-              )}
-            </tbody>
+          {proposals.length > 0 ? (
+            proposals.map((proposal) => (
+              <tr key={proposal.id}>
+                <td data-label="Event Title">{proposal.title}</td>
+                <td data-label="Description">
+                  <div className="description-cell">
+                    {proposal.description}
+                  </div>
+                </td>
+                <td data-label="Date">{formatDate(proposal.date)}</td>
+                <td data-label="Status">
+                  <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
+                    {proposal.status}
+                  </span>
+                </td>
+                <td data-label="Actions">
+                  {(proposal.status === "Rejected" || proposal.status === "Cancelled") && (
+                    <div className="action-buttons">
+                      <button
+                        className="action-btn view-feedback-btn"
+                        onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
+                      >
+                        View Feedback
+                      </button>
+                      <button
+                        className="action-btn resubmit-btn"
+                        onClick={() => handleResubmitProposal(proposal)}
+                      >
+                        Resubmit
+                      </button>
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" className="no-proposals">
+                <div className="no-data-message">
+                  <i className="fas fa-file-alt"></i>
+                  <p>No proposals submitted yet</p>
+                </div>
+              </td>
+            </tr>
+          )}
+        </tbody>
       </table>
     </div>
   );
