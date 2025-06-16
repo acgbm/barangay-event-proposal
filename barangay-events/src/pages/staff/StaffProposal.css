@@ -1,19 +1,24 @@
-.proposal-container {
+.staff-proposal-container {
+    margin-left: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .staff-proposal-form-wrapper {
     width: 100%;
     max-width: 450px;
     padding: 25px;
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.15);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     font-family: "Google Sans", Roboto, Arial, sans-serif;
-    margin: 0 auto;
   }
   
-  .proposal-container h2 {
+  .staff-proposal-form-wrapper h2 {
     text-align: center;
     font-size: 22px;
     font-weight: 600;
@@ -21,20 +26,21 @@
     margin-bottom: 25px;
   }
   
-  form {
+  .staff-proposal-form {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
   }
   
-  .form-group {
+  .staff-proposal-form-group {
     width: 100%;
     max-width: 380px;
     margin-bottom: 15px;
+    position: relative;
   }
   
-  label {
+  .staff-proposal-label {
     font-size: 14px;
     font-weight: 600;
     color: #555;
@@ -42,36 +48,50 @@
     display: block;
   }
   
-  input,
-  textarea {
+  .staff-proposal-input {
     width: 100%;
     padding: 10px;
     margin-bottom: 5px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
-    transition: border 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
     box-sizing: border-box;
   }
   
-  input:focus,
-  textarea:focus {
+  .staff-proposal-input:focus {
     border-color: #007bff;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
   }
   
-  textarea {
+  .staff-proposal-textarea {
+    width: 100%;
     min-height: 80px;
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+    box-sizing: border-box;
     resize: vertical;
   }
   
-  input[type="file"] {
-    border: none;
-    padding: 5px;
-    margin-bottom: 15px;
+  .staff-proposal-textarea:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
   }
   
-  button {
+  .staff-proposal-file-input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+  
+  .staff-proposal-submit-btn {
     width: 100%;
     max-width: 380px;
     background: #007bff;
@@ -82,95 +102,68 @@
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
     margin-top: 10px;
   }
   
-  button:hover {
+  .staff-proposal-submit-btn:hover {
     background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
-  button:disabled {
+  .staff-proposal-submit-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
   
-  .message {
+  .staff-proposal-message {
     text-align: center;
     font-size: 14px;
-    font-weight: bold;
-    color: green;
-    margin-bottom: 15px;
-    width: 100%;
+    margin: 10px 0;
   }
   
-  .textarea-container {
-    position: relative;
-    width: 100%;
-    max-width: 380px;
-    margin-bottom: 20px;
+  .staff-proposal-error {
+    color: #dc3545;
   }
   
-  .textarea-container textarea {
-    width: 100%;
-    margin-bottom: 0;
-    min-height: 100px;
-    resize: vertical;
+  .staff-proposal-success {
+    color: #28a745;
   }
   
-  .character-count {
+  .staff-proposal-char-count {
     position: absolute;
-    bottom: -20px;
     right: 0;
+    bottom: -20px;
     font-size: 12px;
     color: #666;
-    padding: 2px 5px;
-    border-radius: 3px;
   }
   
-  /* Responsive styles */
+  .staff-proposal-char-count.near-limit {
+    color: #f59e0b;
+  }
+  
+  .staff-proposal-char-count.at-limit {
+    color: #dc3545;
+  }
+  
   @media screen and (max-width: 768px) {
-    .proposal-container {
-      width: 90%;
-      max-width: none;
-      padding: 20px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      margin: 20px auto;
-    }
-  
-    .form-group,
-    .textarea-container,
-    button {
-      max-width: 100%;
-    }
-  
-    input,
-    textarea {
-      font-size: 16px; /* Better for mobile */
-      padding: 12px;
-    }
-  
-    button {
-      padding: 14px;
-    }
-  }
-  
-  /* Additional mobile adjustments */
-  @media screen and (max-width: 480px) {
-    .proposal-container {
-      width: 95%;
+    .staff-proposal-container {
+      margin-left: 0;
       padding: 15px;
     }
   
-    .proposal-container h2 {
-      font-size: 20px;
-      margin-bottom: 20px;
+    .staff-proposal-form-wrapper {
+      padding: 20px;
     }
   
-    label {
-      font-size: 13px;
+    .staff-proposal-form-group {
+      max-width: 100%;
+    }
+  
+    .staff-proposal-submit-btn {
+      max-width: 100%;
     }
   }

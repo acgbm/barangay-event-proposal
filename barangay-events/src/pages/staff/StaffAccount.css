@@ -35,40 +35,59 @@
     background: #eee;
   }
   
+  /* Password Section Styles */
+  .password-section {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+  }
+  
   .staff-account-subheading {
     font-size: 1.4rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     color: #333;
+    text-align: center;
   }
   
   .staff-account-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.2rem;
+  }
+  
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
   
   .staff-account-form label {
     font-weight: 500;
     font-size: 0.95rem;
-    margin-bottom: 0.3rem;
     color: #333;
   }
   
   .staff-account-form input {
-    padding: 0.7rem 1rem;
+    padding: 0.8rem 1rem;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 0.95rem;
-    transition: border 0.3s;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
   }
   
   .staff-account-form input:focus {
     border-color: #1d71f2;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(29, 113, 242, 0.1);
   }
   
   .staff-account-form button {
-    padding: 0.75rem;
+    margin-top: 0.5rem;
+    padding: 0.85rem;
     background: #1d71f2;
     color: white;
     font-weight: 600;
@@ -77,6 +96,7 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s;
+    width: 100%;
   }
   
   .staff-account-form button:hover {
@@ -91,22 +111,36 @@
   }
   
   /* Responsive */
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     .staff-account-container {
-      padding: 1.5rem 1rem;
       margin: 1rem;
+      padding: 1.5rem;
+    }
+  
+    .password-section {
+      padding: 1.25rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .staff-account-container {
+      padding: 1.25rem 1rem;
     }
   
     .staff-account-container h2 {
       font-size: 1.5rem;
     }
   
+    .password-section {
+      padding: 1rem;
+    }
+  
     .staff-account-form input {
-      font-size: 0.9rem;
+      font-size: 1rem;
+      padding: 0.75rem;
     }
   
     .staff-account-form button {
       font-size: 0.95rem;
     }
   }
-  

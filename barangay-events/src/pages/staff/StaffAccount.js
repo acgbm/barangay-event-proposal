@@ -92,40 +92,42 @@ const StaffAccount = () => {
 
       <hr className="staff-account-separator" />
 
-      <h3 className="staff-account-subheading">Change Password</h3>
-      <form onSubmit={handleChangePassword} className="staff-account-form">
-        <div>
-          <label>Current Password</label>
-          <input
-            type="password"
-            required
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
-        </div>
+      <div className="password-section">
+        <h3 className="staff-account-subheading">Change Password</h3>
+        <form onSubmit={handleChangePassword} className="staff-account-form">
+          <div className="form-field">
+            <label>Current Password</label>
+            <input
+              type="password"
+              required
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </div>
 
-        <div>
-          <label>New Password</label>
-          <input
-            type="password"
-            required
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-        </div>
+          <div className="form-field">
+            <label>New Password</label>
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
 
-        <div>
-          <label>Confirm Password</label>
-          <input
-            type="password"
-            required
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-        </div>
+          <div className="form-field">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
 
-        <button type="submit">Update Password</button>
-      </form>
+          <button type="submit">Update Password</button>
+        </form>
+      </div>
     </div>
   );
 };

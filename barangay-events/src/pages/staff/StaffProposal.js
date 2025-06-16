@@ -46,13 +46,12 @@ const StaffProposal = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
-
-    try {
+    setMessage("");    try {
       // Get the current logged-in user
       const user = auth.currentUser;
       if (!user) {
-        throw new Error("User is not authenticated.");
+        setMessage("❌ User is not authenticated.");
+        return;
       }
 
       let fileURL = "";
@@ -107,80 +106,101 @@ const StaffProposal = () => {
   };
 
   return (
-    <div className="proposal-container">
-      <h2>Submit a Proposal</h2>
-      {message && <p className="message">{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Event Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
+    <div className="staff-proposal-container">
+      <div className="staff-proposal-form-wrapper">
+        <h2>Submit a Proposal</h2>
+        {message && (
+          <p className={`staff-proposal-message ${message.includes('❌') ? 'staff-proposal-error' : 'staff-proposal-success'}`}>
+            {message}
+          </p>
+        )}
+        <form onSubmit={handleSubmit} className="staff-proposal-form">
+          <div className="staff-proposal-form-group">
+            <label className="staff-proposal-label">Event Title:</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="staff-proposal-input"
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Description:</label>
-          <div className="textarea-container">
+          <div className="staff-proposal-form-group">
+            <label className="staff-proposal-label">Description:</label>
             <textarea
               value={description}
               onChange={handleDescriptionChange}
               required
               maxLength={DESCRIPTION_LIMIT}
+              className="staff-proposal-textarea"
             ></textarea>
-            <div className="character-count">
+            <div className={`staff-proposal-char-count ${
+              description.length >= DESCRIPTION_LIMIT ? 'at-limit' :
+              description.length >= DESCRIPTION_LIMIT * 0.9 ? 'near-limit' : ''
+            }`}>
               {description.length}/{DESCRIPTION_LIMIT} characters
             </div>
           </div>
-        </div>
 
-        <div className="form-group">
-          <label>Location:</label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            required
-          />
-        </div>
+          <div className="staff-proposal-form-group">
+            <label className="staff-proposal-label">Location:</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
+              className="staff-proposal-input"
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Date:</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            min={minDate}
-            required
-          />
-        </div>
+          <div className="staff-proposal-form-group">
+            <label className="staff-proposal-label">Date:</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              min={minDate}
+              required
+              className="staff-proposal-input"
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Note:</label>
-          <div className="textarea-container">
+          <div className="staff-proposal-form-group">
+            <label className="staff-proposal-label">Note:</label>
             <textarea
               value={note}
               onChange={handleNoteChange}
               placeholder="Additional comments or instructions (optional)"
               maxLength={NOTE_LIMIT}
+              className="staff-proposal-textarea"
             ></textarea>
-            <div className="character-count">
+            <div className={`staff-proposal-char-count ${
+              note.length >= NOTE_LIMIT ? 'at-limit' :
+              note.length >= NOTE_LIMIT * 0.9 ? 'near-limit' : ''
+            }`}>
               {note.length}/{NOTE_LIMIT} characters
             </div>
           </div>
-        </div>
 
-        <div className="form-group">
-          <label>Attachment (Permits, Budget Plans, etc.):</label>
-          <input type="file" onChange={handleFileChange} />
-        </div>
+          <div className="staff-proposal-form-group">
+            <label className="staff-proposal-label">Attachment (Permits, Budget Plans, etc.):</label>
+            <input 
+              type="file" 
+              onChange={handleFileChange}
+              className="staff-proposal-file-input"
+            />
+          </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Submitting..." : "Submit Proposal"}
-        </button>
-      </form>
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="staff-proposal-submit-btn"
+          >
+            {loading ? "Submitting..." : "Submit Proposal"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
