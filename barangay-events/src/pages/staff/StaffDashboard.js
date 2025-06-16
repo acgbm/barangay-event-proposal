@@ -116,14 +116,15 @@ const StaffDashboard = () => {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     const run = async () => {
-      await checkForAutoRejection(); // Mark overdue proposals
-      await fetchUserProposals();        // Then refresh the table
+      if (userId) {
+        await checkForAutoRejection();
+        await fetchUserProposals(userId);
+      }
     };
     run();
-  }, []);
+  }, [userId]);
 
   // ✅ Notify Staff of Approved or Rejected Proposals
   const checkForNotifications = (userProposals) => {
