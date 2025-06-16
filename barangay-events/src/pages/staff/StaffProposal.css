@@ -88,6 +88,29 @@
     margin-bottom: 10px;
   }
   
+  .textarea-container {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  
+  .textarea-container textarea {
+    width: 100%;
+    margin-bottom: 0;
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .character-count {
+    position: absolute;
+    bottom: -20px;
+    right: 0;
+    font-size: 12px;
+    color: #666;
+    padding: 2px 5px;
+    border-radius: 3px;
+    background-color: transparent;
+  }
+  
   /* 📱 Responsive Design */
   @media (max-width: 768px) {
     .proposal-container {
@@ -96,4 +119,3 @@
       padding: 20px;
     }
   }
-  

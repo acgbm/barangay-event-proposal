@@ -14,12 +14,32 @@ const StaffProposal = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Character limits
+  const DESCRIPTION_LIMIT = 120;
+  const NOTE_LIMIT = 120;
+
   // Prevent selecting past dates
   const minDate = new Date().toISOString().split("T")[0];
 
   // Handle File Selection
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+  };
+
+  // Handle description change with character limit
+  const handleDescriptionChange = (e) => {
+    const input = e.target.value;
+    if (input.length <= DESCRIPTION_LIMIT) {
+      setDescription(input);
+    }
+  };
+
+  // Handle note change with character limit
+  const handleNoteChange = (e) => {
+    const input = e.target.value;
+    if (input.length <= NOTE_LIMIT) {
+      setNote(input);
+    }
   };
 
   // Handle Form Submission
@@ -100,11 +120,17 @@ const StaffProposal = () => {
         />
 
         <label>Description:</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        ></textarea>
+        <div className="textarea-container">
+          <textarea
+            value={description}
+            onChange={handleDescriptionChange}
+            required
+            maxLength={DESCRIPTION_LIMIT}
+          ></textarea>
+          <div className="character-count">
+            {description.length}/{DESCRIPTION_LIMIT} characters
+          </div>
+        </div>
 
         <label>Location:</label>
         <input
@@ -124,11 +150,17 @@ const StaffProposal = () => {
         />
 
         <label>Note:</label>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Additional comments or instructions (optional)"
-        ></textarea>
+        <div className="textarea-container">
+          <textarea
+            value={note}
+            onChange={handleNoteChange}
+            placeholder="Additional comments or instructions (optional)"
+            maxLength={NOTE_LIMIT}
+          ></textarea>
+          <div className="character-count">
+            {note.length}/{NOTE_LIMIT} characters
+          </div>
+        </div>
 
         <label>Attachment (Permits, Budget Plans, etc.):</label>
         <input type="file" onChange={handleFileChange} />
