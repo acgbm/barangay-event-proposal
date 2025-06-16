@@ -1,14 +1,16 @@
 .proposal-container {
-    width: 450px; /* Smaller size */
+    width: 100%;
+    max-width: 450px;
     padding: 25px;
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.15);
     position: absolute;
     top: 50%;
-    left: 60%; /* Adjusted for sidebar */
+    left: 50%;
     transform: translate(-50%, -50%);
     font-family: "Google Sans", Roboto, Arial, sans-serif;
+    margin: 0 auto;
   }
   
   .proposal-container h2 {
@@ -16,12 +18,20 @@
     font-size: 22px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
   }
   
   form {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .form-group {
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 15px;
   }
   
   label {
@@ -29,17 +39,19 @@
     font-weight: 600;
     color: #555;
     margin-bottom: 5px;
+    display: block;
   }
   
   input,
   textarea {
     width: 100%;
     padding: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 5px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
     transition: border 0.3s ease-in-out;
+    box-sizing: border-box;
   }
   
   input:focus,
@@ -49,26 +61,29 @@
   }
   
   textarea {
-    min-height: 80px; /* Smaller textarea */
+    min-height: 80px;
     resize: vertical;
   }
   
   input[type="file"] {
     border: none;
     padding: 5px;
+    margin-bottom: 15px;
   }
   
   button {
     width: 100%;
+    max-width: 380px;
     background: #007bff;
     color: white;
-    padding: 10px;
+    padding: 12px;
     border: none;
     border-radius: 6px;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s ease-in-out;
+    margin-top: 10px;
   }
   
   button:hover {
@@ -85,12 +100,15 @@
     font-size: 14px;
     font-weight: bold;
     color: green;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    width: 100%;
   }
   
   .textarea-container {
     position: relative;
-    margin-bottom: 12px;
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 20px;
   }
   
   .textarea-container textarea {
@@ -108,14 +126,51 @@
     color: #666;
     padding: 2px 5px;
     border-radius: 3px;
-    background-color: transparent;
   }
   
-  /* 📱 Responsive Design */
-  @media (max-width: 768px) {
+  /* Responsive styles */
+  @media screen and (max-width: 768px) {
     .proposal-container {
       width: 90%;
-      left: 50%;
+      max-width: none;
       padding: 20px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 20px auto;
+    }
+  
+    .form-group,
+    .textarea-container,
+    button {
+      max-width: 100%;
+    }
+  
+    input,
+    textarea {
+      font-size: 16px; /* Better for mobile */
+      padding: 12px;
+    }
+  
+    button {
+      padding: 14px;
+    }
+  }
+  
+  /* Additional mobile adjustments */
+  @media screen and (max-width: 480px) {
+    .proposal-container {
+      width: 95%;
+      padding: 15px;
+    }
+  
+    .proposal-container h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+  
+    label {
+      font-size: 13px;
     }
   }

@@ -111,59 +111,71 @@ const StaffProposal = () => {
       <h2>Submit a Proposal</h2>
       {message && <p className="message">{message}</p>}
       <form onSubmit={handleSubmit}>
-        <label>Event Title:</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-
-        <label>Description:</label>
-        <div className="textarea-container">
-          <textarea
-            value={description}
-            onChange={handleDescriptionChange}
+        <div className="form-group">
+          <label>Event Title:</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             required
-            maxLength={DESCRIPTION_LIMIT}
-          ></textarea>
-          <div className="character-count">
-            {description.length}/{DESCRIPTION_LIMIT} characters
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Description:</label>
+          <div className="textarea-container">
+            <textarea
+              value={description}
+              onChange={handleDescriptionChange}
+              required
+              maxLength={DESCRIPTION_LIMIT}
+            ></textarea>
+            <div className="character-count">
+              {description.length}/{DESCRIPTION_LIMIT} characters
+            </div>
           </div>
         </div>
 
-        <label>Location:</label>
-        <input
-          type="text"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required
-        />
+        <div className="form-group">
+          <label>Location:</label>
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+          />
+        </div>
 
-        <label>Date:</label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          min={minDate} // Prevent past dates
-          required
-        />
+        <div className="form-group">
+          <label>Date:</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            min={minDate}
+            required
+          />
+        </div>
 
-        <label>Note:</label>
-        <div className="textarea-container">
-          <textarea
-            value={note}
-            onChange={handleNoteChange}
-            placeholder="Additional comments or instructions (optional)"
-            maxLength={NOTE_LIMIT}
-          ></textarea>
-          <div className="character-count">
-            {note.length}/{NOTE_LIMIT} characters
+        <div className="form-group">
+          <label>Note:</label>
+          <div className="textarea-container">
+            <textarea
+              value={note}
+              onChange={handleNoteChange}
+              placeholder="Additional comments or instructions (optional)"
+              maxLength={NOTE_LIMIT}
+            ></textarea>
+            <div className="character-count">
+              {note.length}/{NOTE_LIMIT} characters
+            </div>
           </div>
         </div>
 
-        <label>Attachment (Permits, Budget Plans, etc.):</label>
-        <input type="file" onChange={handleFileChange} />
+        <div className="form-group">
+          <label>Attachment (Permits, Budget Plans, etc.):</label>
+          <input type="file" onChange={handleFileChange} />
+        </div>
 
         <button type="submit" disabled={loading}>
           {loading ? "Submitting..." : "Submit Proposal"}
