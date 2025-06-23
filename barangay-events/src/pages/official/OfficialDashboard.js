@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { db, auth } from "../../firebaseConfig";
-import { collection, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
-import Swal from "sweetalert2";
+import { db } from "../../firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
 import "./OfficialDashboard.css";
 
 const OfficialDashboard = () => {
   const [proposals, setProposals] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [userId, setUserId] = useState(null);
   const [statistics, setStatistics] = useState({
     upcoming: 0,
     pending: 0,
     cancelled: 0,
     rejected: 0,
   });
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUserId(user.uid);
-        fetchProposals();
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   // ✅ Fetch Proposals and Check for Notifications
   const fetchProposals = async () => {
@@ -36,72 +22,10 @@ const OfficialDashboard = () => {
       }));
 
       setProposals(allProposals);
-      checkForNotifications(allProposals);
       updateStatistics(allProposals);
     } catch (error) {
       console.error("Error fetching proposals:", error.message);
     }
-  };
-
-  // ✅ Check for Notifications on New Proposals
-  const checkForNotifications = (allProposals) => {
-    const newNotifications = allProposals.filter(
-      (proposal) =>
-        (proposal.status === "Approved" ||
-          proposal.status === "Rejected" ||
-          proposal.status === "Rescheduled" ||
-          proposal.status === "Cancelled") &&
-        !proposal.notified
-    );
-
-    if (newNotifications.length > 0) {
-      setNotifications(newNotifications);
-      newNotifications.forEach((proposal) => showNotification(proposal));
-    }
-  };
-
-  // ✅ Show Notifications for Proposal Status Updates
-  const showNotification = async (proposal) => {
-    let icon = "";
-    let title = "";
-    let text = "";
-
-    // Set notification details based on proposal status
-    switch (proposal.status) {
-      case "Approved":
-        icon = "success";
-        title = "Proposal Approved!";
-        text = `The event proposal "${proposal.title}" has been approved.`;
-        break;
-      case "Rejected":
-        icon = "error";
-        title = "Proposal Rejected!";
-        text = `The event proposal "${proposal.title}" has been rejected.`;
-        break;
-      case "Cancelled":
-        icon = "error";
-        title = "Event Cancelled!";
-        text = `The event "${proposal.title}" has been cancelled.`;
-        break;
-      case "Rescheduled":
-        icon = "info";
-        title = "Event Rescheduled!";
-        text = `The event "${proposal.title}" has been rescheduled.`;
-        break;
-      default:
-        return;
-    }
-
-    // Show the notification with the appropriate message
-    await Swal.fire({
-      icon: icon,
-      title: title,
-      text: text,
-    });
-
-    // Update the proposal document to mark it as notified
-    const proposalRef = doc(db, "proposals", proposal.id);
-    await updateDoc(proposalRef, { notified: true });
   };
 
   // ✅ Update Statistics for Proposals
@@ -125,65 +49,77 @@ const OfficialDashboard = () => {
     fetchProposals();
   }, []);
 
+  // Helper to format date as 'Month Day, Year'
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="official-dashboard">
-      <h2>Official Dashboard</h2>
+      <h1>Official Dashboard</h1>
 
-      <div className="statistics">
-        <div className="stat-item">
+      <div className="quick-stats">
+        <div className="stat-card">
           <h3>Upcoming Events</h3>
-          <p>{statistics.upcoming}</p>
+          <div className="stat-value">{statistics.upcoming}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Pending Events</h3>
-          <p>{statistics.pending}</p>
+          <div className="stat-value">{statistics.pending}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Cancelled Events</h3>
-          <p>{statistics.cancelled}</p>
+          <div className="stat-value">{statistics.cancelled}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Rejected Events</h3>
-          <p>{statistics.rejected}</p>
+          <div className="stat-value">{statistics.rejected}</div>
         </div>
       </div>
 
-      <div className="notifications">
-        <h3>Recent Notifications</h3>
-        {notifications.length > 0 ? (
-          notifications.map((notification, index) => (
-            <div key={index} className="notification-item">
-              <h4>{notification.title}</h4>
-              <p>{notification.text}</p>
-            </div>
-          ))
-        ) : (
-          <p>No new notifications.</p>
-        )}
-      </div>
-
-      <div className="proposals-table">
-        <h3>All Proposals</h3>
-        <table>
+      <div className="table-wrapper">
+        <h2>All Proposals</h2>
+        <table className="proposals-table">
           <thead>
             <tr>
               <th>Event Title</th>
               <th>Status</th>
               <th>Date</th>
+              <th>Location</th>
             </tr>
           </thead>
           <tbody>
             {proposals.length > 0 ? (
-              proposals.map((proposal) => (
-                <tr key={proposal.id}>
-                  <td>{proposal.title}</td>
-                  <td>{proposal.status}</td>
-                  <td>{new Date(proposal.date).toLocaleDateString()}</td>
-                </tr>
-              ))
+              proposals.map((proposal) => {
+                const statusClass =
+                  proposal.status &&
+                  ["cancelled", "declined-missed-deadline", "deadline"].includes(
+                    proposal.status.toLowerCase().replace(/ /g, "-")
+                  )
+                    ? "status-cancelled"
+                    : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+                return (
+                  <tr key={proposal.id}>
+                    <td>{proposal.title}</td>
+                    <td>
+                      <span className={`status-badge ${statusClass}`}>
+                        {proposal.status}
+                      </span>
+                    </td>
+                    <td>{formatDate(proposal.date)}</td>
+                    <td>{proposal.location}</td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
-                <td colSpan="3">No proposals found.</td>
+                <td colSpan="4" style={{ textAlign: 'center' }}>No proposals found.</td>
               </tr>
             )}
           </tbody>
