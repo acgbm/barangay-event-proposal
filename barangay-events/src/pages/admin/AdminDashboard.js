@@ -164,56 +164,75 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      <h2>Admin Dashboard</h2>
-
-      <div className="statistics">
-        <div className="stat-item">
+      <h1>Admin Dashboard</h1>
+      <div className="quick-stats">
+        <div className="stat-card">
+          <h3>Total Proposals</h3>
+          <div className="stat-value">{proposals.length}</div>
+        </div>
+        <div className="stat-card">
           <h3>Upcoming Events</h3>
-          <p>{statistics.upcoming}</p>
+          <div className="stat-value">{statistics.upcoming}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Pending Events</h3>
-          <p>{statistics.pending}</p>
+          <div className="stat-value">{statistics.pending}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Cancelled Events</h3>
-          <p>{statistics.cancelled}</p>
+          <div className="stat-value">{statistics.cancelled}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Rejected Events</h3>
-          <p>{statistics.rejected}</p>
+          <div className="stat-value">{statistics.rejected}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Registered Staff/Officials</h3>
-          <p>{staffCount}</p>
+          <div className="stat-value">{staffCount}</div>
         </div>
-        <div className="stat-item">
+        <div className="stat-card">
           <h3>Proposals This Month</h3>
-          <p>{statistics.submittedThisMonth}</p>
+          <div className="stat-value">{statistics.submittedThisMonth}</div>
+        </div>
+        <div className="report-generation-card stat-card">
+          <h3>Report Generation</h3>
+          <div className="report-btn-group">
+            <button onClick={downloadPDF} className="report-btn modern-btn">
+              <span role="img" aria-label="pdf">📄</span> Download PDF
+            </button>
+            <button onClick={downloadExcel} className="report-btn modern-btn">
+              <span role="img" aria-label="excel">📊</span> Download Excel
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="chart-section">
+      <div className="chart-section modern-chart">
         <h3>Proposal Trends</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
-            <Bar dataKey="count" fill="#4a90e2" radius={[4, 4, 0, 0]} />
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart data={chartData} barCategoryGap={30} barGap={2}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+            <XAxis dataKey="name" tick={{ fontSize: 14, fill: '#374151' }} axisLine={false} tickLine={false}
+              onMouseMove={e => {
+                if (e && e.activeLabel) {
+                  document.body.style.cursor = 'pointer';
+                }
+              }}
+              onMouseLeave={() => { document.body.style.cursor = 'default'; }}
+            />
+            <YAxis allowDecimals={false} tick={{ fontSize: 14, fill: '#374151' }} axisLine={false} tickLine={false} />
+            <Tooltip contentStyle={{ borderRadius: 12, background: '#fff', border: '1px solid #e5e7eb', fontSize: 14 }} cursor={{ fill: '#e0edff', opacity: 0.2 }} />
+            <Bar dataKey="count" radius={[8, 8, 0, 0]} fill="#2563eb">
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.7} />
+                </linearGradient>
+              </defs>
+              <Bar dataKey="count" fill="url(#barGradient)" />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
-
-      <div className="report-generation">
-        <h3>Report Generation</h3>
-        <button onClick={downloadPDF} className="report-btn">
-          📄 Download PDF
-        </button>
-        <button onClick={downloadExcel} className="report-btn">
-          📊 Download Excel
-        </button>
       </div>
     </div>
   );
