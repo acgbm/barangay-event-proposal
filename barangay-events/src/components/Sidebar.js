@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import Swal from "sweetalert2";  // Make sure Swal is imported
@@ -6,6 +6,7 @@ import "./Sidebar.css";
 import logo from "../assets/bg.png"; // Make sure to update the path
 
 const Sidebar = ({ role }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const auth = getAuth();
@@ -55,23 +56,40 @@ const Sidebar = ({ role }) => {
   };
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-logo">
-        <img src={logo} alt="Logo" />
-      </div>
-      <ul>
-        {menuItems[role]?.map((item) => (
-          <li key={item.name} className={location.pathname === item.path ? "active" : ""}>
-            <Link to={item.path}>
-              <i className={item.icon}></i> {item.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <button className="logout-btn" onClick={handleLogout}>
-        <i className="fas fa-sign-out-alt"></i> Log Out
+    <>
+      {/* Hamburger button for mobile */}
+      <button
+        className="hamburger-btn"
+        onClick={() => setSidebarOpen((open) => !open)}
+        aria-label="Toggle sidebar"
+      >
+        <span className="bar"></span>
+        <span className="bar"></span>
+        <span className="bar"></span>
       </button>
-    </div>
+      {/* Overlay for mobile when sidebar is open */}
+      <div
+        className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+      <div className={`sidebar${sidebarOpen ? " open" : ""}`}>
+        <div className="sidebar-logo">
+          <img src={logo} alt="Logo" />
+        </div>
+        <ul>
+          {menuItems[role]?.map((item) => (
+            <li key={item.name} className={location.pathname === item.path ? "active" : ""}>
+              <Link to={item.path} onClick={() => setSidebarOpen(false)}>
+                <i className={item.icon}></i> {item.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <button className="logout-btn" onClick={handleLogout}>
+          <i className="fas fa-sign-out-alt"></i> Log Out
+        </button>
+      </div>
+    </>
   );
 };
 
