@@ -1,181 +1,223 @@
-/* ✅ Responsive Container */
+/* Main container for review proposals */
 .review-container {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  margin-left: 250px; /* Ensures it doesn't overlap with sidebar */
+  margin-left: 200px;
+  padding: 24px;
   font-family: "Google Sans", Roboto, Arial, sans-serif;
+  max-width: 100%;
+  min-height: calc(100vh - 48px);
 }
 
-/* ✅ Wrapper for sections */
-.proposals-wrapper {
-  display: flex;
-  gap: 15px;
-  width: 100%;
-  max-width: 1500px;
-  flex-wrap: wrap;
-  justify-content: space-between; /* Distributes content evenly */
-  font-family: "Google Sans", Roboto, Arial, sans-serif;
+.review-container h2 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 24px;
 }
 
-/* ✅ Proposal Sections */
-.proposals-section {
-  flex: 1;
-  background: #f8f9fa;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  min-width: 280px; /* Prevents sections from shrinking too much */
-  max-width: 500px; /* Keeps sections from getting too wide */
-  overflow-x: auto;
+.review-container h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16px;
 }
 
-/* ✅ Responsive Table - Smaller Width */
+.table-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 32px;
+  /* Removed overflow-x: auto to prevent horizontal scroll */
+}
+
 .proposals-table {
-  width: 95%; /* Make table slightly wider */
-  max-width: 880px; /* Ensures space for both buttons */
-  border-collapse: collapse;
-  font-size: 13px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0 auto;
+  table-layout: auto; /* Allow columns to size based on content */
 }
 
-/* ✅ Table Cell Styling */
-.proposals-table th,
-.proposals-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
+.proposals-table th {
+  background: #f8fafc;
+  padding: 16px 24px;
+  font-weight: 600;
+  color: #374151;
   text-align: left;
-  white-space: nowrap; /* Prevents text wrapping */
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 15px;
+  /* Removed white-space: nowrap */
 }
 
-/* ✅ Status Colors */
-.status-approved {
-  color: green;
-  font-weight: bold;
+.proposals-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+  vertical-align: middle;
+  font-size: 15px;
+  word-break: break-word;
+  white-space: normal; /* Allow wrapping */
+  overflow: visible;
+  text-overflow: unset;
 }
 
-.status-rejected {
-  color: red;
-  font-weight: bold;
+.proposals-table tr:last-child td {
+  border-bottom: none;
+}
+
+.proposals-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .status-pending {
-  color: orange;
-  font-weight: bold;
+  background-color: #fef3c7;
+  color: #92400e;
 }
 
-/* ✅ Buttons - Fixing Visibility */
-.approve-btn,
-.reject-btn {
-  padding: 5px 10px;
+.status-approved {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-cancelled,
+.status-declined-missed-deadline,
+.status-deadline {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-done {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 8px 16px;
   border: none;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-block;
-  width: 48%; /* Make sure both buttons fit */
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  min-width: 100px;
   text-align: center;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
 .approve-btn {
-  background: green;
-  color: white;
-}
-
-.reject-btn {
-  background: red;
+  background: #059669;
   color: white;
 }
 
 .approve-btn:hover {
-  background: darkgreen;
+  background: #047857;
+}
+
+.reject-btn {
+  background: #dc2626;
+  color: white;
 }
 
 .reject-btn:hover {
-  background: darkred;
+  background: #b91c1c;
 }
 
-/* ✅ Ensure Buttons Stay Side by Side */
-.action-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 5px;
+.attachment-btn {
+  padding: 6px 12px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
 }
 
-/* ✅ Image Popup - Ensures it fits within viewport */
-.attachment-popup img {
-  max-width: 90vw;
-  max-height: 80vh;
-  object-fit: contain;
-  border-radius: 5px;
+.attachment-btn:hover {
+  background: #4b5563;
 }
 
-/* 📌 Responsive Adjustments */
-@media (max-width: 1024px) {
-  .review-container {
-    margin-left: 200px;
-  }
-
-  .proposals-wrapper {
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .proposals-section {
-    width: 90%;
-    max-width: 400px;
-  }
-
-  .proposals-table {
-    width: 100%;
-    max-width: 380px;
-  }
-
-  .proposals-table th,
-  .proposals-table td {
-    font-size: 12px;
-    padding: 6px;
-  }
-
-  .approve-btn,
-  .reject-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-    width: 48%;
-  }
-}
-
-@media (max-width: 768px) {
+/* Responsive Design */
+@media screen and (max-width: 1024px) {
   .review-container {
     margin-left: 0;
-    align-items: center;
   }
-
-  .proposals-section {
-    width: 100%;
-    max-width: 350px;
+  .table-wrapper {
+    padding: 16px;
   }
-
-  .proposals-table {
-    width: 100%;
-    max-width: 320px;
-  }
-
   .proposals-table th,
   .proposals-table td {
-    font-size: 11px;
-    padding: 5px;
+    padding: 12px 16px;
+    font-size: 13px;
   }
+}
 
-  .approve-btn,
-  .reject-btn {
-    padding: 3px 6px;
-    font-size: 10px;
-    width: 48%;
+@media screen and (max-width: 640px) {
+  .review-container {
+    padding: 16px;
+  }
+  .review-container h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  .table-wrapper {
+    padding: 12px;
+    margin-bottom: 24px;
+  }
+  .proposals-table {
+    /* Removed display: block and overflow-x: auto */
+  }
+  .proposals-table th,
+  .proposals-table td {
+    padding: 12px;
+    font-size: 14px;
+  }
+  .status-badge {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .action-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .action-btn {
+    width: 100%;
+    min-width: 0;
+    font-size: 15px;
+    padding: 10px 0;
   }
 }

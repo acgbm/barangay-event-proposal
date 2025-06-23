@@ -331,90 +331,128 @@ const ReviewProposals = () => {
     }
   };  
 
+  // Helper to format date as 'Month Day, Year'
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="review-container">
       <h2>Review Proposals</h2>
 
-      <table className="proposals-table">
-        <thead>
-          <tr>
-            <th>Event Title</th>
-            <th>Description</th>
-            <th>Location</th>
-            <th>Date</th>
-            <th>Note</th>
-            <th>Submitted By</th>
-            <th>Attachment</th>
-            <th>Votes</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {proposals
-            .filter((p) => p.status === "Pending" || !p.status)
-            .map((proposal) => (
-              <tr key={proposal.id}>
-                <td>{proposal.title}</td>
-                <td>{proposal.description}</td>
-                <td>{proposal.location}</td>
-                <td>{proposal.date}</td>
-                <td>{proposal.note || "No note provided"}</td>
-                <td>{proposal.submitterName}</td>
-                <td>
-                  <button
-                    className="attachment-btn"
-                    onClick={() => handleViewAttachment(proposal.fileURL)}
-                  >
-                    View
-                  </button>
-                </td>
-                <td>
-                  ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
-                </td>
-                <td>
-                  <button
-                    onClick={() => handleVote(proposal.id, "approve")}
-                    className="approve-btn"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleVote(proposal.id, "reject")}
-                    className="reject-btn"
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className="table-wrapper">
+        <h3>Pending Proposals</h3>
+        <table className="proposals-table">
+          <thead>
+            <tr>
+              <th>Event Title</th>
+              <th>Description</th>
+              <th>Location</th>
+              <th>Date</th>
+              <th>Note</th>
+              <th>Submitted By</th>
+              <th>Attachment</th>
+              <th>Votes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {proposals
+              .filter((p) => p.status === "Pending" || !p.status)
+              .map((proposal) => {
+                const statusClass =
+                  proposal.status &&
+                  ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
+                    proposal.status.toLowerCase().replace(/ /g, "-")
+                  )
+                    ? "status-cancelled"
+                    : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+                return (
+                  <tr key={proposal.id}>
+                    <td>{proposal.title}</td>
+                    <td>{proposal.description}</td>
+                    <td>{proposal.location}</td>
+                    <td>{formatDate(proposal.date)}</td>
+                    <td>{proposal.note || "No note provided"}</td>
+                    <td>{proposal.submitterName}</td>
+                    <td>
+                      <button
+                        className="attachment-btn"
+                        onClick={() => handleViewAttachment(proposal.fileURL)}
+                      >
+                        View
+                      </button>
+                    </td>
+                    <td>
+                      ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          onClick={() => handleVote(proposal.id, "approve")}
+                          className="action-btn approve-btn"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleVote(proposal.id, "reject")}
+                          className="action-btn reject-btn"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
 
-      <h3>Voted Proposals</h3>
-      <table className="proposals-table">
-        <thead>
-          <tr>
-            <th>Event Title</th>
-            <th>Votes</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {proposals
-            .filter((p) => p.status && p.status !== "Pending")
-            .map((proposal) => (
-              <tr key={proposal.id}>
-                <td>{proposal.title}</td>
-                <td>
-                  ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
-                </td>
-                <td className={`status-${(proposal.status || "Pending").toLowerCase()}`}>
-                  {proposal.status || "Pending"}
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+      <div className="table-wrapper">
+        <h3>Voted Proposals</h3>
+        <table className="proposals-table">
+          <thead>
+            <tr>
+              <th>Event Title</th>
+              <th>Votes</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {proposals
+              .filter((p) => p.status && p.status !== "Pending")
+              .map((proposal) => {
+                const statusClass =
+                  proposal.status &&
+                  ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
+                    proposal.status.toLowerCase().replace(/ /g, "-")
+                  )
+                    ? "status-cancelled"
+                    : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+                return (
+                  <tr key={proposal.id}>
+                    <td>{proposal.title}</td>
+                    <td>
+                      ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${statusClass}`}>
+                        {proposal.status || "Pending"}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
