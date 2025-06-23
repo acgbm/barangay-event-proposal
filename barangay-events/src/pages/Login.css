@@ -1,78 +1,126 @@
-/* Login Page Styles Only */
+/* Facebook-style Login Page */
 .login-page {
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
-  overflow: hidden;
+  background: #e4e6eb;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: url('../assets/background.png') no-repeat center center/cover;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
   position: fixed;
   top: 0;
   left: 0;
+  overflow: hidden;
+  z-index: 0;
 }
 
-/* Smaller Login Box */
-.login-container {
+.login-page .login-main {
   display: flex;
   flex-direction: row;
   align-items: center;
-  background: #39A2DB; /* Light blue */
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
-  width: 400px;
-  max-width: 90%;
-  height: auto;
-  min-height: 180px;
+  justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+  gap: 40px;
 }
 
-/* Bigger Logo */
-.login-logo {
-  width: 130px;
-  height: auto;
-  margin-right: 15px;
-}
-
-/* Input Fields */
-.login-form {
+.login-page .login-logo-side {
+  flex: 1 1 400px;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  gap: 10px;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 320px;
+  margin-right: 20px;
 }
 
-.login-form input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.login-page .login-logo-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+}
+
+.login-page .login-logo.main-logo {
+  width: 340px;
+  max-width: 40vw;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.login-page .login-logo.secondary-logo {
+  width: 140px;
+  max-width: 18vw;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.login-page .login-logo-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1877f2;
+  margin-top: 0;
+  margin-bottom: 0;
+  text-align: right;
+  letter-spacing: -1px;
+}
+
+.login-page .login-container {
   background: #fff;
-  font-size: 14px;
-  box-sizing: border-box;
+  border-radius: 24px;
+  box-shadow: 0 2px 18px rgba(0,0,0,0.13);
+  padding: 40px 36px 32px 36px;
+  min-width: 340px;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.password-field-container {
+.login-page .login-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 18px;
+}
+
+.login-page .login-form input {
+  width: 100%;
+  padding: 16px 14px;
+  border: 1.5px solid #dddfe2;
+  border-radius: 18px;
+  background: #f5f6fa;
+  font-size: 17px;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+.login-page .login-form input:focus {
+  border: 1.5px solid #1877f2;
+  outline: none;
+}
+
+.login-page .password-field-container {
   position: relative;
   width: 100%;
 }
 
-.password-field-container input {
-  padding-right: 35px;
+.login-page .password-field-container input {
+  padding-right: 38px;
 }
 
-.password-toggle-button {
+.login-page .password-toggle-button {
   position: absolute;
-  right: 8px;
-  top: 45%;
+  right: 10px;
+  top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 2px;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,104 +128,289 @@
   z-index: 1;
 }
 
-.password-toggle-button svg {
-  width: 14px;
-  height: 14px;
+.login-page .password-toggle-button svg {
+  width: 18px;
+  height: 18px;
 }
 
-/* Button */
-.login-button {
-  background: white;
-  color: black;
+.login-page .login-button, .login-page .reset-button {
+  background: #1877f2;
+  color: #fff;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 16px 0;
+  border-radius: 18px;
   cursor: pointer;
   font-weight: bold;
-  transition: all 0.3s ease;
-  width: 80px;
-  align-self: center;
-  margin-left: 160px;
-}
-
-.login-button:hover {
-  background: #f0f0f0;
-}
-
-.login-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.forgot-password {
-  font-size: 12px;
-  color: #007bff; 
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
-.forgot-password-form {
+  font-size: 19px;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  transition: background 0.2s, color 0.2s;
   width: 100%;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
 
-.forgot-password-form h2 {
-  font-size: 18px; /* Make the heading smaller */
-  font-weight: 600;
-  margin-bottom: 10px;
+.login-page .login-button:hover, .login-page .reset-button:hover {
+  background: #1456b8;
   color: #fff;
 }
 
-.forgot-password-form input {
-  width: 100%;
-  padding: 8px 12px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  font-size: 14px;
-  box-sizing: border-box;
+.login-page .forgot-password {
+  font-size: 16px;
+  color: #1877f2;
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 8px;
+  margin-top: 0;
+  transition: color 0.2s;
+  border-radius: 12px;
+  padding: 2px 8px;
 }
 
-.forgot-password-link {
-  font-size: 12px; /* Make "Back to Login" smaller */
-  color: #007bff;
+.login-page .forgot-password:hover {
+  text-decoration: underline;
+  color: #1456b8;
+  background: #e4e6eb;
+}
+
+.login-page .forgot-password-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-page .forgot-password-form h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #1877f2;
+}
+
+.login-page .forgot-password-form input {
+  width: 100%;
+  padding: 14px 12px;
+  margin-bottom: 10px;
+  border: 1.5px solid #dddfe2;
+  border-radius: 18px;
+  background: #f5f6fa;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+.login-page .forgot-password-form input:focus {
+  border: 1.5px solid #1877f2;
+  outline: none;
+}
+
+.login-page .forgot-password-link {
+  font-size: 15px;
+  color: #1877f2;
   cursor: pointer;
   text-align: center;
   margin-top: 10px;
+  border-radius: 12px;
+  padding: 2px 8px;
 }
 
-/* Responsive Design */
-@media screen and (max-width: 768px) {
-  .login-container {
+.login-page .forgot-password-link:hover {
+  text-decoration: underline;
+  background: #e4e6eb;
+}
+
+.login-page .login-center-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  min-height: 100vh;
+  gap: 18px;
+}
+
+/* Hide all scrollbars */
+.login-page * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.login-page *::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Add particle background container */
+.login-page .particle-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Ensure login content is above particles */
+.login-page .login-center-group,
+.login-page .login-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Stack logos vertically inside the login container */
+.login-page .login-logo-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 18px;
+  width: 100%;
+}
+.login-page .login-logo.secondary-logo {
+  width: 90px;
+  max-width: 30vw;
+  margin-bottom: 10px;
+}
+.login-page .login-logo.main-logo {
+  width: 180px;
+  max-width: 60vw;
+}
+
+@media (max-width: 700px) {
+  .login-page .login-logo.secondary-logo {
+    width: 48px;
+    margin-bottom: 6px;
+  }
+  .login-page .login-logo.main-logo {
+    width: 110px;
+  }
+}
+
+/* Remove old logo row/side styles if not used */
+.login-page .login-logo-row,
+.login-page .login-logo-side {
+  display: none !important;
+}
+
+/* Particle style (simple floating squares, can be improved with JS) */
+.login-page .particle {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  background: rgba(44,62,80,0.13);
+  border-radius: 12px;
+  animation: float 12s linear infinite;
+}
+@keyframes float {
+  0% { transform: translateY(100vh) scale(1) rotate(0deg); opacity: 0.7; }
+  100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0.2; }
+}
+
+@media (max-width: 1100px) {
+  .login-page .login-main {
     flex-direction: column;
-    text-align: center;
-    padding: 20px;
-    height: auto;
+    align-items: center;
+    gap: 24px;
   }
-
-  .login-logo {
+  .login-page .login-logo-side {
+    align-items: center;
     margin-right: 0;
-    margin-bottom: 15px;
-    width: 100px;
+    margin-bottom: 0;
   }
-
-  .login-form {
-    width: 100%;
+  .login-page .login-logo_row {
+    justify-content: center;
   }
-
-  .login-button {
-    margin-left: 0;
-    width: 100%;
+  .login-page .login-logo.main-logo {
+    width: 220px;
   }
-
-  .forgot-password {
-    margin-left: 0;
+  .login-page .login-logo.secondary-logo {
+    width: 90px;
+  }
+  .login-page .login-logo-text {
+    font-size: 2rem;
     text-align: center;
-    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 700px) {
+  .login-page {
+    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .login-page .login-main {
+    flex-direction: column;
+    gap: 0 !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-page .login-logo-side {
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
+  .login-page .login-logo-row {
+    gap: 0 !important;
+    justify-content: center;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .login-page .login-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    min-width: 0;
+    max-width: 98vw;
+    width: 95vw;
+    padding: 14px 6px 12px 6px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  .login-page .login-logo.main-logo {
+    width: 200px !important;
+    max-width: 90vw;
+    transition: width 0.3s;
+  }
+  .login-page .login-logo.secondary-logo {
+    width: 120px !important;
+    max-width: 60vw;
+    margin-bottom: 12px;
+    transition: width 0.3s;
+  }
+  .login-page .login-logo-text {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+  .login-page .login-container {
+    margin-top: 4px;
+    min-width: 0;
+    max-width: 98vw;
+    width: 95vw;
+    padding: 14px 6px 12px 6px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  .login-page .login-form input,
+  .login-page .forgot-password-form input {
+    font-size: 15px;
+    padding: 10px 8px;
+    border-radius: 12px;
+  }
+  .login-page .login-button,
+  .login-page .reset-button {
+    font-size: 16px;
+    padding: 12px 0;
+    border-radius: 12px;
   }
 }
