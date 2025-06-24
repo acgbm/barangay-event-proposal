@@ -66,7 +66,9 @@ const ManageAccounts = () => {
         verified: isAdmin ? true : false,
       });
       if (!isAdmin) {
-        const verificationLink = `http://localhost:3000/verify-email?uid=${userId}`;
+        // Use your production domain for verification link
+        const baseUrl = "https://barangay-events-system.web.app";
+        const verificationLink = `${baseUrl}/verify-email?uid=${userId}`;
         const emailParams = {
           to_email: email,
           to_name: fullName,
