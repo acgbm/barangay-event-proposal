@@ -20,6 +20,7 @@ const ManageAccounts = () => {
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCreating, setIsCreating] = useState(false);
   const accountsPerPage = 5;
   const db = getFirestore();
   const auth = getAuth();
@@ -48,23 +49,21 @@ const ManageAccounts = () => {
   const handleCreateAccount = async (e) => {
     e.preventDefault();
     setError("");
-  
+    if (isCreating) return; // Prevent double submit
+    setIsCreating(true);
     try {
       const defaultPassword = "123456";
       const userCredential = await createUserWithEmailAndPassword(auth, email, defaultPassword);
       const userId = userCredential.user.uid;
-  
       const isAdmin = role === "admin";
-  
       await setDoc(doc(db, "users", userId), {
         email,
         role,
         fullName,
         dob,
         phone,
-        verified: isAdmin ? true : false, // Admins are automatically verified
+        verified: isAdmin ? true : false,
       });
-  
       if (!isAdmin) {
         const verificationLink = `http://localhost:3000/verify-email?uid=${userId}`;
         const emailParams = {
@@ -74,11 +73,10 @@ const ManageAccounts = () => {
           user_password: defaultPassword,
           verification_link: verificationLink,
         };
-  
         try {
           await emailjs.send(emailjsConfig.serviceID, emailjsConfig.templateID, emailParams, emailjsConfig.publicKey);
         } catch (emailError) {
-          console.error("EmailJS error:", emailError);
+          setIsCreating(false);
           setError("Account created, but failed to send verification email.");
           Swal.fire({
             icon: "warning",
@@ -88,16 +86,12 @@ const ManageAccounts = () => {
           return;
         }
       }
-  
       setAccounts([...accounts, { id: userId, email, role, fullName, dob, phone, verified: isAdmin }]);
-  
-      // Reset fields
       setEmail("");
       setRole("staff");
       setFullName("");
       setDob("");
       setPhone("");
-  
       Swal.fire({
         icon: "success",
         title: "Account Created",
@@ -106,13 +100,14 @@ const ManageAccounts = () => {
           : `A verification email has been sent to ${email}. The user cannot log in until they verify their email.`,
       });
     } catch (err) {
-      console.error("Account creation error:", err);
       setError("Error creating account: " + err.message);
       Swal.fire({
         icon: "error",
         title: "Account Creation Failed",
         text: err.message,
       });
+    } finally {
+      setIsCreating(false);
     }
   };
   
@@ -339,7 +334,9 @@ const ManageAccounts = () => {
             </select>
           </div>
           <div className="form-actions">
-            <button type="submit">Create</button>
+            <button type="submit" disabled={isCreating} style={isCreating ? {opacity:0.6, cursor:'not-allowed'} : {}}>
+              {isCreating ? 'Creating...' : 'Create'}
+            </button>
           </div>
         </div>
       </form>
