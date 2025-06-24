@@ -21,6 +21,7 @@ const ManageAccounts = () => {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const accountsPerPage = 5;
   const db = getFirestore();
   const auth = getAuth();
@@ -300,6 +301,17 @@ const ManageAccounts = () => {
     setDob(value);
   };
 
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    // Simple email validation
+    if (!/^\S+@\S+\.\S+$/.test(value)) {
+      setEmailError("A valid email is required.");
+    } else {
+      setEmailError("");
+    }
+  };
+
   return (
     <div className="manage-accounts">
       <h2>Manage Accounts</h2>
@@ -312,7 +324,8 @@ const ManageAccounts = () => {
           </div>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input id="email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input id="email" type="email" placeholder="Email" value={email} onChange={handleEmailChange} required />
+            {emailError && <span style={{color:'#dc3545', fontSize:'0.95em'}}>{emailError}</span>}
           </div>
         </div>
         <div className="form-row">
@@ -334,7 +347,7 @@ const ManageAccounts = () => {
             </select>
           </div>
           <div className="form-actions">
-            <button type="submit" disabled={isCreating} style={isCreating ? {opacity:0.6, cursor:'not-allowed'} : {}}>
+            <button type="submit" disabled={isCreating || !!emailError} style={isCreating ? {opacity:0.6, cursor:'not-allowed'} : {}}>
               {isCreating ? 'Creating...' : 'Create'}
             </button>
           </div>
