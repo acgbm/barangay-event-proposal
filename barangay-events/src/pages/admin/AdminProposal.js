@@ -4,9 +4,23 @@ import { collection, query, getDocs, updateDoc, doc } from "firebase/firestore";
 import Swal from "sweetalert2";
 import "./AdminProposal.css"; // Ensure this file is styled
 
+// Helper to format date as "Month DD, YYYY"
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr; // fallback for invalid
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 const AdminProposal = () => {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const proposalsPerPage = 10;
 
   // Fetch proposals from Firestore
   const fetchProposals = async () => {
@@ -118,21 +132,27 @@ const AdminProposal = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
-        return "green";
+        return "#2ecc40"; // green
       case "Pending":
-        return "black"; // Blue color for pending events
+        return "#007bff"; // blue
       case "Rejected":
-        return "red";
+        return "#e74c3c"; // red
       case "Declined (Missed Deadline)":
-        return "orange";
+        return "#ff9800"; // orange
       case "Cancelled":
-        return "gray";
+        return "#888"; // gray
       case "Rescheduled":
-        return "blue"; // Blue color for rescheduled events
+        return "#6c63ff"; // purple/blue
       default:
-        return "black";
+        return "#22223b";
     }
   };
+
+  // Pagination logic
+  const indexOfLastProposal = currentPage * proposalsPerPage;
+  const indexOfFirstProposal = indexOfLastProposal - proposalsPerPage;
+  const currentProposals = proposals.slice(indexOfFirstProposal, indexOfLastProposal);
+  const totalPages = Math.ceil(proposals.length / proposalsPerPage);
 
   return (
     <div className="admin-proposal">
@@ -149,14 +169,20 @@ const AdminProposal = () => {
             </tr>
           </thead>
           <tbody>
-            {proposals.map((proposal) => (
+            {currentProposals.map((proposal) => (
               <tr key={proposal.id}>
                 <td>{proposal.title}</td>
-                <td>{proposal.date}</td>
-                <td style={{ color: getStatusColor(proposal.status) }}>
-                  {proposal.status}
+                <td>{formatDate(proposal.date)}</td>
+                <td>
+                  <span className="status-badge" style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
+                    {proposal.status}
+                  </span>
                 </td>
-                <td className="action-buttons">
+                <td className={
+                  proposal.status === "Approved" || proposal.status === "Rescheduled"
+                    ? "action-buttons"
+                    : "no-actions-cell"
+                }>
                   {proposal.status === "Approved" && (
                     <>
                       <button className="rescheduleButton" onClick={() => handleReschedule(proposal)}>Reschedule</button>
@@ -170,13 +196,31 @@ const AdminProposal = () => {
                     </>
                   )}
                   {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)") && (
-                    <span>No actions available</span> // Display text for cancelled, rejected, or declined proposals
+                    <span>No actions available</span>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+      {/* Pagination Controls */}
+      <div className="admin-proposal-pagination">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span className="page-indicator">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages || totalPages === 0}
+        >
+          Next
+        </button>
       </div>
     </div>
   );
