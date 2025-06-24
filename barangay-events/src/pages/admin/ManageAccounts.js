@@ -19,11 +19,8 @@ const ManageAccounts = () => {
   const [phone, setPhone] = useState("");
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
-  const [editMode, setEditMode] = useState(null);
-  const [editFullName, setEditFullName] = useState("");
-  const [editDob, setEditDob] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editRole, setEditRole] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const accountsPerPage = 5;
   const db = getFirestore();
   const auth = getAuth();
 
@@ -119,38 +116,80 @@ const ManageAccounts = () => {
     }
   };
   
-  const handleEditAccount = async (userId) => {
-    try {
-      await updateDoc(doc(db, "users", userId), {
-        fullName: editFullName,
-        dob: editDob,
-        phone: editPhone,
-        role: editRole,
-      });
-  
-      setAccounts(
-        accounts.map((user) =>
-          user.id === userId
-            ? { ...user, fullName: editFullName, dob: editDob, phone: editPhone, role: editRole }
-            : user
-        )
-      );
-  
-      setEditMode(null); // Exit edit mode after saving
-  
-      Swal.fire({
-        icon: "success",
-        title: "Account Updated",
-        text: "The account has been successfully updated.",
-      });
-    } catch (err) {
-      console.error("Error updating account:", err);
-  
-      Swal.fire({
-        icon: "error",
-        title: "Update Failed",
-        text: err.message,
-      });
+  const handleEditAccount = async (user) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Edit Account',
+      html:
+        `<input id="swal-fullname" class="swal2-input" placeholder="Full Name" value="${user.fullName}" maxlength="50" pattern="[A-Za-z\s]+" autocomplete="off">` +
+        `<input id="swal-dob" class="swal2-input" type="date" value="${user.dob}" max="${today}">` +
+        `<input id="swal-phone" class="swal2-input" placeholder="09xxxxxxxxx" value="${user.phone}" maxlength="11" pattern="09[0-9]{9}" autocomplete="off">` +
+        `<select id="swal-role" class="swal2-input" style="height:40px;">
+          <option value="staff" ${user.role === 'staff' ? 'selected' : ''}>Staff</option>
+          <option value="official" ${user.role === 'official' ? 'selected' : ''}>Official</option>
+        </select>`,
+      focusConfirm: false,
+      confirmButtonText: 'Save',
+      showCancelButton: true,
+      cancelButtonColor: '#6c757d',
+      confirmButtonColor: '#007bff',
+      customClass: {
+        popup: 'swal2-modern',
+        confirmButton: 'swal2-modern-btn',
+        cancelButton: 'swal2-modern-btn-cancel'
+      },
+      preConfirm: () => {
+        const fullName = document.getElementById('swal-fullname').value.trim();
+        const dob = document.getElementById('swal-dob').value;
+        const phone = document.getElementById('swal-phone').value.trim();
+        const role = document.getElementById('swal-role').value;
+        // Validation
+        if (!/^[A-Za-z\s]+$/.test(fullName)) {
+          Swal.showValidationMessage('Full Name must only contain letters and spaces.');
+          return false;
+        }
+        if (!dob || dob > today) {
+          Swal.showValidationMessage('Please enter a valid date of birth.');
+          return false;
+        }
+        if (!/^09\d{9}$/.test(phone)) {
+          Swal.showValidationMessage('Phone number must start with 09 and be 11 digits.');
+          return false;
+        }
+        return { fullName, dob, phone, role };
+      }
+    });
+
+    if (formValues) {
+      try {
+        await updateDoc(doc(db, "users", user.id), {
+          fullName: formValues.fullName,
+          dob: formValues.dob,
+          phone: formValues.phone,
+          role: formValues.role,
+        });
+        setAccounts(
+          accounts.map((u) =>
+            u.id === user.id
+              ? { ...u, ...formValues }
+              : u
+          )
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Account Updated",
+          text: "The account has been successfully updated.",
+          confirmButtonColor: '#007bff',
+          customClass: { popup: 'swal2-modern' }
+        });
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Update Failed",
+          text: err.message,
+          confirmButtonColor: '#dc3545',
+          customClass: { popup: 'swal2-modern' }
+        });
+      }
     }
   };
   
@@ -236,23 +275,77 @@ const ManageAccounts = () => {
     });
   };
   
+  // Pagination logic
+  const indexOfLastAccount = currentPage * accountsPerPage;
+  const indexOfFirstAccount = indexOfLastAccount - accountsPerPage;
+  const currentAccounts = accounts.slice(indexOfFirstAccount, indexOfLastAccount);
+  const totalPages = Math.ceil(accounts.length / accountsPerPage);
+
+  // Helper for today's date in yyyy-mm-dd
+  const today = new Date().toISOString().split('T')[0];
+
+  // Handlers with validation
+  const handleFullNameChange = (e) => {
+    const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+    setFullName(value);
+  };
+
+  const handlePhoneChange = (e) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    if (!value.startsWith("09")) {
+      value = "09" + value.replace(/^0+/, "").replace(/^9+/, "");
+    }
+    if (value.length > 11) value = value.slice(0, 11);
+    setPhone(value);
+  };
+
+  const handleDobChange = (e) => {
+    const value = e.target.value;
+    if (value > today) return;
+    setDob(value);
+  };
+
   return (
     <div className="manage-accounts">
       <h2>Manage Accounts</h2>
 
       <form onSubmit={handleCreateAccount}>
-        <input type="text" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
-        <input type="tel" placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/, ""))} required />
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="staff">Staff</option>
-          <option value="official">Official</option>
-        </select>
-        <button type="submit">Create</button>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="fullName">Full Name</label>
+            <input id="fullName" type="text" placeholder="Full Name" value={fullName} onChange={handleFullNameChange} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input id="email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="dob">Date of Birth</label>
+            <input id="dob" type="date" value={dob} onChange={handleDobChange} max={today} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="phone">Phone Number</label>
+            <input id="phone" type="tel" placeholder="09xxxxxxxxx" value={phone} onChange={handlePhoneChange} pattern="09[0-9]{9}" maxLength={11} minLength={11} required />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="role">Role</label>
+            <select id="role" value={role} onChange={(e) => setRole(e.target.value)}>
+              <option value="staff">Staff</option>
+              <option value="official">Official</option>
+            </select>
+          </div>
+          <div className="form-actions">
+            <button type="submit">Create</button>
+          </div>
+        </div>
       </form>
 
       <h3>Existing Accounts</h3>
+      <div style={{overflowX: 'auto', borderRadius: '12px', boxShadow: '0 1px 4px rgba(0,0,0,0.03)'}}>
       <table className="accounts-table">
         <thead>
           <tr>
@@ -266,107 +359,58 @@ const ManageAccounts = () => {
           </tr>
         </thead>
         <tbody>
-            {accounts
-              .filter((user) => user.role !== "admin") // Hide admin accounts
-              .map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    {editMode === user.id ? (
-                      <input
-                        type="text"
-                        value={editFullName}
-                        onChange={(e) => setEditFullName(e.target.value)}
-                      />
-                    ) : (
-                      user.fullName
-                    )}
-                  </td>
-                  <td>{user.email}</td>
-                  <td>
-                    {editMode === user.id ? (
-                      <select value={editRole} onChange={(e) => setEditRole(e.target.value)}>
-                        <option value="staff">Staff</option>
-                        <option value="official">Official</option>
-                      </select>
-                    ) : (
-                      user.role
-                    )}
-                  </td>
-                  <td>
-                    {editMode === user.id ? (
-                      <input
-                        type="date"
-                        value={editDob}
-                        onChange={(e) => setEditDob(e.target.value)}
-                      />
-                    ) : (
-                      user.dob
-                    )}
-                  </td>
-                  <td>
-                    {editMode === user.id ? (
-                      <input
-                        type="tel"
-                        value={editPhone}
-                        onChange={(e) => setEditPhone(e.target.value)}
-                      />
-                    ) : (
-                      user.phone
-                    )}
-                  </td>
-                  <td>{user.verified ? "✅ Verified" : "❌ Not Verified"}</td>
-                  <td>
-                    {editMode === user.id ? (
-                      <>
-                        <button
-                          onClick={() => handleEditAccount(user.id)}
-                          style={{ backgroundColor: "#28a745", marginRight: "5px" }}
-                        >
-                          Save
-                        </button>
-                        <button onClick={() => setEditMode(null)} style={{ backgroundColor: "#6c757d" }}>
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => {
-                            setEditMode(user.id);
-                            setEditFullName(user.fullName);
-                            setEditDob(user.dob);
-                            setEditPhone(user.phone);
-                            setEditRole(user.role);
-                          }}
-                          style={{ backgroundColor: "#007bff", marginRight: "5px" }}
-                        >
-                          Edit
-                        </button>
-                        {user.verified ? (
-                          <button
-                            onClick={() => handleToggleAccountStatus(user.id, user.disabled)}
-                            style={{
-                              backgroundColor: user.disabled ? "#28a745" : "#6c757d", // Green for enable, Gray for disable
-                              cursor: "pointer",
-                            }}
-                          >
-                            {user.disabled ? "Enable Account" : "Disable Account"}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleDeleteAccount(user.id)}
-                            style={{ backgroundColor: "#dc3545" }}
-                          >
-                            Delete Account
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
+          {currentAccounts
+            .filter((user) => user.role !== "admin")
+            .map((user) => (
+              <tr key={user.id}>
+                <td>{user.fullName}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>{user.dob}</td>
+                <td>{user.phone}</td>
+                <td>{user.verified ? <span style={{color:'#28a745', fontWeight:600}}>✅ Verified</span> : <span style={{color:'#dc3545', fontWeight:600}}>❌ Not Verified</span>}</td>
+                <td>
+                  <button className="edit" onClick={() => handleEditAccount(user)}>
+                    Edit
+                  </button>
+                  {user.verified ? (
+                    <button
+                      className={`toggle ${user.disabled ? 'active' : 'inactive'}`}
+                      onClick={() => handleToggleAccountStatus(user.id, user.disabled)}
+                    >
+                      {user.disabled ? "Enable" : "Disable"}
+                    </button>
+                  ) : (
+                    <button className="delete" onClick={() => handleDeleteAccount(user.id)}>
+                      Delete
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+        </tbody>
       </table>
+      </div>
+      {/* Pagination Controls */}
+      <div style={{display: 'flex', justifyContent: 'center', marginTop: '12px', gap: '10px'}}>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          style={{minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.6 : 1}}
+        >
+          Previous
+        </button>
+        <span style={{alignSelf: 'center', fontWeight: 500}}>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages || totalPages === 0}
+          style={{minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: (currentPage === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer', opacity: (currentPage === totalPages || totalPages === 0) ? 0.6 : 1}}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
