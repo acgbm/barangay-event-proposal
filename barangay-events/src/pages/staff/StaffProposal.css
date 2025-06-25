@@ -15,6 +15,7 @@
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.15);
+    border: none;
     font-family: "Google Sans", Roboto, Arial, sans-serif;
   }
   
@@ -55,6 +56,7 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
+    background: #fff;
     transition: all 0.3s ease-in-out;
     box-sizing: border-box;
   }
@@ -63,6 +65,7 @@
     border-color: #007bff;
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+    background: #fff;
   }
   
   .staff-proposal-textarea {
@@ -73,6 +76,7 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
+    background: #fff;
     transition: all 0.3s ease-in-out;
     box-sizing: border-box;
     resize: vertical;
@@ -82,6 +86,7 @@
     border-color: #007bff;
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+    background: #fff;
   }
   
   .staff-proposal-file-input {
@@ -104,9 +109,10 @@
     cursor: pointer;
     transition: all 0.3s ease-in-out;
     margin-top: 10px;
+    box-shadow: none;
   }
   
-  .staff-proposal-submit-btn:hover {
+  .staff-proposal-submit-btn:hover:not(:disabled) {
     background: #0056b3;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -114,8 +120,8 @@
   
   .staff-proposal-submit-btn:disabled {
     background: #ccc;
+    color: #fff;
     cursor: not-allowed;
-    transform: none;
     box-shadow: none;
   }
   
@@ -157,6 +163,7 @@
   
     .staff-proposal-form-wrapper {
       padding: 20px;
+      border-radius: 12px;
     }
   
     .staff-proposal-form-group {

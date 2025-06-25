@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { db, auth } from "../../firebaseConfig"; // Firebase Firestore & Auth
 import { supabase } from "../../firebaseConfig"; // Supabase Storage
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -14,12 +14,20 @@ const StaffProposal = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Character limits
-  const DESCRIPTION_LIMIT = 120;
-  const NOTE_LIMIT = 120;
+  const fileInputRef = useRef(null);
 
-  // Prevent selecting past dates
-  const minDate = new Date().toISOString().split("T")[0];
+  // Character limits
+  const DESCRIPTION_LIMIT = 80;
+  const NOTE_LIMIT = 60;
+  const TITLE_LIMIT = 40;
+  const LOCATION_LIMIT = 40;
+
+  // Prevent selecting past dates (force minDate to tomorrow if today is selectable due to timezone)
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  // Add 1 day to ensure the minimum date is always today or later in all timezones
+  const minDateObj = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const minDate = minDateObj.toISOString().split("T")[0];
 
   // Handle File Selection
   const handleFileChange = (e) => {
@@ -42,11 +50,26 @@ const StaffProposal = () => {
     }
   };
 
+  // Handle Event Title change (letters and spaces only, limit length)
+  const handleTitleChange = (e) => {
+    let value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+    if (value.length > TITLE_LIMIT) value = value.slice(0, TITLE_LIMIT);
+    setTitle(value);
+  };
+
+  // Handle Location change (letters, numbers, spaces only, limit length)
+  const handleLocationChange = (e) => {
+    let value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, "");
+    if (value.length > LOCATION_LIMIT) value = value.slice(0, LOCATION_LIMIT);
+    setLocation(value);
+  };
+
   // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");    try {
+    setMessage("");
+    try {
       // Get the current logged-in user
       const user = auth.currentUser;
       if (!user) {
@@ -98,6 +121,7 @@ const StaffProposal = () => {
       setDate("");
       setNote(""); // Reset note field
       setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("❌ Error submitting proposal:", error.message);
       setMessage(`❌ Error submitting proposal: ${error.message}`);
@@ -120,9 +144,11 @@ const StaffProposal = () => {
             <input
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleTitleChange}
               required
               className="staff-proposal-input"
+              maxLength={TITLE_LIMIT}
+              placeholder="Event Title"
             />
           </div>
 
@@ -148,9 +174,11 @@ const StaffProposal = () => {
             <input
               type="text"
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={handleLocationChange}
               required
               className="staff-proposal-input"
+              maxLength={LOCATION_LIMIT}
+              placeholder="Location"
             />
           </div>
 
@@ -183,12 +211,13 @@ const StaffProposal = () => {
             </div>
           </div>
 
-          <div className="staff-proposal-form-group">
+          <div className="staff-proposal-form-group" style={{marginTop: '18px'}}>
             <label className="staff-proposal-label">Attachment (Permits, Budget Plans, etc.):</label>
             <input 
               type="file" 
               onChange={handleFileChange}
               className="staff-proposal-file-input"
+              ref={fileInputRef}
             />
           </div>
 
