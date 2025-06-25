@@ -11,6 +11,8 @@ const OfficialDashboard = () => {
     cancelled: 0,
     rejected: 0,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const proposalsPerPage = 5;
 
   // ✅ Fetch Proposals and Check for Notifications
   const fetchProposals = async () => {
@@ -60,8 +62,14 @@ const OfficialDashboard = () => {
     });
   };
 
+  // Pagination logic
+  const indexOfLastProposal = currentPage * proposalsPerPage;
+  const indexOfFirstProposal = indexOfLastProposal - proposalsPerPage;
+  const currentProposals = proposals.slice(indexOfFirstProposal, indexOfLastProposal);
+  const totalPages = Math.ceil(proposals.length / proposalsPerPage);
+
   return (
-    <div className="official-dashboard">
+    <div className="official-dashboard" style={{ marginTop: 56 }}>
       <h1>Official Dashboard</h1>
 
       <div className="quick-stats">
@@ -95,8 +103,8 @@ const OfficialDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {proposals.length > 0 ? (
-              proposals.map((proposal) => {
+            {currentProposals.length > 0 ? (
+              currentProposals.map((proposal) => {
                 const statusClass =
                   proposal.status &&
                   ["cancelled", "declined-missed-deadline", "deadline"].includes(
@@ -124,6 +132,28 @@ const OfficialDashboard = () => {
             )}
           </tbody>
         </table>
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="official-pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 18 }}>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              style={{ minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.6 : 1 }}
+            >
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontWeight: 500 }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              style={{ minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: (currentPage === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer', opacity: (currentPage === totalPages || totalPages === 0) ? 0.6 : 1 }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
