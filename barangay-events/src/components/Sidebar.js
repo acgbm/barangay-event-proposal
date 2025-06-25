@@ -25,7 +25,7 @@ const Sidebar = ({ role }) => {
     ],
     official: [
       { name: "Dashboard", path: "/official-dashboard", icon: "fas fa-home" },
-      { name: "Review Proposals", path: "/review-proposals", icon: "fas fa-check-circle" },
+      { name: "Proposals", path: "/review-proposals", icon: "fas fa-check-circle" },
       { name: "Events", path: "/official-events", icon: "fas fa-calendar" },
       { name: "Account", path: "/official-account", icon: "fas fa-user" },
     ],
