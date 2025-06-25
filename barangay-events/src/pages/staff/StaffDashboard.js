@@ -117,27 +117,35 @@ const StaffDashboard = () => {
     }
   };
   useEffect(() => {
+    let didRun = false;
     const run = async () => {
-      if (userId) {
+      if (userId && !didRun) {
+        didRun = true;
         await checkForAutoRejection();
         await fetchUserProposals(userId);
       }
     };
     run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // ✅ Notify Staff of Approved or Rejected Proposals
   const checkForNotifications = (userProposals) => {
-    // Filter proposals for new notifications (approved, rejected, and declined)
+    // Only show notifications for proposals that have not been notified
     const newNotifications = userProposals.filter(
       (proposal) =>
-        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled") || proposal.status === "Cancelled" &&
+        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled" || proposal.status === "Cancelled") &&
         proposal.notified !== true
     );
-  
     if (newNotifications.length > 0) {
-      setNotifications(newNotifications);
-      newNotifications.forEach((proposal) => showNotification(proposal));
+      // Sort by createdAt or updatedAt (if available), fallback to array order
+      const sorted = [...newNotifications].sort((a, b) => {
+        const aTime = a.updatedAt ? new Date(a.updatedAt) : (a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0));
+        const bTime = b.updatedAt ? new Date(b.updatedAt) : (b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0));
+        return bTime - aTime;
+      });
+      // Only show the most recent notification
+      showNotification(sorted[0]);
     }
   };
   
@@ -228,40 +236,92 @@ const handleViewFeedback = (feedbackArray, status) => {
   };
 
   const handleResubmitProposal = async (proposal) => {
-    
     const { value: formValues } = await Swal.fire({
       title: "Edit Proposal Before Resubmitting",
       html: `
-        <div style="text-align:left; font-size: 12px; padding: 5px 10px;">
-          <label for="swal-title" style="font-weight: bold; font-size: 12px;">Event Title</label>
-          <input id="swal-title" class="swal2-input" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.title}">
-          
-          <label for="swal-description" style="font-weight: bold; font-size: 12px;">Description</label>
-          <textarea id="swal-description" class="swal2-textarea" style="width: 90%; font-size: 12px; height: 50px; padding: 5px;">${proposal.description}</textarea>
-          
-          <label for="swal-location" style="font-weight: bold; font-size: 12px;">Location</label>
-          <input id="swal-location" class="swal2-input" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.location || ""}">
-          
-          <label for="swal-date" style="font-weight: bold; font-size: 12px;">Date</label>
-          <input id="swal-date" class="swal2-input" type="date" style="width: 90%; font-size: 12px; padding: 5px;" value="${proposal.date}">
-          
-          <label for="swal-note" style="font-weight: bold; font-size: 12px;">Note</label>
-          <textarea id="swal-note" class="swal2-textarea" style="width: 90%; font-size: 12px; height: 50px; padding: 5px;">${proposal.note || ""}</textarea>
-          
-          <label for="swal-attachment" style="font-weight: bold; font-size: 12px;">Attachment</label>
-          <input id="swal-attachment" class="swal2-file" type="file" style="font-size: 12px; padding: 3px;">
+        <div style="text-align:center; font-size: 13px; padding: 5px 10px;">
+          <label for="swal-title" style="font-weight: bold; font-size: 13px; margin-bottom:2px; display:block; text-align:center;">Event Title</label>
+          <input id="swal-title" class="swal2-input" style="width: 96%; font-size: 13px; padding: 7px; margin-bottom:8px; text-align:center;" maxlength="40" value="${proposal.title}">
+          <label for="swal-description" style="font-weight: bold; font-size: 13px; margin-bottom:2px; display:block; text-align:center;">Description</label>
+          <textarea id="swal-description" class="swal2-textarea" style="width: 96%; font-size: 13px; height: 50px; padding: 7px; margin-bottom:8px; text-align:center;" maxlength="80">${proposal.description}</textarea>
+          <label for="swal-location" style="font-weight: bold; font-size: 13px; margin-bottom:2px; display:block; text-align:center;">Location</label>
+          <input id="swal-location" class="swal2-input" style="width: 96%; font-size: 13px; padding: 7px; margin-bottom:8px; text-align:center;" maxlength="40" value=${proposal.location ? `"${proposal.location}"` : ""}>
+          <label for="swal-date" style="font-weight: bold; font-size: 13px; margin-bottom:2px; display:block; text-align:center;">Date</label>
+          <input id="swal-date" class="swal2-input" type="date" style="width: 96%; font-size: 13px; padding: 7px; margin-bottom:8px; text-align:center;" min="2025-06-27" value="${proposal.date}">
+          <label for="swal-note" style="font-weight: bold; font-size: 13px; margin-bottom:2px; display:block; text-align:center;">Note</label>
+          <textarea id="swal-note" class="swal2-textarea" style="width: 96%; font-size: 13px; height: 50px; padding: 7px; margin-bottom:8px; text-align:center;" maxlength="60">${proposal.note || ""}</textarea>
+          <label for="swal-attachment" style="font-weight: bold; font-size: 13px; margin-bottom:2px; display:block; text-align:center;">Attachment</label>
+          <input id="swal-attachment" class="swal2-file" type="file" style="font-size: 13px; padding: 3px; display:block; margin:0 auto; text-align:center;">
         </div>
       `,
       showCancelButton: true,
       confirmButtonText: "Resubmit",
+      customClass: {
+        popup: 'swal2-modern',
+        confirmButton: 'swal2-modern-btn',
+        cancelButton: 'swal2-modern-btn-cancel'
+      },
       preConfirm: () => {
+        const title = document.getElementById("swal-title").value.trim();
+        const description = document.getElementById("swal-description").value.trim();
+        const location = document.getElementById("swal-location").value.trim();
+        const date = document.getElementById("swal-date").value;
+        const note = document.getElementById("swal-note").value.trim();
+        const attachment = document.getElementById("swal-attachment").files[0];
+        // Validation
+        if (!title) {
+          Swal.showValidationMessage("Event title is required.");
+          return false;
+        }
+        if (!/^[A-Za-z\s]+$/.test(title)) {
+          Swal.showValidationMessage("Event title must contain letters and spaces only.");
+          return false;
+        }
+        if (title.length > 40) {
+          Swal.showValidationMessage("Event title must be 40 characters or less.");
+          return false;
+        }
+        if (!description) {
+          Swal.showValidationMessage("Description is required.");
+          return false;
+        }
+        if (description.length > 80) {
+          Swal.showValidationMessage("Description must be 80 characters or less.");
+          return false;
+        }
+        if (!location) {
+          Swal.showValidationMessage("Location is required.");
+          return false;
+        }
+        if (!/^[A-Za-z0-9\s]+$/.test(location)) {
+          Swal.showValidationMessage("Location must contain only letters, numbers, and spaces.");
+          return false;
+        }
+        if (location.length > 40) {
+          Swal.showValidationMessage("Location must be 40 characters or less.");
+          return false;
+        }
+        if (!date) {
+          Swal.showValidationMessage("Date is required.");
+          return false;
+        }
+        const today = new Date("2025-06-26");
+        const selectedDate = new Date(date);
+        if (selectedDate <= today) {
+          Swal.showValidationMessage("Please select a future date.");
+          return false;
+        }
+        if (note.length > 60) {
+          Swal.showValidationMessage("Note must be 60 characters or less.");
+          return false;
+        }
         return {
-          title: document.getElementById("swal-title").value,
-          description: document.getElementById("swal-description").value,
-          location: document.getElementById("swal-location").value,
-          date: document.getElementById("swal-date").value,
-          note: document.getElementById("swal-note").value,
-          attachment: document.getElementById("swal-attachment").files[0], // Get file
+          title,
+          description,
+          location,
+          date,
+          note,
+          attachment,
         };
       },
     });
