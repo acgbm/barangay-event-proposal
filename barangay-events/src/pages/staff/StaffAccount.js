@@ -85,7 +85,7 @@ const StaffAccount = () => {
         <div className="staff-account-info">
           <p><strong>Full Name:</strong> {staffData.fullName}</p>
           <p><strong>Email:</strong> {staffData.email}</p>
-          <p><strong>Date of Birth:</strong> {staffData.dob}</p>
+          <p><strong>Date of Birth:</strong> {staffData.dob ? new Date(staffData.dob).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : ""}</p>
           <p><strong>Phone Number:</strong> {staffData.phone}</p>
         </div>
       )}
