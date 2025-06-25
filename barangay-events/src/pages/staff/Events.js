@@ -52,21 +52,23 @@ const Events = () => {
   };
 
   return (
-    <div className="events-wrapper">
-      <h2 className="events-title">Event Calendar</h2>
-      <div className="events-calendar">
-        <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "", // Removes week/day views
-          }}
-          events={events}
-          eventClick={handleEventClick}
-          height="auto"
-        />
+    <div className="events-outer-center">
+      <div className="events-wrapper">
+        <h2 className="events-title">Event Calendar</h2>
+        <div className="events-calendar">
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "", // Removes week/day views
+            }}
+            events={events}
+            eventClick={handleEventClick}
+            height="auto"
+          />
+        </div>
       </div>
     </div>
   );
