@@ -9,6 +9,9 @@ const ReviewProposals = () => {
   const [proposals, setProposals] = useState([]);
   const [officialsCount, setOfficialsCount] = useState(0);
   const [userId, setUserId] = useState(null);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [votedPage, setVotedPage] = useState(1);
+  const proposalsPerPage = 5;
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -342,6 +345,16 @@ const ReviewProposals = () => {
     });
   };
 
+  // Pagination logic for pending proposals
+  const pendingProposals = proposals.filter((p) => p.status === "Pending" || !p.status);
+  const votedProposals = proposals.filter((p) => p.status && p.status !== "Pending");
+
+  const pendingTotalPages = Math.ceil(pendingProposals.length / proposalsPerPage);
+  const votedTotalPages = Math.ceil(votedProposals.length / proposalsPerPage);
+
+  const currentPending = pendingProposals.slice((pendingPage - 1) * proposalsPerPage, pendingPage * proposalsPerPage);
+  const currentVoted = votedProposals.slice((votedPage - 1) * proposalsPerPage, votedPage * proposalsPerPage);
+
   return (
     <div className="review-container" style={{ marginTop: 56 }}>
       <h2>Review Proposals</h2>
@@ -363,56 +376,76 @@ const ReviewProposals = () => {
             </tr>
           </thead>
           <tbody>
-            {proposals
-              .filter((p) => p.status === "Pending" || !p.status)
-              .map((proposal) => {
-                const statusClass =
-                  proposal.status &&
-                  ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
-                    proposal.status.toLowerCase().replace(/ /g, "-")
-                  )
-                    ? "status-cancelled"
-                    : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
-                return (
-                  <tr key={proposal.id}>
-                    <td>{proposal.title}</td>
-                    <td>{proposal.description}</td>
-                    <td>{proposal.location}</td>
-                    <td>{formatDate(proposal.date)}</td>
-                    <td>{proposal.note || "No note provided"}</td>
-                    <td>{proposal.submitterName}</td>
-                    <td>
+            {currentPending.map((proposal) => {
+              const statusClass =
+                proposal.status &&
+                ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
+                  proposal.status.toLowerCase().replace(/ /g, "-")
+                )
+                  ? "status-cancelled"
+                  : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+              return (
+                <tr key={proposal.id}>
+                  <td>{proposal.title}</td>
+                  <td>{proposal.description}</td>
+                  <td>{proposal.location}</td>
+                  <td>{formatDate(proposal.date)}</td>
+                  <td>{proposal.note || "No note provided"}</td>
+                  <td>{proposal.submitterName}</td>
+                  <td>
+                    <button
+                      className="attachment-btn"
+                      onClick={() => handleViewAttachment(proposal.fileURL)}
+                    >
+                      View
+                    </button>
+                  </td>
+                  <td>
+                    ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
+                  </td>
+                  <td>
+                    <div className="action-buttons">
                       <button
-                        className="attachment-btn"
-                        onClick={() => handleViewAttachment(proposal.fileURL)}
+                        onClick={() => handleVote(proposal.id, "approve")}
+                        className="action-btn approve-btn"
                       >
-                        View
+                        Approve
                       </button>
-                    </td>
-                    <td>
-                      ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          onClick={() => handleVote(proposal.id, "approve")}
-                          className="action-btn approve-btn"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleVote(proposal.id, "reject")}
-                          className="action-btn reject-btn"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      <button
+                        onClick={() => handleVote(proposal.id, "reject")}
+                        className="action-btn reject-btn"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+        {/* Pagination for Pending Proposals */}
+        {pendingTotalPages > 1 && (
+          <div className="review-pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 18 }}>
+            <button
+              onClick={() => setPendingPage((prev) => Math.max(prev - 1, 1))}
+              disabled={pendingPage === 1}
+              style={{ minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: pendingPage === 1 ? 'not-allowed' : 'pointer', opacity: pendingPage === 1 ? 0.6 : 1 }}
+            >
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontWeight: 500 }}>
+              Page {pendingPage} of {pendingTotalPages}
+            </span>
+            <button
+              onClick={() => setPendingPage((prev) => Math.min(prev + 1, pendingTotalPages))}
+              disabled={pendingPage === pendingTotalPages || pendingTotalPages === 0}
+              style={{ minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: (pendingPage === pendingTotalPages || pendingTotalPages === 0) ? 'not-allowed' : 'pointer', opacity: (pendingPage === pendingTotalPages || pendingTotalPages === 0) ? 0.6 : 1 }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="table-wrapper">
@@ -426,32 +459,52 @@ const ReviewProposals = () => {
             </tr>
           </thead>
           <tbody>
-            {proposals
-              .filter((p) => p.status && p.status !== "Pending")
-              .map((proposal) => {
-                const statusClass =
-                  proposal.status &&
-                  ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
-                    proposal.status.toLowerCase().replace(/ /g, "-")
-                  )
-                    ? "status-cancelled"
-                    : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
-                return (
-                  <tr key={proposal.id}>
-                    <td>{proposal.title}</td>
-                    <td>
-                      ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
-                    </td>
-                    <td>
-                      <span className={`status-badge ${statusClass}`}>
-                        {proposal.status || "Pending"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+            {currentVoted.map((proposal) => {
+              const statusClass =
+                proposal.status &&
+                ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
+                  proposal.status.toLowerCase().replace(/ /g, "-")
+                )
+                  ? "status-cancelled"
+                  : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+              return (
+                <tr key={proposal.id}>
+                  <td>{proposal.title}</td>
+                  <td>
+                    ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
+                  </td>
+                  <td>
+                    <span className={`status-badge ${statusClass}`}>
+                      {proposal.status || "Pending"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+        {/* Pagination for Voted Proposals */}
+        {votedTotalPages > 1 && (
+          <div className="review-pagination" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 18 }}>
+            <button
+              onClick={() => setVotedPage((prev) => Math.max(prev - 1, 1))}
+              disabled={votedPage === 1}
+              style={{ minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: votedPage === 1 ? 'not-allowed' : 'pointer', opacity: votedPage === 1 ? 0.6 : 1 }}
+            >
+              Previous
+            </button>
+            <span style={{ alignSelf: 'center', fontWeight: 500 }}>
+              Page {votedPage} of {votedTotalPages}
+            </span>
+            <button
+              onClick={() => setVotedPage((prev) => Math.min(prev + 1, votedTotalPages))}
+              disabled={votedPage === votedTotalPages || votedTotalPages === 0}
+              style={{ minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: (votedPage === votedTotalPages || votedTotalPages === 0) ? 'not-allowed' : 'pointer', opacity: (votedPage === votedTotalPages || votedTotalPages === 0) ? 0.6 : 1 }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
