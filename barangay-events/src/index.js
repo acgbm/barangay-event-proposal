@@ -1,7 +1,8 @@
 import React from "react";
-import ReactDOM from "react-dom/client"; // ✅ Use createRoot
+import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
+import * as serviceWorkerRegistration from './serviceWorkerRegistration'; // ✅ Use CRA auto setup
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -12,16 +13,4 @@ root.render(
   </React.StrictMode>
 );
 
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').then(
-      (registration) => {
-        console.log('ServiceWorker registration successful:', registration);
-      },
-      (error) => {
-        console.log('ServiceWorker registration failed:', error);
-      }
-    );
-  });
-}
+serviceWorkerRegistration.register(); // ✅ Enables PWA features
