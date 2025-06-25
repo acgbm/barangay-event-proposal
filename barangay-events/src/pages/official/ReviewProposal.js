@@ -343,7 +343,7 @@ const ReviewProposals = () => {
   };
 
   return (
-    <div className="review-container">
+    <div className="review-container" style={{ marginTop: 56 }}>
       <h2>Review Proposals</h2>
 
       <div className="table-wrapper">
