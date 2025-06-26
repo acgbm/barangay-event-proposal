@@ -349,7 +349,27 @@ const ManageAccounts = () => {
             </select>
           </div>
           <div className="form-actions">
-            <button type="submit" disabled={isCreating || !!emailError} style={isCreating ? {opacity:0.6, cursor:'not-allowed'} : {}}>
+            <button
+              type="submit"
+              disabled={isCreating || !!emailError}
+              style={{
+                height: '36px', // smaller height
+                minHeight: '32px',
+                padding: '0 16px',
+                fontSize: '0.97rem',
+                borderRadius: '5px',
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 600,
+                opacity: isCreating ? 0.6 : 1,
+                cursor: isCreating ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s',
+                boxSizing: 'border-box',
+                display: 'inline-block',
+                verticalAlign: 'middle',
+              }}
+            >
               {isCreating ? 'Creating...' : 'Create'}
             </button>
           </div>
