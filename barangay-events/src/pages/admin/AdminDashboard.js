@@ -26,6 +26,9 @@ const AdminDashboard = () => {
     rejected: 0,
     submittedThisMonth: 0,
   });
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [reportType, setReportType] = useState("pdf");
 
   useEffect(() => {
     fetchProposals();
@@ -109,50 +112,63 @@ const AdminDashboard = () => {
     });
   };
 
-  const downloadExcel = () => {
-    const formattedData = proposals.map((p) => ({
-      Title: p.title || "N/A",
-      Status: p.status || "N/A",
-      "Event Date": p.date ? new Date(p.date).toLocaleDateString() : "N/A",
-      "Submitted By": p.submittedBy || "N/A",
-      "Date Submitted": p.dateSubmitted
-        ? new Date(p.dateSubmitted).toLocaleDateString()
-        : "N/A",
-      Location: p.location || "N/A",
-    }));
 
-    const worksheet = XLSX.utils.json_to_sheet(formattedData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Proposals Report");
-
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(file, "proposals_report.xlsx");
+  // Helper to get filtered proposals by month/year
+  const getFilteredProposals = () => {
+    return proposals.filter((p) => {
+      const date = new Date(p.dateSubmitted || p.date);
+      return (
+        date.getMonth() === Number(selectedMonth) &&
+        date.getFullYear() === Number(selectedYear)
+      );
+    });
   };
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text("Proposals Report", 14, 16);
+  const downloadReport = () => {
+    const filteredProposals = getFilteredProposals();
+    if (reportType === "excel") {
+      const formattedData = filteredProposals.map((p) => ({
+        Title: p.title || "N/A",
+        Status: p.status || "N/A",
+        "Event Date": p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+        "Submitted By": p.submittedBy || "N/A",
+        "Date Submitted": p.dateSubmitted
+          ? new Date(p.dateSubmitted).toLocaleDateString()
+          : "N/A",
+        Location: p.location || "N/A",
+      }));
 
-    const tableData = proposals.map((p) => [
-      p.title || "N/A",
-      p.status || "N/A",
-      p.date ? new Date(p.date).toLocaleDateString() : "N/A",
-      p.submittedBy || "N/A",
-      p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
-      p.location || "N/A",
-    ]);
+      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Proposals Report");
 
-    autoTable(doc, {
-      head: [["Title", "Status", "Event Date", "Submitted By", "Date Submitted", "Location"]],
-      body: tableData,
-      startY: 22,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [74, 144, 226] },
-    });
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const file = new Blob([excelBuffer], { type: "application/octet-stream" });
+      saveAs(file, `proposals_report_${selectedMonth + 1}_${selectedYear}.xlsx`);
+    } else {
+      const doc = new jsPDF();
+      doc.setFontSize(14);
+      doc.text(`Proposals Report (${Number(selectedMonth) + 1}/${selectedYear})`, 14, 16);
 
-    doc.save("proposals_report.pdf");
+      const tableData = filteredProposals.map((p) => [
+        p.title || "N/A",
+        p.status || "N/A",
+        p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+        p.submittedBy || "N/A",
+        p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
+        p.location || "N/A",
+      ]);
+
+      autoTable(doc, {
+        head: [["Title", "Status", "Event Date", "Submitted By", "Date Submitted", "Location"]],
+        body: tableData,
+        startY: 22,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [74, 144, 226] },
+      });
+
+      doc.save(`proposals_report_${selectedMonth + 1}_${selectedYear}.pdf`);
+    }
   };
 
   const chartData = [
@@ -196,12 +212,47 @@ const AdminDashboard = () => {
         </div>
         <div className="report-generation-card stat-card">
           <h3>Report Generation</h3>
-          <div className="report-btn-group">
-            <button onClick={downloadPDF} className="report-btn modern-btn">
-              <span role="img" aria-label="pdf">📄</span> Download PDF
-            </button>
-            <button onClick={downloadExcel} className="report-btn modern-btn">
-              <span role="img" aria-label="excel">📊</span> Download Excel
+          <div className="report-btn-group" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'center', alignItems: 'center' }}>
+              <select
+                value={selectedMonth}
+                onChange={e => setSelectedMonth(Number(e.target.value))}
+                className="report-select"
+                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
+              >
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i} value={i}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
+                ))}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={e => setSelectedYear(Number(e.target.value))}
+                className="report-select"
+                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
+              >
+                {(() => {
+                  const years = [];
+                  const currentYear = new Date().getFullYear();
+                  for (let y = currentYear; y >= currentYear - 10; y--) years.push(y);
+                  return years.map(y => <option key={y} value={y}>{y}</option>);
+                })()}
+              </select>
+              <select
+                value={reportType}
+                onChange={e => setReportType(e.target.value)}
+                className="report-select"
+                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 14 }}
+              >
+                <option value="pdf">PDF</option>
+                <option value="excel">Excel</option>
+              </select>
+            </div>
+            <button 
+              onClick={downloadReport} 
+              className="report-btn modern-btn" 
+              style={{ width: 'auto', alignSelf: 'center', padding: '4px 12px', fontSize: 13, borderRadius: 5, minWidth: 0 }}
+            >
+              <span role="img" aria-label="download" style={{ fontSize: 14 }}>⬇️</span> <span style={{ fontSize: 13 }}>Download</span>
             </button>
           </div>
         </div>
