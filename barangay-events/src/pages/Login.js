@@ -14,7 +14,11 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [dob, setDob] = useState(""); // For forgot password
-  const [showForgotPassword, setShowForgotPassword] = useState(false); 
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [acceptingUser, setAcceptingUser] = useState(null); // user object for accepting terms
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [pendingLoginData, setPendingLoginData] = useState(null); // {user, userData, role, navigateTo, successMessage}
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -25,34 +29,36 @@ const Login = () => {
     try {
       const userCredential = await login(email, password);
       const user = userCredential.user;
-  
+
       // Fetch user data from Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
       const userData = userDoc.data();
-  
+
       if (!userData || !userData.role) {
         throw new Error("User role not found");
       }
-  
+
       const role = userData.role;
       const isVerified = userData.verified;
       const isDisabled = userData.disabled; // Check if account is disabled
-  
+      const hasAcceptedTerms = userData.termsAccepted;
+
       // Block disabled accounts
       if (isDisabled) {
         Swal.fire("Error", "This account has been disabled.", "error");
         return;
       }
-  
+
       // Block unverified users (except admins)
       if (!isVerified && role !== "admin") {
         Swal.fire("Error", "Please verify your email before logging in.", "error");
         return;
       }
-  
+
       let successMessage = "Logged in successfully!";
       let navigateTo = "/dashboard";
-  
+
       switch (role) {
         case "admin":
           successMessage = "Welcome Admin!";
@@ -71,7 +77,15 @@ const Login = () => {
           navigateTo = "/user-dashboard";
           break;
       }
-  
+
+      if (!hasAcceptedTerms) {
+        // Show modal and store user info for later
+        setShowTermsModal(true);
+        setAcceptingUser({ user, userDocRef });
+        setPendingLoginData({ role, navigateTo, successMessage });
+        return;
+      }
+
       Swal.fire({
         title: "Success",
         text: successMessage,
@@ -81,11 +95,51 @@ const Login = () => {
       }).then(() => {
         navigate(navigateTo);
       });
-  
+
     } catch (err) {
       Swal.fire("Error", "Invalid username or password", "error");
     }
-  };    
+  };
+
+  // Accept Terms handler
+  const handleAcceptTerms = async () => {
+    if (!acceptingUser) return;
+    try {
+      await import("firebase/firestore").then(({ updateDoc }) =>
+        updateDoc(acceptingUser.userDocRef, { termsAccepted: true })
+      );
+      setShowTermsModal(false);
+      setAcceptedTerms(false);
+      // Show success and proceed to dashboard
+      if (pendingLoginData) {
+        Swal.fire({
+          title: "Success",
+          text: pendingLoginData.successMessage,
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        }).then(() => {
+          navigate(pendingLoginData.navigateTo);
+        });
+      }
+    } catch (err) {
+      Swal.fire("Error", "Could not accept Terms and Conditions.", "error");
+    }
+  };
+
+  // Cancel Terms handler
+  const handleCancelTerms = async () => {
+    setShowTermsModal(false);
+    setAcceptedTerms(false);
+    setAcceptingUser(null);
+    setPendingLoginData(null);
+    // Sign out user if already logged in
+    try {
+      await auth.signOut();
+    } catch (e) {}
+    // Optionally, show a message
+    Swal.fire("Notice", "You must accept the Terms and Conditions to use the system.", "info");
+  };
 
   // Forgot Password Handler
   const handleForgotPassword = async () => {
@@ -153,6 +207,48 @@ const Login = () => {
             <img src={logo2} alt="Logo 2" className="login-logo secondary-logo" />
             <img src={logo} alt="Logo" className="login-logo main-logo" />
           </div>
+          {/* Terms Modal */}
+          {showTermsModal && (
+            <div className="terms-modal-overlay" style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div className="terms-modal" style={{background:'#fff',padding:24,borderRadius:8,maxWidth:500,width:'95%',maxHeight:'80vh',display:'flex',flexDirection:'column',boxSizing:'border-box'}}>
+                <h2 style={{marginBottom:12, textAlign:'center', fontSize:'1.5rem', fontWeight:600}}>Terms and Conditions</h2>
+                <div className="terms-content" style={{flex:1,overflowY:'auto',marginBottom:16,paddingRight:8}}>
+                  {/* Replace with your actual terms */}
+                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Etiam euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisi nec erat. Suspendisse potenti. Etiam euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisi nec erat.</p>
+                  <p>By using this system, you agree to abide by all rules and policies set forth by the Barangay. Your data will be handled in accordance with our privacy policy.</p>
+                  <p>...</p>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:8}}>
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:'1rem'}}>
+                    <input type="checkbox" checked={acceptedTerms} onChange={e=>setAcceptedTerms(e.target.checked)} style={{width:18,height:18}} />
+                    I accept the Terms and Conditions
+                  </label>
+                  <div style={{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap'}}>
+                    <button className="login-button" style={{background:'#ccc',color:'#333',padding:'6px 18px',fontSize:'1rem',borderRadius:18,minWidth:90}} onClick={handleCancelTerms} type="button">Cancel</button>
+                    <button
+                      className="login-button"
+                      style={{
+                        marginLeft: 0,
+                        padding: '6px 18px',
+                        fontSize: '1rem',
+                        borderRadius: 18,
+                        minWidth: 90,
+                        background: !acceptedTerms ? '#ccc' : '#1877f2',
+                        color: !acceptedTerms ? '#888' : '#fff',
+                        cursor: !acceptedTerms ? 'not-allowed' : 'pointer',
+                        opacity: !acceptedTerms ? 0.7 : 1
+                      }}
+                      disabled={!acceptedTerms}
+                      onClick={handleAcceptTerms}
+                      type="button"
+                    >
+                      Accept
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {!showForgotPassword ? (
             <form className="login-form" onSubmit={handleLogin}>
               <input

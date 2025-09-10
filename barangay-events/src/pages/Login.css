@@ -1,4 +1,7 @@
 /* Facebook-style Login Page */
+.login-page, .login-page * {
+  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif !important;
+}
 .login-page {
   min-height: 100vh;
   width: 100vw;
@@ -6,7 +9,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
   position: fixed;
   top: 0;
   left: 0;
