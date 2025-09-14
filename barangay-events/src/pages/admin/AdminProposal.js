@@ -156,7 +156,7 @@ const AdminProposal = () => {
 
   return (
     <div className="admin-proposal">
-      <h2>Manage Proposals</h2>
+      <h2>Proposals</h2>
       {loading ? <p>Loading proposals...</p> : null}
       <div className="table-container">
         <table className="table">

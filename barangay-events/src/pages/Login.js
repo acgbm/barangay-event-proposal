@@ -213,10 +213,28 @@ const Login = () => {
               <div className="terms-modal" style={{background:'#fff',padding:24,borderRadius:8,maxWidth:500,width:'95%',maxHeight:'80vh',display:'flex',flexDirection:'column',boxSizing:'border-box'}}>
                 <h2 style={{marginBottom:12, textAlign:'center', fontSize:'1.5rem', fontWeight:600}}>Terms and Conditions</h2>
                 <div className="terms-content" style={{flex:1,overflowY:'auto',marginBottom:16,paddingRight:8}}>
-                  {/* Replace with your actual terms */}
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Etiam euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisi nec erat. Suspendisse potenti. Etiam euismod, urna eu tincidunt consectetur, nisi nisl aliquam nunc, eget aliquam massa nisi nec erat.</p>
-                  <p>By using this system, you agree to abide by all rules and policies set forth by the Barangay. Your data will be handled in accordance with our privacy policy.</p>
-                  <p>...</p>
+                  <p>Welcome to the Barangay Event HUB (“BEHUB”). By accessing or using this App, you agree to be bound by these Terms and Conditions. Please read them carefully before using the App.</p>
+                  <ol style={{paddingLeft:'1.2em'}}>
+                    <li><strong>Acceptance of Terms</strong><br/>By registering for, accessing, or using the App, you agree to comply with and be legally bound by these Terms and Conditions and our Privacy Policy. If you do not agree with any part of these terms, you must not use the App.</li>
+                    <li><strong>Eligibility</strong><br/>You must be at least 18 years old or have obtained parental/guardian consent to use this App. You are responsible for ensuring that your use of the App complies with all applicable laws and regulations.</li>
+                    <li><strong>User Accounts</strong><br/>You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate, current, and complete information during registration and to update such information as necessary. You are responsible for all activities that occur under your account.</li>
+                    <li><strong>Event Proposals</strong><br/>All event proposals submitted through the App must be accurate, lawful, and not violate any third-party rights. The Barangay reserves the right to review, approve, reject, or remove any proposal at its sole discretion. Submitting a proposal does not guarantee approval or implementation of the event.</li>
+                    <li><strong>Prohibited Conduct</strong><br/>You agree not to:
+                      <ul>
+                        <li>Use the App for any unlawful purpose or in violation of any local, national, or international law.</li>
+                        <li>Submit false, misleading, or fraudulent information.</li>
+                        <li>Attempt to gain unauthorized access to the App or its related systems.</li>
+                        <li>Interfere with or disrupt the integrity or performance of the App.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Intellectual Property</strong><br/>All content, trademarks, logos, and other intellectual property in the App are owned by the Barangay or its licensors. You may not use, reproduce, or distribute any content from the App without prior written permission.</li>
+                    <li><strong>Limitation of Liability</strong><br/>The App is provided “as is” and “as available.” The Barangay makes no warranties, express or implied, regarding the App’s operation or availability. The Barangay is not liable for any damages arising from your use of or inability to use the App.</li>
+                    <li><strong>Termination</strong><br/>We reserve the right to suspend or terminate your access to the App at any time, without notice, for conduct that we believe violates these Terms and Conditions or is harmful to other users or the App.</li>
+                    <li><strong>Changes to Terms</strong><br/>We may update these Terms and Conditions from time to time. Changes will be posted on this page, and your continued use of the App constitutes acceptance of the revised terms.</li>
+                    <li><strong>Governing Law</strong><br/>These Terms and Conditions are governed by the laws of the Philippines. Any disputes arising from these terms shall be resolved in the court.</li>
+                    <li><strong>Contact Us</strong><br/>If you have any questions or concerns about these Terms and Conditions, please contact us at behub@gmail.com.</li>
+                  </ol>
+                  <p>By using the Barangay Event Proposal App, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</p>
                 </div>
                 <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:8}}>
                   <label style={{display:'flex',alignItems:'center',gap:8,fontSize:'1rem'}}>
