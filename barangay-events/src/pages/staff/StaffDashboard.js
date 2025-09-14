@@ -380,7 +380,7 @@ const handleViewFeedback = (feedbackArray, status) => {
 
   return (
     <div className="staff-dashboard">
-      <h1>Dashboard</h1>
+
       
       <div className="quick-stats">
         <div className="stat-card">

@@ -180,7 +180,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      <h1>Admin Dashboard</h1>
+
       <div className="quick-stats">
         <div className="stat-card">
           <h3>Total Proposals</h3>

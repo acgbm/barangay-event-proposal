@@ -70,7 +70,7 @@ const OfficialDashboard = () => {
 
   return (
     <div className="official-dashboard" style={{ marginTop: 56 }}>
-      <h1>Official Dashboard</h1>
+
 
       <div className="quick-stats">
         <div className="stat-card">
