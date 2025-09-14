@@ -68,6 +68,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  margin-left: 160px;
 }
 
 .modern-form-wrapper {
@@ -78,7 +79,7 @@
   max-width: 700px;
   width: 100%;
   font-family: "Google Sans", Roboto, Arial, sans-serif;
-  margin-left: 80px;
+  margin-left: 90px;
 }
 
 .modern-form-title {
@@ -172,8 +173,8 @@
   z-index: 1;
 }
 .modern-form-file-label-accent {
-  color: #e53935;
-  font-weight: 600;
+  color: #007bff;
+  font-weight: 700;
 }
 
 .modern-form-info {
@@ -183,7 +184,7 @@
 }
 
 .modern-form-submit-btn {
-  background: #e53935;
+  background: #007bff;
   color: #fff;
   font-size: 16px;
   font-weight: 700;
@@ -193,12 +194,12 @@
   width: 180px;
   margin-top: 8px;
   margin-bottom: 0;
-  box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
   transition: background 0.2s, transform 0.1s;
   cursor: pointer;
 }
 .modern-form-submit-btn:hover:not(:disabled) {
-  background: #b71c1c;
+  background: #0056b3;
   transform: translateY(-2px) scale(1.02);
 }
 .modern-form-submit-btn:disabled {
