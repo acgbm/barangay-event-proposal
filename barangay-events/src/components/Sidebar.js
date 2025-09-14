@@ -78,11 +78,7 @@ const Sidebar = ({ role, fullName }) => {
         <span className="bar"></span>
         <span className="bar"></span>
       </button>
-      {/* Overlay for mobile when sidebar is open */}
-      <div
-        className={`sidebar-overlay${sidebarOpen ? " open" : ""}`}
-        onClick={() => setSidebarOpen(false)}
-      ></div>
+      {/* Sidebar always above overlay in DOM order */}
       <div className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="sidebar-logo">
           <img src={logo} alt="Logo" />

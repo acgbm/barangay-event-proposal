@@ -1,0 +1,82 @@
+
+
+.layout-header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 68px;
+	background: #fff;
+	box-shadow: 0 6px 24px 0 rgba(30,34,90,0.13), 0 1.5px 6px 0 rgba(30,34,90,0.10);
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 0 24px;
+	border-radius: 0 0 12px 12px;
+	font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+	min-width: 0;
+}
+
+.header-pro-right {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	max-width: 100vw;
+	flex-shrink: 1;
+}
+
+.header-pro-calendar {
+	display: inline-block;
+	vertical-align: middle;
+	background: #f5f6fa;
+	border-radius: 6px;
+	box-shadow: 0 1px 2px rgba(30,34,90,0.03);
+	min-width: 22px;
+	min-height: 22px;
+}
+
+
+.header-pro-date {
+	font-size: 1.08rem;
+	color: #23272f;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	padding: 6px 16px;
+	border-radius: 8px;
+	/* box-shadow removed to eliminate line under time and date */
+	white-space: nowrap;
+	overflow-x: auto;
+	text-overflow: initial;
+	max-width: calc(100vw - 48px);
+	margin-right: 20px;
+}
+
+@media (max-width: 600px) {
+	.layout-header {
+		height: 58px;
+		padding: 0 4px;
+		border-radius: 0 0 8px 8px;
+	}
+	.header-pro-date {
+		font-size: 0.98rem;
+		padding: 5px 10px;
+		max-width: calc(100vw - 32px);
+		margin-right: 4px;
+	}
+	.header-pro-calendar {
+		min-width: 18px;
+		min-height: 18px;
+	}
+}
+
+
+/* Sidenav should have z-index > 100 (header) */
+.sidebar, .sidenav {
+	z-index: 110 !important;
+}
+
+/* Main content top margin adjustment for fixed header */
+.main-content {
+	margin-top: 60px;
+}

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import Header from "./Header";
 import { useAuth } from "../context/AuthContext";
 import { db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
@@ -26,7 +27,8 @@ const Layout = ({ role }) => {
   return (
     <div className="layout">
       <Sidebar role={role} fullName={fullName} />
-      <div className="content">
+      <Header />
+      <div className="content main-content">
         <Outlet />
       </div>
     </div>
