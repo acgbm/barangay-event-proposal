@@ -1,3 +1,33 @@
+@media screen and (max-width: 768px) {
+  .modern-form-wrapper, .staff-proposal-form-wrapper {
+    width: 99vw !important;
+    max-width: 99vw !important;
+    margin: 0 auto !important;
+    padding: 18px 4px 18px 4px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
+    background: #fff !important;
+    box-sizing: border-box;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1200px) {
+  .modern-form-wrapper, .staff-proposal-form-wrapper {
+    max-width: 700px !important;
+    width: 100%;
+    margin: 0 auto !important;
+    padding: 24px 24px 24px 24px !important;
+  }
+}
+
+@media screen and (min-width: 1201px) {
+  .modern-form-wrapper, .staff-proposal-form-wrapper {
+    max-width: 900px !important;
+    width: 100%;
+    margin: 0 auto !important;
+    padding: 32px 32px 24px 32px !important;
+  }
+}
 .modern-form-file-label-accent {
   color: #e53935;
   opacity: 0.8;
@@ -379,20 +409,42 @@
   }
   
   @media screen and (max-width: 768px) {
-    .staff-proposal-container {
-      margin-left: 0;
-      padding: 15px;
+    html, body {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100vw !important;
+      overflow-x: hidden;
     }
-  
-    .staff-proposal-form-wrapper {
-      padding: 20px;
-      border-radius: 12px;
+    .modern-form-bg, .staff-proposal-container {
+      min-height: 100vh;
+      width: 100vw;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      padding: 16px 0;
     }
-  
+    .modern-form-wrapper, .staff-proposal-form-wrapper {
+      background: #fff !important;
+      border-radius: 12px !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
+      width: 100%;
+      max-width: 420px !important;
+      margin: 0 auto !important;
+      padding: 18px 12px 18px 12px !important;
+      box-sizing: border-box;
+      text-align: left !important;
+    }
+    .modern-form-group,
+    .modern-form-group-full,
     .staff-proposal-form-group {
       max-width: 100%;
+      text-align: left !important;
+      margin-left: 0 !important;
     }
-  
+    .modern-form-submit-btn,
     .staff-proposal-submit-btn {
       max-width: 100%;
     }
