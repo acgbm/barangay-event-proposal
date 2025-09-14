@@ -1,3 +1,39 @@
+html, body {
+  overflow-y: scroll;
+}
+.pagination-outer-wrapper {
+  width: 100%;
+  text-align: center;
+  margin-top: 18px;
+}
+.pagination-btn {
+  display: inline-block;
+}
+/* Pagination Controls Styling */
+.pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+.pagination-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pagination-btn:disabled {
+  background: #b0b0b0;
+  color: #fff;
+  cursor: not-allowed;
+}
+.pagination-btn:not(:disabled):hover {
+  background: #1251a3;
+}
 /* Main container for staff dashboard */
 .staff-dashboard {  margin-left: 200px;
   padding: 24px;

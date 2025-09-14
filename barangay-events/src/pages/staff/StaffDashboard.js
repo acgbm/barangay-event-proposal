@@ -7,6 +7,8 @@ import "./StaffDashboard.css";
 
 const StaffDashboard = () => {
   const [proposals, setProposals] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const proposalsPerPage = 5;
   const [notifications, setNotifications] = useState([]);
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -412,51 +414,99 @@ const handleViewFeedback = (feedbackArray, status) => {
                 <th>Event Title</th>
                 <th>Description</th>
                 <th>Date</th>
+                <th>Time</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {proposals.length > 0 ? (
-                proposals.map((proposal) => (
-                  <tr key={proposal.id}>
-                    <td>{proposal.title}</td>
-                    <td>
-                      <div className="description-cell" title={proposal.description}>
-                        {proposal.description}
-                      </div>
-                    </td>
-                    <td>{formatDate(proposal.date)}</td>
-                    <td>
-                      <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
-                        {proposal.status}
-                      </span>
-                    </td>
-                    <td>
-                      {(proposal.status === "Rejected" || 
-                        proposal.status === "Cancelled" || 
-                        proposal.status === "Declined (Missed Deadline)") && (
-                        <div className="action-buttons">
+                // Sort proposals by latest date first
+                proposals
+                  .slice()
+                  .sort((a, b) => {
+                    if (a.date && b.date) {
+                      return new Date(b.date) - new Date(a.date);
+                    }
+                    if (a.date) return -1;
+                    if (b.date) return 1;
+                    return 0;
+                  })
+                  .slice((currentPage - 1) * proposalsPerPage, currentPage * proposalsPerPage)
+                  .map((proposal) => {
+                    let formattedTime = '';
+                    if (proposal.time) {
+                      const [hour, minute] = proposal.time.split(":");
+                      let h = parseInt(hour, 10);
+                      const ampm = h >= 12 ? 'PM' : 'AM';
+                      h = h % 12;
+                      if (h === 0) h = 12;
+                      formattedTime = `${h}:${minute} ${ampm}`;
+                    }
+                    const handleRowClick = () => {
+                      Swal.fire({
+                        title: proposal.title,
+                        html: `
+                          <div style='text-align:left'>
+                            <b>Date:</b> ${proposal.date ? formatDate(proposal.date) : ''}<br/>
+                            <b>Time:</b> ${formattedTime}<br/>
+                            <b>Location:</b> ${proposal.location || ''}<br/>
+                            <b>Description:</b> ${proposal.description || ''}<br/>
+                            <b>Note:</b> ${proposal.note || ''}<br/>
+                            <b>Status:</b> ${proposal.status}<br/>
+                            ${proposal.fileURL ? `<b>Attachment:</b> <a href='${proposal.fileURL}' target='_blank' rel='noopener noreferrer'>View File</a><br/>` : ''}
+                          </div>
+                        `,
+                        showCloseButton: true,
+                        showConfirmButton: false,
+                        width: 500,
+                        customClass: { popup: 'swal2-proposal-modal' }
+                      });
+                    };
+                    return (
+                      <tr key={proposal.id}>
+                        <td style={{ cursor: 'pointer' }} onClick={handleRowClick}>{proposal.title}</td>
+                        <td>
                           <button
-                            className="action-btn view-feedback-btn"
-                            onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
+                            className="action-btn view-description-btn"
+                            onClick={e => { e.preventDefault(); e.stopPropagation(); handleRowClick(); }}
                           >
-                            View Feedback
+                            View
                           </button>
-                          <button
-                            className="action-btn resubmit-btn"
-                            onClick={() => handleResubmitProposal(proposal)}
-                          >
-                            Resubmit
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                        </td>
+                        <td>{formatDate(proposal.date)}</td>
+                        <td>{formattedTime}</td>
+                        <td>
+                          <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
+                            {proposal.status}
+                          </span>
+                        </td>
+                        <td onClick={e => e.stopPropagation()}>
+                          {(proposal.status === "Rejected" || 
+                            proposal.status === "Cancelled" || 
+                            proposal.status === "Declined (Missed Deadline)") && (
+                            <div className="action-buttons">
+                              <button
+                                className="action-btn view-feedback-btn"
+                                onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
+                              >
+                                View Feedback
+                              </button>
+                              <button
+                                className="action-btn resubmit-btn"
+                                onClick={() => handleResubmitProposal(proposal)}
+                              >
+                                Resubmit
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
               ) : (
                 <tr>
-                  <td colSpan="5">
+                  <td colSpan="6">
                     <div className="no-data-message">
                       <i className="fas fa-file-alt"></i>
                       <p>No proposals submitted yet</p>
@@ -464,6 +514,32 @@ const handleViewFeedback = (feedbackArray, status) => {
                   </td>
                 </tr>
               )}
+          {/* Pagination Controls */}
+          {proposals.length > proposalsPerPage && (
+            <tr>
+              <td colSpan="6" style={{ textAlign: 'center', paddingTop: '18px' }}>
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{ marginRight: '8px' }}
+                >
+                  &lt;
+                </button>
+                <span style={{ fontWeight: 500 }}>
+                  Page {currentPage} of {Math.ceil(proposals.length / proposalsPerPage)}
+                </span>
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(proposals.length / proposalsPerPage), p + 1))}
+                  disabled={currentPage === Math.ceil(proposals.length / proposalsPerPage)}
+                  style={{ marginLeft: '8px' }}
+                >
+                  &gt;
+                </button>
+              </td>
+            </tr>
+          )}
             </tbody>
           </table>
         )}

@@ -1,3 +1,225 @@
+.modern-form-file-label-accent {
+  color: #e53935;
+  opacity: 0.8;
+}
+.modern-form-file-selected {
+  font-weight: 500;
+  color: #333;
+  margin-right: 12px;
+}
+.modern-form-file-remove {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 16px;
+  line-height: 20px;
+  cursor: pointer;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+.modern-form-file-remove:hover {
+  background: #b71c1c;
+}
+.modern-form-file-drop.drag-over {
+  border: 2px dashed #1976d2 !important;
+  background: #e3f2fd;
+}
+/* Modern form layout inspired by attachment */
+.modern-form-bg {
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding: 32px 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.modern-form-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 32px 32px 24px 32px;
+  max-width: 700px;
+  width: 100%;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+  margin-left: 80px;
+}
+
+.modern-form-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 28px;
+  color: #222;
+  letter-spacing: 0.01em;
+}
+
+.modern-form {
+  width: 100%;
+}
+
+.modern-form-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 0;
+}
+
+.modern-form-group {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 28px;
+}
+
+.modern-form-group-full {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 28px;
+}
+
+.modern-form-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.modern-form-input,
+.modern-form-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 24px;
+  font-size: 15px;
+  background: #fafafa;
+  color: #222;
+  outline: none;
+  transition: border 0.2s;
+  margin-bottom: 0;
+  box-sizing: border-box;
+}
+.modern-form-input:focus,
+.modern-form-textarea:focus {
+  border: 1.5px solid #e53935;
+  background: #fff;
+}
+.modern-form-textarea {
+  min-height: 100px;
+  resize: vertical;
+  border-radius: 18px;
+}
+
+.modern-form-file-drop {
+  border: 1.5px dashed #e0e0e0;
+  border-radius: 18px;
+  background: #fafafa;
+  padding: 24px 12px;
+  text-align: center;
+  position: relative;
+  transition: border 0.2s;
+}
+.modern-form-file-input {
+  opacity: 0;
+  width: 100%;
+  height: 60px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+.modern-form-file-label {
+  color: #888;
+  font-size: 15px;
+  font-weight: 400;
+  pointer-events: none;
+  z-index: 1;
+}
+.modern-form-file-label-accent {
+  color: #e53935;
+  font-weight: 600;
+}
+
+.modern-form-info {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 18px;
+}
+
+.modern-form-submit-btn {
+  background: #e53935;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 24px;
+  padding: 14px 0;
+  width: 180px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+  transition: background 0.2s, transform 0.1s;
+  cursor: pointer;
+}
+.modern-form-submit-btn:hover:not(:disabled) {
+  background: #b71c1c;
+  transform: translateY(-2px) scale(1.02);
+}
+.modern-form-submit-btn:disabled {
+  background: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.staff-proposal-char-count {
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
+  position: static;
+}
+.staff-proposal-char-count.near-limit {
+  color: #f59e0b;
+}
+.staff-proposal-char-count.at-limit {
+  color: #e53935;
+}
+
+.staff-proposal-message {
+  color: #fff;
+  background: #e53935;
+  border-radius: 8px;
+  padding: 8px 0;
+  margin-bottom: 18px;
+  text-align: center;
+}
+.staff-proposal-error {
+  color: #fff;
+  background: #e53935;
+}
+.staff-proposal-success {
+  color: #fff;
+  background: #43a047;
+}
+
+@media (max-width: 900px) {
+  .modern-form-wrapper {
+    padding: 18px 6px 18px 6px;
+    border-radius: 0;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  .modern-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
 .staff-proposal-container {
     margin-left: 200px;
     display: flex;
@@ -41,7 +263,9 @@
     position: relative;
   }
   
-  .staff-proposal-label {
+
+  .staff-proposal-form-label {
+    font-family: "Google Sans", Roboto, Arial, sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: #555;
