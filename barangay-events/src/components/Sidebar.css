@@ -1,8 +1,17 @@
+/* Sidebar Full Name */
+.sidebar-fullname {
+  text-align: center;
+  font-weight: 500;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
 .sidebar {
   width: 150px; /* Slimmer sidebar */
   height: 100vh;
-  background: #4da8da; /* Light blue */
-  color: white;
+  background: #263043; /* Professional blue-gray */
+  color: #f5f6fa;
   padding: 15px;
   position: fixed;
   top: 0;
@@ -19,8 +28,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   margin-top: 30px; /* Push logo lower */
+}
+/* Sidebar Divider */
+.sidebar-divider {
+  border: none;
+  border-top: 1.5px solid #3e4a63;
+  margin: 10px 0;
 }
 
 .sidebar-logo img {
@@ -30,6 +45,7 @@
   display: block;
   margin: 20px auto 10px auto;
   object-fit: contain;
+  filter: invert(1) grayscale(1) contrast(1.2);
 }
 
 .sidebar ul {
@@ -49,24 +65,26 @@
 }
 
 .sidebar ul li a {
-  color: white;
+  color: #f5f6fa;
   text-decoration: none;
   font-size: 14px;
+  font-weight: 600;
   width: 100%;
   display: flex;
   align-items: center;
 }
 
 .sidebar ul li.active {
-  background: white;
+  background: #f5f6fa;
 }
 
 .sidebar ul li.active a {
-  color: black;
+  color: #263043;
+  font-weight: 700;
 }
 
 .sidebar ul li:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #3e4a63;
 }
 
 .sidebar ul li i {
@@ -75,20 +93,27 @@
 }
 
 .logout-btn {
-  background: #34495e;
-  color: white;
+  background: #3e4a63;
+  color: #f5f6fa;
   border: none;
-  padding: 10px;
+  padding: 8px;
   cursor: pointer;
-  width: 100%;
+  width: auto;
   text-align: center;
-  font-size: 14px;
+  font-size: 18px;
   border-radius: 5px;
-  margin-bottom: 50px; /* Push logout button higher */
+  margin-bottom: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  transition: background 0.2s;
 }
 
 .logout-btn:hover {
-  background: #2c3e50;
+  background: #263043;
+  color: #f5f6fa;
 }
 
 /* Hamburger Button */
@@ -141,41 +166,41 @@
 /* Responsive Sidebar */
 @media (max-width: 768px) {
   .sidebar {
-    width: 110px; /* Bigger sidebar for mobile */
-    padding: 10px;
+    width: 150px; /* Keep full width as desktop */
+    padding: 15px;
     left: -180px;
     z-index: 1200;
     transition: left 0.3s;
   }
 
   .sidebar-logo img {
-    width: 90px; /* Bigger logo for mobile */
-    max-width: 90px;
-    max-height: 90px;
+    width: 80%;
+    max-width: 120px;
+    max-height: 120px;
   }
 
   .sidebar ul li {
-    justify-content: center;
-    padding: 8px;
+    justify-content: flex-start;
+    padding: 10px 10px;
   }
 
   .sidebar ul li a {
-    font-size: 12px;
-    justify-content: center;
+    font-size: 14px;
+    justify-content: flex-start;
   }
 
   .sidebar ul li i {
-    margin: 0;
-    font-size: 18px;
+    margin-right: 8px;
+    font-size: 16px;
   }
 
   .sidebar ul li a span {
-    display: none; /* Hide text, show only icons */
+    display: inline; /* Show text and icons */
   }
 
   .logout-btn {
-    font-size: 12px;
-    padding: 8px;
+    font-size: 14px;
+    padding: 10px;
   }
 
   .hamburger-btn {

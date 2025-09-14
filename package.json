@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "lucide-react": "^0.544.0",
     "sweetalert2": "^11.23.0"
   }
 }
