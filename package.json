@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
     "lucide-react": "^0.544.0",
     "sweetalert2": "^11.23.0"
   }
