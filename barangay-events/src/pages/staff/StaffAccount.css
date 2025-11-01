@@ -2,19 +2,23 @@
 
 .staff-account-container {
     max-width: 700px;
-    margin: 2rem auto;
+    margin: 0 auto;
     padding: 2rem;
     background: #ffffff;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
     border-radius: 12px;
     font-family: "Google Sans", Roboto, Arial, sans-serif;
+    margin-top: 6rem !important; /* Add significant top padding to avoid header overlap */
+    padding-top: 2rem; /* Additional padding inside container */
   }
   
   .staff-account-container h2 {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    margin-top: 0;
     font-size: 1.8rem;
     color: #1d1d1d;
     text-align: center;
+    padding-top: 1rem; /* Add padding above header */
   }
   
   .staff-account-info {
@@ -113,8 +117,9 @@
   /* Responsive */
   @media (max-width: 768px) {
     .staff-account-container {
-      margin: 1rem;
+      margin: 5rem 1rem 2rem 1rem !important;
       padding: 1.5rem;
+      padding-top: 1.5rem;
     }
   
     .password-section {
@@ -124,11 +129,14 @@
   
   @media (max-width: 480px) {
     .staff-account-container {
+      margin: 5rem 1rem 2rem 1rem !important;
       padding: 1.25rem 1rem;
+      padding-top: 1.25rem;
     }
   
     .staff-account-container h2 {
       font-size: 1.5rem;
+      padding-top: 0.5rem; /* Adjust padding for smaller screens */
     }
   
     .password-section {
