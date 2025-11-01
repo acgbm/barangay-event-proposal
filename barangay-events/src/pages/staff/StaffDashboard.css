@@ -1,3 +1,34 @@
+/* Hide scrollbars in desktop mode */
+@media (min-width: 769px) {
+  /* Layout and main content */
+  .layout:has(.staff-dashboard),
+  .main-content:has(.staff-dashboard),
+  body:has(.staff-dashboard),
+  html:has(.staff-dashboard) {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .layout:has(.staff-dashboard)::-webkit-scrollbar,
+  .main-content:has(.staff-dashboard)::-webkit-scrollbar,
+  body:has(.staff-dashboard)::-webkit-scrollbar,
+  html:has(.staff-dashboard)::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  /* Staff component containers */
+  .staff-dashboard,
+  .table-wrapper,
+  .quick-stats {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .staff-dashboard::-webkit-scrollbar,
+  .table-wrapper::-webkit-scrollbar,
+  .quick-stats::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
 .pagination-outer-wrapper {
   width: 100%;
   text-align: center;

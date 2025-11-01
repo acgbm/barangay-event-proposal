@@ -1,3 +1,20 @@
+/* Hide scrollbars in desktop mode */
+@media (min-width: 769px) {
+  .modern-form-bg,
+  .staff-proposal-container,
+  .modern-form-wrapper,
+  .staff-proposal-form-wrapper {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .modern-form-bg::-webkit-scrollbar,
+  .staff-proposal-container::-webkit-scrollbar,
+  .modern-form-wrapper::-webkit-scrollbar,
+  .staff-proposal-form-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
 @media screen and (max-width: 768px) {
   .modern-form-bg {
     margin-left: 0 !important;

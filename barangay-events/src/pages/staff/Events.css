@@ -1,6 +1,29 @@
 .events-pro-container, .events-pro-container * {
   font-family: 'Segoe UI', Arial, sans-serif !important;
 }
+
+/* Hide scrollbars in desktop mode */
+@media (min-width: 769px) {
+  .events-pro-container,
+  .events-pro-calendar-area,
+  .events-pro-upcoming-card,
+  .events-redesign-container,
+  .events-main-calendar,
+  .events-calendar-block,
+  .events-sidebar {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .events-pro-container::-webkit-scrollbar,
+  .events-pro-calendar-area::-webkit-scrollbar,
+  .events-pro-upcoming-card::-webkit-scrollbar,
+  .events-redesign-container::-webkit-scrollbar,
+  .events-main-calendar::-webkit-scrollbar,
+  .events-calendar-block::-webkit-scrollbar,
+  .events-sidebar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
 /* --- Calendar Toolbar --- */
 .events-pro-toolbar {
   display: flex;
@@ -53,7 +76,7 @@
   align-items: flex-start;
   justify-content: center;
   min-height: 80vh;
-  background: #f7f8fa;
+  background: #fff;
   padding: 0 0 0 150px;
   gap: 40px;
   margin-left: 50px;

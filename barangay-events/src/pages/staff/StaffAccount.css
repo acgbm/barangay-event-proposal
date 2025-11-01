@@ -1,5 +1,18 @@
 /* StaffAccount.css */
 
+/* Hide scrollbars in desktop mode */
+@media (min-width: 769px) {
+  .staff-account-container,
+  .password-section {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .staff-account-container::-webkit-scrollbar,
+  .password-section::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
 .staff-account-container {
     max-width: 700px;
     margin: 0 auto;
