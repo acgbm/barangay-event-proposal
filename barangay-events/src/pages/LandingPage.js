@@ -2,17 +2,34 @@ import React from 'react';
 import './LandingPage.css';
 import logo from '../assets/bg.png';
 import coverImg from '../assets/cover.png';
+import photoImg from '../assets/photo.png';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
 
     <div className="landing-root">
       <header className="landing-header">
         <nav className="landing-nav">
-          <img src={logo} alt="Barangay Logo" className="landing-logo" />
+          <img src={logo} alt="Barangay Logo" className="landing-logo" onClick={scrollToTop} />
+          <div className="nav-links">
+            <button className="nav-link" onClick={() => scrollToSection('about')}>About</button>
+            <button className="nav-link" onClick={() => scrollToSection('features')}>Solutions</button>
+          </div>
           <div className="nav-actions">
             <button className="btn ghost" onClick={() => navigate('/login')}>Log in</button>
           </div>
@@ -53,7 +70,21 @@ const LandingPage = () => {
 
       </main>
 
-      <section className="features">
+      <section id="about" className="about">
+        <div className="about-content">
+          <div className="about-image">
+            <img src={photoImg} alt="About BEHUB" />
+          </div>
+          <div className="about-text">
+            <h2 className="about-title">About BEHUB</h2>
+            <p className="about-description">
+              BEHUB is a centralized web platform designed to streamline the barangay's event proposal process. It enables staff to efficiently submit event proposals while allowing officials to review, vote, and approve them with transparency and ease, all in one secure system.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="features">
         <h2 className="features-title">Digital Solutions for Barangay Events</h2>
         <div className="features-grid">
           <div className="feature-card">
