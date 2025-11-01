@@ -13,6 +13,18 @@ const ReviewProposals = () => {
   const [votedPage, setVotedPage] = useState(1);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  
+  // Search, filter, and sort states for pending proposals
+  const [pendingSearch, setPendingSearch] = useState("");
+  const [pendingSortBy, setPendingSortBy] = useState("date"); // date, title, location, submitter
+  const [pendingSortOrder, setPendingSortOrder] = useState("asc"); // asc, desc
+  
+  // Search, filter, and sort states for voted proposals
+  const [votedSearch, setVotedSearch] = useState("");
+  const [votedStatusFilter, setVotedStatusFilter] = useState("all"); // all, approved, rejected, declined
+  const [votedSortBy, setVotedSortBy] = useState("date"); // date, title, status, votes
+  const [votedSortOrder, setVotedSortOrder] = useState("desc"); // asc, desc
+  
   const proposalsPerPage = 5;
 
   useEffect(() => {
@@ -405,22 +417,161 @@ const ReviewProposals = () => {
     setSelectedProposal(null);
   };
 
-  // Pagination logic for pending proposals
-  const pendingProposals = proposals.filter((p) => p.status === "Pending" || !p.status);
-  const votedProposals = proposals.filter((p) => p.status && p.status !== "Pending");
+  // Search function
+  const searchProposals = (proposalsList, searchQuery) => {
+    if (!searchQuery.trim()) return proposalsList;
+    
+    const query = searchQuery.toLowerCase();
+    return proposalsList.filter((proposal) => {
+      const title = (proposal.title || "").toLowerCase();
+      const location = (proposal.location || "").toLowerCase();
+      const submitter = (proposal.submitterName || "").toLowerCase();
+      const description = (proposal.description || "").toLowerCase();
+      
+      return title.includes(query) || 
+             location.includes(query) || 
+             submitter.includes(query) ||
+             description.includes(query);
+    });
+  };
 
-  const pendingTotalPages = Math.ceil(pendingProposals.length / proposalsPerPage);
-  const votedTotalPages = Math.ceil(votedProposals.length / proposalsPerPage);
+  // Sort function
+  const sortProposals = (proposalsList, sortBy, sortOrder) => {
+    const sorted = [...proposalsList].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case "title":
+          aValue = (a.title || "").toLowerCase();
+          bValue = (b.title || "").toLowerCase();
+          break;
+        case "location":
+          aValue = (a.location || "").toLowerCase();
+          bValue = (b.location || "").toLowerCase();
+          break;
+        case "submitter":
+          aValue = (a.submitterName || "").toLowerCase();
+          bValue = (b.submitterName || "").toLowerCase();
+          break;
+        case "date":
+          aValue = new Date(a.date || 0).getTime();
+          bValue = new Date(b.date || 0).getTime();
+          break;
+        case "status":
+          aValue = (a.status || "").toLowerCase();
+          bValue = (b.status || "").toLowerCase();
+          break;
+        case "votes":
+          const aVotes = (a.votes?.approve?.length || 0) - (a.votes?.reject?.length || 0);
+          const bVotes = (b.votes?.approve?.length || 0) - (b.votes?.reject?.length || 0);
+          aValue = aVotes;
+          bValue = bVotes;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (typeof aValue === "string") {
+        return sortOrder === "asc" 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+    });
+    
+    return sorted;
+  };
 
-  const currentPending = pendingProposals.slice((pendingPage - 1) * proposalsPerPage, pendingPage * proposalsPerPage);
-  const currentVoted = votedProposals.slice((votedPage - 1) * proposalsPerPage, votedPage * proposalsPerPage);
+  // Filter and process pending proposals
+  const filteredPendingProposals = searchProposals(
+    proposals.filter((p) => p.status === "Pending" || !p.status),
+    pendingSearch
+  );
+  const sortedPendingProposals = sortProposals(
+    filteredPendingProposals,
+    pendingSortBy,
+    pendingSortOrder
+  );
+
+  // Filter and process voted proposals
+  const baseVotedProposals = proposals.filter((p) => p.status && p.status !== "Pending");
+  const statusFilteredVoted = votedStatusFilter === "all" 
+    ? baseVotedProposals 
+    : baseVotedProposals.filter((p) => {
+        const status = (p.status || "").toLowerCase();
+        if (votedStatusFilter === "declined") {
+          return status.includes("declined") || status.includes("missed deadline");
+        }
+        return status === votedStatusFilter.toLowerCase();
+      });
+  const searchedVotedProposals = searchProposals(statusFilteredVoted, votedSearch);
+  const sortedVotedProposals = sortProposals(searchedVotedProposals, votedSortBy, votedSortOrder);
+
+  // Pagination logic
+  const pendingTotalPages = Math.ceil(sortedPendingProposals.length / proposalsPerPage);
+  const votedTotalPages = Math.ceil(sortedVotedProposals.length / proposalsPerPage);
+
+  // Reset pages when filters change
+  useEffect(() => {
+    setPendingPage(1);
+  }, [pendingSearch, pendingSortBy, pendingSortOrder]);
+
+  useEffect(() => {
+    setVotedPage(1);
+  }, [votedSearch, votedStatusFilter, votedSortBy, votedSortOrder]);
+
+  const currentPending = sortedPendingProposals.slice(
+    (pendingPage - 1) * proposalsPerPage,
+    pendingPage * proposalsPerPage
+  );
+  const currentVoted = sortedVotedProposals.slice(
+    (votedPage - 1) * proposalsPerPage,
+    votedPage * proposalsPerPage
+  );
 
   return (
     <div className="review-container" style={{ marginTop: 56 }}>
-      <h2>Review Proposals</h2>
 
       <div className="table-wrapper">
         <h3>Pending Proposals</h3>
+        
+        {/* Search, Filter, and Sort Controls for Pending Proposals */}
+        <div className="table-controls">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by title, location, submitter, or description..."
+              value={pendingSearch}
+              onChange={(e) => setPendingSearch(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="filter-sort-group">
+            <select
+              value={pendingSortBy}
+              onChange={(e) => setPendingSortBy(e.target.value)}
+              className="sort-select"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="title">Sort by Title</option>
+              <option value="location">Sort by Location</option>
+              <option value="submitter">Sort by Submitter</option>
+            </select>
+            <button
+              onClick={() => setPendingSortOrder(pendingSortOrder === "asc" ? "desc" : "asc")}
+              className="sort-order-btn"
+              title={pendingSortOrder === "asc" ? "Ascending" : "Descending"}
+            >
+              {pendingSortOrder === "asc" ? "↑" : "↓"}
+            </button>
+          </div>
+        </div>
+        
+        <div className="results-count">
+          Showing {currentPending.length} of {sortedPendingProposals.length} proposal{sortedPendingProposals.length !== 1 ? 's' : ''}
+        </div>
+        
         <table className="proposals-table">
           <thead>
             <tr>
@@ -480,6 +631,53 @@ const ReviewProposals = () => {
 
       <div className="table-wrapper">
         <h3>Voted Proposals</h3>
+        
+        {/* Search, Filter, and Sort Controls for Voted Proposals */}
+        <div className="table-controls">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by title, location, submitter, or description..."
+              value={votedSearch}
+              onChange={(e) => setVotedSearch(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="filter-sort-group">
+            <select
+              value={votedStatusFilter}
+              onChange={(e) => setVotedStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="declined">Declined</option>
+            </select>
+            <select
+              value={votedSortBy}
+              onChange={(e) => setVotedSortBy(e.target.value)}
+              className="sort-select"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="title">Sort by Title</option>
+              <option value="status">Sort by Status</option>
+              <option value="votes">Sort by Votes</option>
+            </select>
+            <button
+              onClick={() => setVotedSortOrder(votedSortOrder === "asc" ? "desc" : "asc")}
+              className="sort-order-btn"
+              title={votedSortOrder === "asc" ? "Ascending" : "Descending"}
+            >
+              {votedSortOrder === "asc" ? "↑" : "↓"}
+            </button>
+          </div>
+        </div>
+        
+        <div className="results-count">
+          Showing {currentVoted.length} of {sortedVotedProposals.length} proposal{sortedVotedProposals.length !== 1 ? 's' : ''}
+        </div>
+        
         <table className="proposals-table">
           <thead>
             <tr>

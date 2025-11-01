@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import "./OfficialDashboard.css";
 
 const OfficialDashboard = () => {
@@ -13,15 +13,41 @@ const OfficialDashboard = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const proposalsPerPage = 5;
+  
+  // Search, filter, and sort states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // all, pending, approved, rejected, cancelled, declined
+  const [sortBy, setSortBy] = useState("date"); // date, title, location, status
+  const [sortOrder, setSortOrder] = useState("desc"); // asc, desc
+  
+  // Modal states
+  const [selectedProposal, setSelectedProposal] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // ✅ Fetch Proposals and Check for Notifications
   const fetchProposals = async () => {
     try {
       const proposalsSnapshot = await getDocs(collection(db, "proposals"));
-      const allProposals = proposalsSnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }));
+      const allProposals = [];
+
+      for (const docSnap of proposalsSnapshot.docs) {
+        const proposalData = docSnap.data();
+        let fullName = "Unknown";
+
+        if (proposalData.userId) {
+          const userRef = doc(db, "users", proposalData.userId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            fullName = userSnap.data().fullName;
+          }
+        }
+
+        allProposals.push({
+          id: docSnap.id,
+          ...proposalData,
+          submitterName: fullName,
+        });
+      }
 
       setProposals(allProposals);
       updateStatistics(allProposals);
@@ -147,11 +173,122 @@ const OfficialDashboard = () => {
     });
   };
 
+  // Helper to format time
+  const formatTime = (timeString) => {
+    if (!timeString) return "-";
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Handle viewing attachment
+  const handleViewAttachment = (fileURL) => {
+    if (!fileURL) {
+      return;
+    }
+
+    const isImage = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileURL);
+    if (isImage) {
+      window.open(fileURL, "_blank");
+    } else {
+      window.open(fileURL, "_blank");
+    }
+  };
+
+  // Handle opening modal with proposal details
+  const handleViewDetails = (proposal) => {
+    setSelectedProposal(proposal);
+    setShowModal(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProposal(null);
+  };
+
+  // Search function
+  const searchProposals = (proposalsList, query) => {
+    if (!query.trim()) return proposalsList;
+    
+    const searchTerm = query.toLowerCase();
+    return proposalsList.filter((proposal) => {
+      const title = (proposal.title || "").toLowerCase();
+      const location = (proposal.location || "").toLowerCase();
+      const submitter = (proposal.submitterName || "").toLowerCase();
+      const description = (proposal.description || "").toLowerCase();
+      
+      return title.includes(searchTerm) || 
+             location.includes(searchTerm) || 
+             submitter.includes(searchTerm) ||
+             description.includes(searchTerm);
+    });
+  };
+
+  // Sort function
+  const sortProposals = (proposalsList, sortField, order) => {
+    const sorted = [...proposalsList].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortField) {
+        case "title":
+          aValue = (a.title || "").toLowerCase();
+          bValue = (b.title || "").toLowerCase();
+          break;
+        case "location":
+          aValue = (a.location || "").toLowerCase();
+          bValue = (b.location || "").toLowerCase();
+          break;
+        case "status":
+          aValue = (a.status || "").toLowerCase();
+          bValue = (b.status || "").toLowerCase();
+          break;
+        case "date":
+          aValue = new Date(a.date || 0).getTime();
+          bValue = new Date(b.date || 0).getTime();
+          break;
+        default:
+          return 0;
+      }
+      
+      if (typeof aValue === "string") {
+        return order === "asc" 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        return order === "asc" ? aValue - bValue : bValue - aValue;
+      }
+    });
+    
+    return sorted;
+  };
+
+  // Filter and process proposals
+  const baseFilteredProposals = statusFilter === "all"
+    ? proposals
+    : proposals.filter((p) => {
+        const status = (p.status || "").toLowerCase();
+        if (statusFilter === "declined") {
+          return status.includes("declined") || status.includes("missed deadline");
+        }
+        return status === statusFilter.toLowerCase();
+      });
+  
+  const searchedProposals = searchProposals(baseFilteredProposals, searchQuery);
+  const sortedProposals = sortProposals(searchedProposals, sortBy, sortOrder);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, sortBy, sortOrder]);
+
   // Pagination logic
+  const totalPages = Math.ceil(sortedProposals.length / proposalsPerPage);
   const indexOfLastProposal = currentPage * proposalsPerPage;
   const indexOfFirstProposal = indexOfLastProposal - proposalsPerPage;
-  const currentProposals = proposals.slice(indexOfFirstProposal, indexOfLastProposal);
-  const totalPages = Math.ceil(proposals.length / proposalsPerPage);
+  const currentProposals = sortedProposals.slice(indexOfFirstProposal, indexOfLastProposal);
 
   return (
     <div className="official-dashboard" style={{ marginTop: 56 }}>
@@ -178,6 +315,55 @@ const OfficialDashboard = () => {
 
       <div className="table-wrapper">
         <h2>All Proposals</h2>
+        
+        {/* Search, Filter, and Sort Controls */}
+        <div className="table-controls">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by title, location, submitter, or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="filter-sort-group">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="declined">Declined</option>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="sort-select"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="title">Sort by Title</option>
+              <option value="location">Sort by Location</option>
+              <option value="status">Sort by Status</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="sort-order-btn"
+              title={sortOrder === "asc" ? "Ascending" : "Descending"}
+            >
+              {sortOrder === "asc" ? "↑" : "↓"}
+            </button>
+          </div>
+        </div>
+        
+        <div className="results-count">
+          Showing {currentProposals.length} of {sortedProposals.length} proposal{sortedProposals.length !== 1 ? 's' : ''}
+        </div>
+        
         <table className="proposals-table">
           <thead>
             <tr>
@@ -185,6 +371,7 @@ const OfficialDashboard = () => {
               <th>Status</th>
               <th>Date</th>
               <th>Location</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -207,12 +394,20 @@ const OfficialDashboard = () => {
                     </td>
                     <td>{formatDate(proposal.date)}</td>
                     <td>{proposal.location}</td>
+                    <td>
+                      <button
+                        onClick={() => handleViewDetails(proposal)}
+                        className="action-btn view-details-btn"
+                      >
+                        View Details
+                      </button>
+                    </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center' }}>No proposals found.</td>
+                <td colSpan="5" style={{ textAlign: 'center' }}>No proposals found.</td>
               </tr>
             )}
           </tbody>
@@ -240,6 +435,85 @@ const OfficialDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Modal for Viewing Proposal Details */}
+      {showModal && selectedProposal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Proposal Details</h2>
+              <button className="modal-close-btn" onClick={handleCloseModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-detail-row full-width">
+                <strong>Event Title:</strong>
+                <span>{selectedProposal.title}</span>
+              </div>
+              <div className="modal-detail-row full-width">
+                <strong>Description:</strong>
+                <span>{selectedProposal.description || "No description provided"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Location:</strong>
+                <span>{selectedProposal.location}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Date:</strong>
+                <span>{formatDate(selectedProposal.date)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Time:</strong>
+                <span>{formatTime(selectedProposal.time)}</span>
+              </div>
+              {selectedProposal.fileURL && (
+                <div className="modal-detail-row">
+                  <strong>Attachment:</strong>
+                  <button
+                    className="attachment-btn"
+                    onClick={() => handleViewAttachment(selectedProposal.fileURL)}
+                  >
+                    View Attachment
+                  </button>
+                </div>
+              )}
+              {selectedProposal.note && (
+                <div className="modal-detail-row full-width">
+                  <strong>Note:</strong>
+                  <span>{selectedProposal.note}</span>
+                </div>
+              )}
+              <div className="modal-detail-row">
+                <strong>Submitted By:</strong>
+                <span>{selectedProposal.submitterName || "Unknown"}</span>
+              </div>
+              <div className="modal-detail-row full-width">
+                <strong>Status:</strong>
+                <span>{selectedProposal.status || "Pending"}</span>
+              </div>
+              {selectedProposal.votes && (
+                <div className="modal-detail-row full-width">
+                  <strong>Votes:</strong>
+                  <div className="votes-display">
+                    <span className="vote-count approve-count">
+                      ✅ Approve: {selectedProposal.votes?.approve?.length ?? 0}
+                    </span>
+                    <span className="vote-count reject-count">
+                      ❌ Reject: {selectedProposal.votes?.reject?.length ?? 0}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <div style={{ textAlign: 'center', width: '100%', color: '#64748b', fontSize: '14px' }}>
+                This proposal has been {selectedProposal.status || "Pending"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
