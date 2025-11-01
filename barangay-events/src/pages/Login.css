@@ -1,6 +1,6 @@
 /* Facebook-style Login Page */
 .login-page, .login-page * {
-  font-family: 'Poppins', 'Segoe UI', Arial, sans-serif !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial !important;
 }
 .login-page {
   min-height: 100vh;
@@ -14,6 +14,48 @@
   left: 0;
   overflow: hidden;
   z-index: 0;
+}
+
+/* Enable scrolling on mobile */
+@media (max-width: 768px) {
+  .login-page {
+    overflow-y: auto;
+  }
+  
+  html.login-page-active,
+  body.login-page-active {
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+}
+
+/* Background image wrapper */
+.login-bg-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.login-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  pointer-events: none;
+}
+
+/* Dark blue tint overlay */
+.login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(3,37,88,0.68) 0%, rgba(3,26,77,0.72) 100%);
+  z-index: 1;
 }
 
 .login-page .login-main {
@@ -230,7 +272,13 @@
   gap: 18px;
 }
 
-/* Hide all scrollbars */
+/* Hide all scrollbars on desktop */
+html:has(.login-page),
+body:has(.login-page) {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
 .login-page * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -239,23 +287,20 @@
   display: none !important;
 }
 
-/* Add particle background container */
-.login-page .particle-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
+/* Alternative approach if :has() is not supported */
+html.login-page-active,
+body.login-page-active {
+  overflow: hidden !important;
+  height: 100% !important;
 }
 
-/* Ensure login content is above particles */
+/* Particle background removed - replaced with cover.png */
+
+/* Ensure login content is above background */
 .login-page .login-center-group,
 .login-page .login-container {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 /* Stack logos vertically inside the login container */
@@ -276,15 +321,7 @@
   max-width: 60vw;
 }
 
-@media (max-width: 700px) {
-  .login-page .login-logo.secondary-logo {
-    width: 48px;
-    margin-bottom: 6px;
-  }
-  .login-page .login-logo.main-logo {
-    width: 110px;
-  }
-}
+/* Removed old @media (max-width: 700px) - replaced with more comprehensive responsive styles above */
 
 /* Remove old logo row/side styles if not used */
 .login-page .login-logo-row,
@@ -292,19 +329,7 @@
   display: none !important;
 }
 
-/* Particle style (simple floating squares, can be improved with JS) */
-.login-page .particle {
-  position: absolute;
-  width: 36px;
-  height: 36px;
-  background: rgba(44,62,80,0.13);
-  border-radius: 12px;
-  animation: float 12s linear infinite;
-}
-@keyframes float {
-  0% { transform: translateY(100vh) scale(1) rotate(0deg); opacity: 0.7; }
-  100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0.2; }
-}
+/* Particle animations removed */
 
 @media (max-width: 1100px) {
   .login-page .login-main {
@@ -332,87 +357,146 @@
   }
 }
 
-@media (max-width: 700px) {
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+  .login-page .login-container {
+    padding: 36px 28px 28px 28px;
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 768px) {
   .login-page {
     min-height: 100vh;
-    height: 100vh;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 0;
+    padding: 20px 16px;
     box-sizing: border-box;
+    overflow-y: auto;
   }
-  .login-page .login-main {
-    flex-direction: column;
-    gap: 0 !important;
-    align-items: center;
-    justify-content: center;
-  }
-  .login-page .login-logo-side {
+  
+  .login-page .login-center-group {
     width: 100%;
-    align-items: center;
-    justify-content: center;
-    display: flex;
+    padding: 20px 0;
+    min-height: auto;
   }
-  .login-page .login-logo-row {
-    gap: 0 !important;
-    justify-content: center;
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
-  }
+  
   .login-page .login-container {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+    margin: 0;
+    padding: 32px 24px 28px 24px;
     min-width: 0;
-    max-width: 98vw;
-    width: 95vw;
-    padding: 14px 6px 12px 6px;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 20px;
     box-sizing: border-box;
   }
+  
+  .login-page .login-logo-stack {
+    margin-bottom: 32px;
+    margin-top: 8px;
+  }
+  
   .login-page .login-logo.main-logo {
     width: 200px !important;
-    max-width: 90vw;
-    transition: width 0.3s;
-  }
-  .login-page .login-logo.secondary-logo {
-    width: 120px !important;
     max-width: 60vw;
-    margin-bottom: 12px;
     transition: width 0.3s;
   }
-  .login-page .login-logo-text {
-    font-size: 1.1rem;
-    text-align: center;
+  
+  .login-page .login-logo.secondary-logo {
+    width: 90px !important;
+    max-width: 30vw;
+    margin-bottom: 18px;
+    transition: width 0.3s;
   }
-  .login-page .login-container {
-    margin-top: 4px;
-    min-width: 0;
-    max-width: 98vw;
-    width: 95vw;
-    padding: 14px 6px 12px 6px;
+  
+  .login-page .login-form {
+    gap: 16px;
+  }
+  
+  .login-page .login-form input,
+  .login-page .forgot-password-form input {
+    font-size: 16px;
+    padding: 14px 16px;
     border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
   }
+  
+  .login-page .login-button,
+  .login-page .reset-button {
+    font-size: 17px;
+    padding: 14px 0;
+    border-radius: 16px;
+    margin-top: 8px;
+  }
+  
+  .login-page .forgot-password {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  
+  .login-page .forgot-password-form h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+}
+
+/* Small Mobile Responsive */
+@media (max-width: 480px) {
+  .login-page {
+    padding: 16px 12px;
+  }
+  
+  .login-page .login-center-group {
+    padding: 16px 0;
+  }
+  
+  .login-page .login-container {
+    padding: 28px 20px 24px 20px;
+    border-radius: 18px;
+  }
+  
+  .login-page .login-logo-stack {
+    margin-bottom: 28px;
+    margin-top: 6px;
+  }
+  
+  .login-page .login-logo.main-logo {
+    width: 180px !important;
+    max-width: 55vw;
+  }
+  
+  .login-page .login-logo.secondary-logo {
+    width: 80px !important;
+    max-width: 28vw;
+    margin-bottom: 16px;
+  }
+  
+  .login-page .login-form {
+    gap: 14px;
+  }
+  
   .login-page .login-form input,
   .login-page .forgot-password-form input {
     font-size: 15px;
-    padding: 10px 8px;
-    border-radius: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
   }
+  
   .login-page .login-button,
   .login-page .reset-button {
     font-size: 16px;
     padding: 12px 0;
-    border-radius: 12px;
+    border-radius: 14px;
+  }
+  
+  .login-page .forgot-password {
+    font-size: 14px;
+  }
+  
+  .login-page .forgot-password-form h2 {
+    font-size: 17px;
+    margin-bottom: 14px;
   }
 }

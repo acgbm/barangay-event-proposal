@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import "./Login.css";
 import logo from "../assets/bg.png";
 import logo2 from "../assets/bg2.png";
+import coverImg from "../assets/cover.png";
 import { getFirestore, getDoc, doc, collection, query, where, getDocs, } from "firebase/firestore";
 import { db } from "../firebaseConfig";  
 import { getAuth, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "firebase/auth";  
@@ -174,33 +175,34 @@ const Login = () => {
     const usersRef = collection(db, "users"); // Adjust collection name if needed
     const q = query(usersRef, where("email", "==", email));
     const querySnapshot = await getDocs(q);
-  
+
     if (!querySnapshot.empty) {
       return querySnapshot.docs[0].data(); // Returns user data if found
     }
     return null;
   };
 
-  // Particle background logic
+  // Hide scrollbars on desktop
   useEffect(() => {
-    const particleCount = 16;
-    const container = document.getElementById("particle-bg");
-    if (!container) return;
-    container.innerHTML = "";
-    for (let i = 0; i < particleCount; i++) {
-      const p = document.createElement("div");
-      p.className = "particle";
-      p.style.left = Math.random() * 100 + "vw";
-      p.style.animationDelay = (Math.random() * 10) + "s";
-      p.style.width = p.style.height = (24 + Math.random() * 32) + "px";
-      p.style.opacity = 0.15 + Math.random() * 0.25;
-      container.appendChild(p);
-    }
+    const html = document.documentElement;
+    const body = document.body;
+    
+    // Add class to hide scrollbars
+    html.classList.add("login-page-active");
+    body.classList.add("login-page-active");
+    
+    // Cleanup on unmount
+    return () => {
+      html.classList.remove("login-page-active");
+      body.classList.remove("login-page-active");
+    };
   }, []);
 
   return (
     <div className="login-page">
-      <div id="particle-bg" className="particle-bg"></div>
+      <div className="login-bg-wrap">
+        <img src={coverImg} alt="cover" className="login-bg-img" />
+      </div>
       <div className="login-center-group">
         <div className="login-container">
           <div className="login-logo-stack">
