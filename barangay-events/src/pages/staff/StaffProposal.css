@@ -1,7 +1,8 @@
 @media screen and (max-width: 768px) {
   .modern-form-bg {
     margin-left: 0 !important;
-    padding: 12px 0 !important;
+    margin-top: 80px !important;
+    padding: 20px 0 !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -25,7 +26,7 @@
     max-width: 700px !important;
     width: 100%;
     margin: 0 auto !important;
-    padding: 24px 24px 24px 24px !important;
+    padding: 40px 24px 24px 24px !important;
   }
 }
 
@@ -34,7 +35,7 @@
     max-width: 900px !important;
     width: 100%;
     margin: 0 auto !important;
-    padding: 32px 32px 24px 32px !important;
+    padding: 48px 32px 24px 32px !important;
   }
 }
 .modern-form-file-label-accent {
@@ -72,12 +73,21 @@
 }
 /* Modern form layout inspired by attachment */
 
+.modern-form-bg {
+  margin-top: 80px !important;
+  padding-top: 10px !important;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 80px);
+  margin-left: 120px;
+}
 
 .modern-form-wrapper {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-  padding: 32px 32px 24px 32px;
+  padding: 48px 32px 24px 32px;
   max-width: 700px;
   width: 100%;
   font-family: "Google Sans", Roboto, Arial, sans-serif;
@@ -87,7 +97,8 @@
 .modern-form-title {
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 28px;
+  margin-top: 0;
+  margin-bottom: 40px;
   color: #222;
   letter-spacing: 0.01em;
 }
@@ -427,7 +438,8 @@
       align-items: center;
       justify-content: flex-start;
       box-sizing: border-box;
-      padding: 16px 0;
+      padding: 20px 0;
+      margin-top: 80px !important;
     }
     .modern-form-wrapper, .staff-proposal-form-wrapper {
       background: #fff !important;
