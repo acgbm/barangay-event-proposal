@@ -2,6 +2,14 @@
   font-family: 'Segoe UI', Arial, sans-serif !important;
 }
 
+/* Ensure background outside containers is white */
+.main-content:has(.events-pro-container),
+body:has(.events-pro-container),
+html:has(.events-pro-container),
+.layout:has(.events-pro-container) {
+  background: #fff !important;
+}
+
 /* Hide scrollbars in desktop mode */
 @media (min-width: 769px) {
   .events-pro-container,
@@ -76,7 +84,7 @@
   align-items: flex-start;
   justify-content: center;
   min-height: 80vh;
-  background: #fff;
+  background: #fff !important;
   padding: 0 0 0 150px;
   gap: 40px;
   margin-left: 50px;
