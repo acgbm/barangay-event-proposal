@@ -2,7 +2,7 @@
   .modern-form-bg {
     margin-left: 0 !important;
     margin-top: 80px !important;
-    padding: 20px 0 !important;
+    padding: 20px 16px !important;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -10,10 +10,10 @@
     background: #f7f7f7;
   }
   .modern-form-wrapper, .staff-proposal-form-wrapper {
-    width: 99vw !important;
-    max-width: 99vw !important;
+    width: 100% !important;
+    max-width: 100% !important;
     margin: 0 auto !important;
-    padding: 12px 2px 18px 2px !important;
+    padding: 20px 16px !important;
     border-radius: 12px !important;
     box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
     background: #fff !important;
@@ -150,7 +150,7 @@
 }
 .modern-form-input:focus,
 .modern-form-textarea:focus {
-  border: 1.5px solid #e53935;
+  border: 1.5px solid #1976d2;
   background: #fff;
 }
 .modern-form-textarea {
@@ -438,7 +438,7 @@
       align-items: center;
       justify-content: flex-start;
       box-sizing: border-box;
-      padding: 20px 0;
+      padding: 20px 16px;
       margin-top: 80px !important;
     }
     .modern-form-wrapper, .staff-proposal-form-wrapper {
@@ -446,9 +446,9 @@
       border-radius: 12px !important;
       box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
       width: 100%;
-      max-width: 420px !important;
+      max-width: 100% !important;
       margin: 0 auto !important;
-      padding: 18px 12px 18px 12px !important;
+      padding: 20px 16px !important;
       box-sizing: border-box;
       text-align: left !important;
     }
