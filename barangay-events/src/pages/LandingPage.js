@@ -27,19 +27,8 @@ const LandingPage = () => {
           </div>
           <div className="hero-inner">
             <div className="hero-left">
-              <h1 className="hero-title">Barangay Event HUB — plan, propose, and manage with confidence</h1>
-              <p className="hero-sub">Fast approvals, transparent tracking, and community collaboration — all in one place.</p>
-
-              {/* CTAs removed per request */}
-
-              <div className="hero-trust">
-                <span className="trust-text">Trusted by community leaders</span>
-                <div className="trust-logos">
-                  <div className="trust-logo">Barangay A</div>
-                  <div className="trust-logo">Barangay B</div>
-                  <div className="trust-logo">Municipal</div>
-                </div>
-              </div>
+              <h1 className="hero-title">Barangay Event HUB</h1>
+              <p className="hero-sub">Empowering barangay staff and officials with a smarter way to manage, review, and approve event proposals.</p>
             </div>
 
             <div className="hero-right" aria-hidden>
@@ -54,8 +43,8 @@ const LandingPage = () => {
                   <div className="card-sub">Track approval progress live</div>
                 </div>
                 <div className="card card-c">
-                  <div className="card-title">Engage</div>
-                  <div className="card-sub">Share updates with residents</div>
+                  <div className="card-title">Email Notifications</div>
+                  <div className="card-sub">Receive instant email updates for approved proposals.</div>
                 </div>
               </div>
             </div>
@@ -68,24 +57,24 @@ const LandingPage = () => {
         <h2 className="features-title">Digital Solutions for Barangay Events</h2>
         <div className="features-grid">
           <div className="feature-card">
-            <i className="fas fa-calendar-alt feature-icon"></i>
-            <h3>Smart Event Planning</h3>
-            <p>Streamlined process for organizing and managing community events with ease.</p>
+            <i className="fas fa-file-invoice feature-icon"></i>
+            <h3>Reduces Manual Paperwork</h3>
+            <p>Eliminates the need for physical submission and approval forms.</p>
           </div>
           <div className="feature-card">
-            <i className="fas fa-tasks feature-icon"></i>
+            <i className="fas fa-clipboard-check feature-icon"></i>
             <h3>Proposal Tracking</h3>
             <p>Real-time updates and transparent tracking of event proposal status.</p>
           </div>
           <div className="feature-card">
-            <i className="fas fa-users feature-icon"></i>
-            <h3>Community Engagement</h3>
-            <p>Connect with residents and stakeholders in your barangay effectively.</p>
+            <i className="fas fa-eye feature-icon"></i>
+            <h3>Improves Transparency</h3>
+            <p>Tracks proposal status and voting progress in real-time.</p>
           </div>
           <div className="feature-card">
-            <i className="fas fa-shield-alt feature-icon"></i>
-            <h3>Secure Platform</h3>
-            <p>Advanced security measures to protect your event data and information.</p>
+            <i className="fas fa-tachometer-alt feature-icon"></i>
+            <h3>Enhances Efficiency</h3>
+            <p>Speeds up the proposal approval workflow between staff and officials.</p>
           </div>
         </div>
       </section>
