@@ -206,8 +206,20 @@ const Login = () => {
       <div className="login-center-group">
         <div className="login-container">
           <div className="login-logo-stack">
-            <img src={logo2} alt="Logo 2" className="login-logo secondary-logo" />
-            <img src={logo} alt="Logo" className="login-logo main-logo" />
+            <img 
+              src={logo2} 
+              alt="Logo 2" 
+              className="login-logo secondary-logo" 
+              onClick={() => navigate("/")}
+              style={{ cursor: "pointer" }}
+            />
+            <img 
+              src={logo} 
+              alt="Logo" 
+              className="login-logo main-logo" 
+              onClick={() => navigate("/")}
+              style={{ cursor: "pointer" }}
+            />
           </div>
           {/* Terms Modal */}
           {showTermsModal && (
