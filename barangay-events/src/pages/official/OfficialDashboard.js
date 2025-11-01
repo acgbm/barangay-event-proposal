@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import "./OfficialDashboard.css";
 
 const OfficialDashboard = () => {
@@ -47,8 +47,93 @@ const OfficialDashboard = () => {
     });
   };
 
+  // ✅ Automatic Decline Function - Checks for past dates and deadline
+  const checkProposalDeadlines = async () => {
+    try {
+      const proposalsSnapshot = await getDocs(collection(db, "proposals"));
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Ensure we compare only the date (not time)
+
+      // Count total officials
+      let officialCount = 0;
+      for (const userDoc of usersSnapshot.docs) {
+        if (userDoc.data().role?.toLowerCase() === "official") {
+          officialCount++;
+        }
+      }
+
+      if (officialCount <= 0) {
+        console.error("No officials found. Cannot check voting requirements.");
+        return;
+      }
+
+      const approvalThreshold = Math.ceil(officialCount * 0.8);
+      let proposalsUpdated = false;
+
+      for (const docSnap of proposalsSnapshot.docs) {
+        const proposalData = docSnap.data();
+        const proposalRef = doc(db, "proposals", docSnap.id);
+
+        if (!proposalData.date || proposalData.status !== "Pending") continue;
+
+        const eventDate = new Date(proposalData.date);
+        eventDate.setHours(0, 0, 0, 0); // Remove time component for accurate comparison
+
+        // Check if voting requirements are NOT met
+        const votes = proposalData.votes || { approve: [], reject: [] };
+        const approveCount = votes.approve?.length || 0;
+
+        const oneDayBefore = new Date(eventDate);
+        oneDayBefore.setDate(eventDate.getDate() - 1);
+
+        // Check if event date has already passed (past date)
+        const isPastDate = today.getTime() > eventDate.getTime();
+        
+        // Check if today is one day before the event date
+        const isOneDayBefore = today.getTime() === oneDayBefore.getTime();
+
+        // Decline if:
+        // 1. Event date has passed, OR
+        // 2. Today is one day before event date
+        // AND voting requirements are NOT met
+        if ((isPastDate || isOneDayBefore) && approveCount < approvalThreshold) {
+          await updateDoc(proposalRef, { status: "Declined (Missed Deadline)" });
+
+          const declineReason = isPastDate 
+            ? "event date has passed"
+            : "missing the deadline";
+
+          await addDoc(collection(db, "notifications"), {
+            message: `Proposal "${proposalData.title}" has been automatically declined because the ${declineReason} and voting requirements were not met.`,
+            timestamp: serverTimestamp(),
+            type: "Declined",
+          });
+
+          console.log(`Proposal "${proposalData.title}" has been automatically declined (${declineReason}).`);
+          proposalsUpdated = true;
+        }
+      }
+
+      // Refresh proposals only if any were updated
+      if (proposalsUpdated) {
+        fetchProposals();
+      }
+    } catch (error) {
+      console.error("Error checking deadlines:", error.message);
+    }
+  };
+
   useEffect(() => {
     fetchProposals();
+    checkProposalDeadlines(); // Run immediately when component mounts
+
+    // Set up interval to check deadlines every hour
+    const interval = setInterval(() => {
+      checkProposalDeadlines(); // Run every hour
+    }, 60 * 60 * 1000);
+
+    return () => clearInterval(interval); // Cleanup interval when component unmounts
   }, []);
 
   // Helper to format date as 'Month Day, Year'

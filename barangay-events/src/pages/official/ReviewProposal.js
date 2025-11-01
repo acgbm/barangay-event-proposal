@@ -11,6 +11,8 @@ const ReviewProposals = () => {
   const [userId, setUserId] = useState(null);
   const [pendingPage, setPendingPage] = useState(1);
   const [votedPage, setVotedPage] = useState(1);
+  const [selectedProposal, setSelectedProposal] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const proposalsPerPage = 5;
 
   useEffect(() => {
@@ -223,6 +225,11 @@ const ReviewProposals = () => {
           p.id === proposalId ? { ...p, votes, status: newStatus, rejectionFeedback } : p
         )
       );
+
+      // Close modal if open
+      if (showModal && selectedProposal?.id === proposalId) {
+        handleCloseModal();
+      }
     } catch (error) {
       console.error("Error submitting vote:", error);
       Swal.fire({
@@ -260,41 +267,71 @@ const ReviewProposals = () => {
   const checkProposalDeadlines = async () => {
     try {
       const proposalsSnapshot = await getDocs(collection(db, "proposals"));
+      const usersSnapshot = await getDocs(collection(db, "users"));
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Ensure we compare only the date (not time)
-  
+
+      // Count total officials
+      let officialCount = 0;
+      for (const userDoc of usersSnapshot.docs) {
+        if (userDoc.data().role?.toLowerCase() === "official") {
+          officialCount++;
+        }
+      }
+
+      if (officialCount <= 0) {
+        console.error("No officials found. Cannot check voting requirements.");
+        return;
+      }
+
+      const approvalThreshold = Math.ceil(officialCount * 0.8);
+
       for (const docSnap of proposalsSnapshot.docs) {
         const proposalData = docSnap.data();
         const proposalRef = doc(db, "proposals", docSnap.id);
-  
+
         if (!proposalData.date || proposalData.status !== "Pending") continue;
-  
+
         const eventDate = new Date(proposalData.date);
         eventDate.setHours(0, 0, 0, 0); // Remove time component for accurate comparison
-  
+
+        // Check if voting requirements are NOT met
+        const votes = proposalData.votes || { approve: [], reject: [] };
+        const approveCount = votes.approve?.length || 0;
+
         const oneDayBefore = new Date(eventDate);
         oneDayBefore.setDate(eventDate.getDate() - 1);
-  
-        if (today.getTime() === oneDayBefore.getTime()) {
+
+        // Check if event date has already passed (past date)
+        const isPastDate = today.getTime() > eventDate.getTime();
+        
+        // Check if today is one day before the event date
+        const isOneDayBefore = today.getTime() === oneDayBefore.getTime();
+
+        // Decline if:
+        // 1. Event date has passed, OR
+        // 2. Today is one day before event date
+        // AND voting requirements are NOT met
+        if ((isPastDate || isOneDayBefore) && approveCount < approvalThreshold) {
           await updateDoc(proposalRef, { status: "Declined (Missed Deadline)" });
-  
+
+          const declineReason = isPastDate 
+            ? "event date has passed"
+            : "missing the deadline";
+
           await addDoc(collection(db, "notifications"), {
-            message: `Proposal "${proposalData.title}" has been automatically declined due to missing the deadline.`,
+            message: `Proposal "${proposalData.title}" has been automatically declined because the ${declineReason} and voting requirements were not met.`,
             timestamp: serverTimestamp(),
             type: "Declined",
           });
-  
-          Swal.fire({
-            icon: "info",
-            title: "Proposal Auto Declined",
-            text: `The proposal "${proposalData.title}" has been automatically declined due to missing the deadline.`,
-          });
+
+          console.log(`Proposal "${proposalData.title}" has been automatically declined (${declineReason}).`);
         }
       }
     } catch (error) {
       console.error("Error checking deadlines:", error.message);
     }
-  };  
+  };
 
   useEffect(() => {
     checkProposalDeadlines(); // Run immediately when the component mounts
@@ -345,6 +382,29 @@ const ReviewProposals = () => {
     });
   };
 
+  // Helper to format time
+  const formatTime = (timeString) => {
+    if (!timeString) return "-";
+    // Convert "HH:MM" to "HH:MM AM/PM" format
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Handle opening modal with proposal details
+  const handleViewDetails = (proposal) => {
+    setSelectedProposal(proposal);
+    setShowModal(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProposal(null);
+  };
+
   // Pagination logic for pending proposals
   const pendingProposals = proposals.filter((p) => p.status === "Pending" || !p.status);
   const votedProposals = proposals.filter((p) => p.status && p.status !== "Pending");
@@ -365,59 +425,29 @@ const ReviewProposals = () => {
           <thead>
             <tr>
               <th>Event Title</th>
-              <th>Description</th>
               <th>Location</th>
               <th>Date</th>
-              <th>Note</th>
+              <th>Time</th>
               <th>Submitted By</th>
-              <th>Attachment</th>
-              <th>Votes</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentPending.map((proposal) => {
-              const statusClass =
-                proposal.status &&
-                ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
-                  proposal.status.toLowerCase().replace(/ /g, "-")
-                )
-                  ? "status-cancelled"
-                  : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
               return (
                 <tr key={proposal.id}>
                   <td>{proposal.title}</td>
-                  <td>{proposal.description}</td>
                   <td>{proposal.location}</td>
                   <td>{formatDate(proposal.date)}</td>
-                  <td>{proposal.note || "No note provided"}</td>
+                  <td>{formatTime(proposal.time)}</td>
                   <td>{proposal.submitterName}</td>
                   <td>
                     <button
-                      className="attachment-btn"
-                      onClick={() => handleViewAttachment(proposal.fileURL)}
+                      onClick={() => handleViewDetails(proposal)}
+                      className="action-btn view-details-btn"
                     >
-                      View
+                      View Details
                     </button>
-                  </td>
-                  <td>
-                    ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        onClick={() => handleVote(proposal.id, "approve")}
-                        className="action-btn approve-btn"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleVote(proposal.id, "reject")}
-                        className="action-btn reject-btn"
-                      >
-                        Reject
-                      </button>
-                    </div>
                   </td>
                 </tr>
               );
@@ -456,6 +486,7 @@ const ReviewProposals = () => {
               <th>Event Title</th>
               <th>Votes</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -477,6 +508,14 @@ const ReviewProposals = () => {
                     <span className={`status-badge ${statusClass}`}>
                       {proposal.status || "Pending"}
                     </span>
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => handleViewDetails(proposal)}
+                      className="action-btn view-details-btn"
+                    >
+                      View Details
+                    </button>
                   </td>
                 </tr>
               );
@@ -506,6 +545,97 @@ const ReviewProposals = () => {
           </div>
         )}
       </div>
+
+      {/* Modal for Viewing Proposal Details */}
+      {showModal && selectedProposal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Proposal Details</h2>
+              <button className="modal-close-btn" onClick={handleCloseModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-detail-row full-width">
+                <strong>Event Title:</strong>
+                <span>{selectedProposal.title}</span>
+              </div>
+              <div className="modal-detail-row full-width">
+                <strong>Description:</strong>
+                <span>{selectedProposal.description || "No description provided"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Location:</strong>
+                <span>{selectedProposal.location}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Date:</strong>
+                <span>{formatDate(selectedProposal.date)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Time:</strong>
+                <span>{formatTime(selectedProposal.time)}</span>
+              </div>
+              {selectedProposal.fileURL && (
+                <div className="modal-detail-row">
+                  <strong>Attachment:</strong>
+                  <button
+                    className="attachment-btn"
+                    onClick={() => handleViewAttachment(selectedProposal.fileURL)}
+                  >
+                    View Attachment
+                  </button>
+                </div>
+              )}
+              {selectedProposal.note && (
+                <div className="modal-detail-row full-width">
+                  <strong>Note:</strong>
+                  <span>{selectedProposal.note}</span>
+                </div>
+              )}
+              <div className="modal-detail-row">
+                <strong>Submitted By:</strong>
+                <span>{selectedProposal.submitterName}</span>
+              </div>
+              <div className="modal-detail-row full-width">
+                <strong>Votes:</strong>
+                <div className="votes-display">
+                  <span className="vote-count approve-count">
+                    ✅ Approve: {selectedProposal.votes?.approve?.length ?? 0}
+                  </span>
+                  <span className="vote-count reject-count">
+                    ❌ Reject: {selectedProposal.votes?.reject?.length ?? 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              {(selectedProposal.status === "Pending" || !selectedProposal.status) && (
+                <>
+                  <button
+                    onClick={() => handleVote(selectedProposal.id, "approve")}
+                    className="action-btn approve-btn"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleVote(selectedProposal.id, "reject")}
+                    className="action-btn reject-btn"
+                  >
+                    Decline
+                  </button>
+                </>
+              )}
+              {selectedProposal.status && selectedProposal.status !== "Pending" && (
+                <div style={{ textAlign: 'center', width: '100%', color: '#64748b', fontSize: '14px' }}>
+                  This proposal has been {selectedProposal.status}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
