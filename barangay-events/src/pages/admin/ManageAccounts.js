@@ -22,7 +22,7 @@ const ManageAccounts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const accountsPerPage = 5;
+  const accountsPerPage = 3;
   const db = getFirestore();
   const auth = getAuth();
 
@@ -316,7 +316,7 @@ const ManageAccounts = () => {
 
   return (
     <div className="manage-accounts">
-      <h2>Manage Accounts</h2>
+      <h2>Create an Account</h2>
 
       <form onSubmit={handleCreateAccount}>
         <div className="form-row">
@@ -352,22 +352,10 @@ const ManageAccounts = () => {
             <button
               type="submit"
               disabled={isCreating || !!emailError}
+              className="create-account-button"
               style={{
-                height: '36px', // smaller height
-                minHeight: '32px',
-                padding: '0 16px',
-                fontSize: '0.97rem',
-                borderRadius: '5px',
-                background: '#2563eb',
-                color: '#fff',
-                border: 'none',
-                fontWeight: 600,
-                opacity: isCreating ? 0.6 : 1,
-                cursor: isCreating ? 'not-allowed' : 'pointer',
-                transition: 'background 0.2s',
-                boxSizing: 'border-box',
-                display: 'inline-block',
-                verticalAlign: 'middle',
+                opacity: isCreating || emailError ? 0.6 : 1,
+                cursor: isCreating || emailError ? 'not-allowed' : 'pointer',
               }}
             >
               {isCreating ? 'Creating...' : 'Create'}
@@ -376,8 +364,8 @@ const ManageAccounts = () => {
         </div>
       </form>
 
-      <h3>Existing Accounts</h3>
-      <div style={{overflowX: 'auto', borderRadius: '12px', boxShadow: '0 1px 4px rgba(0,0,0,0.03)'}}>
+      <h2>Existing Accounts</h2>
+      <div style={{overflowX: 'auto', borderRadius: '12px', boxShadow: '0 1px 4px rgba(0,0,0,0.03)', marginTop: '8px'}}>
       <table className="accounts-table">
         <thead>
           <tr>
@@ -400,7 +388,7 @@ const ManageAccounts = () => {
                 <td>{user.role}</td>
                 <td>{user.dob}</td>
                 <td>{user.phone}</td>
-                <td>{user.verified ? <span style={{color:'#28a745', fontWeight:600}}>✅ Verified</span> : <span style={{color:'#dc3545', fontWeight:600}}>❌ Not Verified</span>}</td>
+                <td>{user.verified ? <span style={{color:'#28a745', fontWeight:600}}>Verified</span> : <span style={{color:'#dc3545', fontWeight:600}}>❌ Not Verified</span>}</td>
                 <td>
                   <button className="edit" onClick={() => handleEditAccount(user)}>
                     Edit
@@ -424,21 +412,21 @@ const ManageAccounts = () => {
       </table>
       </div>
       {/* Pagination Controls */}
-      <div style={{display: 'flex', justifyContent: 'center', marginTop: '12px', gap: '10px'}}>
+      <div className="pagination-container">
         <button
+          className="pagination-button"
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          style={{minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.6 : 1}}
         >
           Previous
         </button>
-        <span style={{alignSelf: 'center', fontWeight: 500}}>
+        <span className="pagination-info">
           Page {currentPage} of {totalPages}
         </span>
         <button
+          className="pagination-button"
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages || totalPages === 0}
-          style={{minWidth: 90, maxWidth: 120, padding: '7px 0', borderRadius: 6, background: '#e0e7ef', color: '#222', border: 'none', fontWeight: 600, cursor: (currentPage === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer', opacity: (currentPage === totalPages || totalPages === 0) ? 0.6 : 1}}
         >
           Next
         </button>
