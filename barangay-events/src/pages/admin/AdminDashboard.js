@@ -6,13 +6,15 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  Legend,
+  ReferenceLine,
 } from "recharts";
 import "./AdminDashboard.css";
 
@@ -29,6 +31,7 @@ const AdminDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [reportType, setReportType] = useState("pdf");
+  const [timePeriod, setTimePeriod] = useState("monthly"); // weekly, monthly, yearly
 
   useEffect(() => {
     fetchProposals();
@@ -171,12 +174,209 @@ const AdminDashboard = () => {
     }
   };
 
-  const chartData = [
-    { name: "Upcoming", count: statistics.upcoming },
-    { name: "Pending", count: statistics.pending },
-    { name: "Cancelled", count: statistics.cancelled },
-    { name: "Rejected", count: statistics.rejected },
-  ];
+  // Generate time-series data based on selected time period
+  const generateTrendData = () => {
+    const dataPoints = [];
+    const now = new Date();
+    
+    if (timePeriod === "weekly") {
+      // Generate last 12 weeks
+      for (let i = 11; i >= 0; i--) {
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - (i * 7));
+        weekStart.setHours(0, 0, 0, 0);
+        
+        // Adjust to start of week (Monday)
+        const dayOfWeek = weekStart.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        weekStart.setDate(weekStart.getDate() + diff);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        
+        const weekLabel = `${weekStart.toLocaleDateString('default', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('default', { month: 'short', day: 'numeric' })}`;
+        
+        const weekProposals = proposals.filter((p) => {
+          const proposalDate = new Date(p.dateSubmitted || p.date);
+          return proposalDate >= weekStart && proposalDate <= weekEnd;
+        });
+
+        const approved = weekProposals.filter((p) => p.status === "Approved").length;
+        const pending = weekProposals.filter((p) => p.status === "Pending").length;
+        const cancelled = weekProposals.filter((p) => p.status === "Cancelled").length;
+        const rejected = weekProposals.filter((p) => p.status === "Rejected").length;
+
+        dataPoints.push({
+          period: weekLabel,
+          "Approved": approved,
+          "Pending": pending,
+          "Cancelled": cancelled,
+          "Rejected": rejected,
+          "Total": weekProposals.length,
+        });
+      }
+    } else if (timePeriod === "monthly") {
+      // Generate last 12 months
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        
+        const monthProposals = proposals.filter((p) => {
+          const proposalDate = new Date(p.dateSubmitted || p.date);
+          return (
+            proposalDate.getMonth() === date.getMonth() &&
+            proposalDate.getFullYear() === date.getFullYear()
+          );
+        });
+
+        const approved = monthProposals.filter((p) => p.status === "Approved").length;
+        const pending = monthProposals.filter((p) => p.status === "Pending").length;
+        const cancelled = monthProposals.filter((p) => p.status === "Cancelled").length;
+        const rejected = monthProposals.filter((p) => p.status === "Rejected").length;
+
+        dataPoints.push({
+          period: monthName,
+          "Approved": approved,
+          "Pending": pending,
+          "Cancelled": cancelled,
+          "Rejected": rejected,
+          "Total": monthProposals.length,
+        });
+      }
+    } else if (timePeriod === "yearly") {
+      // Generate last 8 years
+      for (let i = 7; i >= 0; i--) {
+        const year = now.getFullYear() - i;
+        
+        const yearProposals = proposals.filter((p) => {
+          const proposalDate = new Date(p.dateSubmitted || p.date);
+          return proposalDate.getFullYear() === year;
+        });
+
+        const approved = yearProposals.filter((p) => p.status === "Approved").length;
+        const pending = yearProposals.filter((p) => p.status === "Pending").length;
+        const cancelled = yearProposals.filter((p) => p.status === "Cancelled").length;
+        const rejected = yearProposals.filter((p) => p.status === "Rejected").length;
+
+        dataPoints.push({
+          period: year.toString(),
+          "Approved": approved,
+          "Pending": pending,
+          "Cancelled": cancelled,
+          "Rejected": rejected,
+          "Total": yearProposals.length,
+        });
+      }
+    }
+
+    return dataPoints;
+  };
+
+  const chartData = generateTrendData();
+
+  // Get chart title based on time period
+  const getChartTitle = () => {
+    switch (timePeriod) {
+      case "weekly":
+        return "Weekly Performance Analysis";
+      case "monthly":
+        return "Monthly Performance Analysis";
+      case "yearly":
+        return "Annual Performance Overview";
+      default:
+        return "Performance Analytics Dashboard";
+    }
+  };
+
+  // Custom tooltip component with enhanced styling
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={{
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
+          borderRadius: '12px',
+          padding: '16px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          minWidth: '200px'
+        }}>
+          <p style={{
+            margin: '0 0 12px 0',
+            fontWeight: 600,
+            fontSize: '14px',
+            color: '#111827',
+            borderBottom: '1px solid #e5e7eb',
+            paddingBottom: '8px'
+          }}>
+            {label}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {payload.map((entry, index) => (
+              <div key={index} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '3px',
+                    backgroundColor: entry.color,
+                    border: `2px solid ${entry.color}`,
+                    boxShadow: `0 0 0 2px ${entry.color}20`
+                  }} />
+                  <span style={{
+                    fontSize: '13px',
+                    color: '#6b7280',
+                    fontWeight: 500
+                  }}>
+                    {entry.name}:
+                  </span>
+                </div>
+                <span style={{
+                  fontSize: '14px',
+                  color: '#111827',
+                  fontWeight: 600
+                }}>
+                  {entry.value}
+                </span>
+              </div>
+            ))}
+            <div style={{
+              marginTop: '8px',
+              paddingTop: '8px',
+              borderTop: '1px solid #e5e7eb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{
+                fontSize: '13px',
+                color: '#374151',
+                fontWeight: 600
+              }}>
+                Total:
+              </span>
+              <span style={{
+                fontSize: '15px',
+                color: '#111827',
+                fontWeight: 700
+              }}>
+                {payload.reduce((sum, entry) => {
+                  if (entry.name !== 'Total') return sum + (entry.value || 0);
+                  return sum;
+                }, 0)}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="admin-dashboard">
@@ -259,30 +459,223 @@ const AdminDashboard = () => {
       </div>
 
       <div className="chart-section modern-chart">
-        <h3>Proposal Trends</h3>
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart data={chartData} barCategoryGap={30} barGap={2}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-            <XAxis dataKey="name" tick={{ fontSize: 14, fill: '#374151' }} axisLine={false} tickLine={false}
-              onMouseMove={e => {
-                if (e && e.activeLabel) {
-                  document.body.style.cursor = 'pointer';
-                }
-              }}
-              onMouseLeave={() => { document.body.style.cursor = 'default'; }}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: '20px', 
+              fontWeight: 600, 
+              color: '#111827',
+              letterSpacing: '-0.02em'
+            }}>
+              {getChartTitle()}
+            </h3>
+            <p style={{ 
+              margin: '4px 0 0 0', 
+              fontSize: '13px', 
+              color: '#6b7280',
+              fontWeight: 400
+            }}>
+              Track proposal submissions and status trends over time
+            </p>
+          </div>
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            backgroundColor: '#f3f4f6', 
+            padding: '4px', 
+            borderRadius: '10px',
+            border: '1px solid #e5e7eb'
+          }}>
+            {['weekly', 'monthly', 'yearly'].map((period) => (
+              <button
+                key={period}
+                onClick={() => setTimePeriod(period)}
+                style={{
+                  padding: '8px 20px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize',
+                  transition: 'all 0.2s ease',
+                  backgroundColor: timePeriod === period ? '#2563eb' : 'transparent',
+                  color: timePeriod === period ? '#ffffff' : '#6b7280',
+                  boxShadow: timePeriod === period ? '0 2px 4px rgba(37, 99, 235, 0.2)' : 'none',
+                  transform: timePeriod === period ? 'scale(1.02)' : 'scale(1)',
+                }}
+                onMouseEnter={(e) => {
+                  if (timePeriod !== period) {
+                    e.target.style.backgroundColor = '#e5e7eb';
+                    e.target.style.color = '#374151';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (timePeriod !== period) {
+                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.color = '#6b7280';
+                  }
+                }}
+              >
+                {period === 'weekly' ? 'Weekly' : period === 'monthly' ? 'Monthly' : 'Yearly'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={450}>
+          <LineChart 
+            data={chartData} 
+            margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          >
+            <defs>
+              <linearGradient id="approvedGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="pendingGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="cancelledGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="rejectedGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+              </linearGradient>
+              <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                <feOffset dx="0" dy="2" result="offsetblur"/>
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.3"/>
+                </feComponentTransfer>
+                <feMerge>
+                  <feMergeNode/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              vertical={false} 
+              stroke="#e5e7eb" 
+              strokeOpacity={0.6}
+              horizontal={true}
             />
-            <YAxis allowDecimals={false} tick={{ fontSize: 14, fill: '#374151' }} axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ borderRadius: 12, background: '#fff', border: '1px solid #e5e7eb', fontSize: 14 }} cursor={{ fill: '#e0edff', opacity: 0.2 }} />
-            <Bar dataKey="count" radius={[8, 8, 0, 0]} fill="#2563eb">
-              <defs>
-                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity={0.9} />
-                  <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.7} />
-                </linearGradient>
-              </defs>
-              <Bar dataKey="count" fill="url(#barGradient)" />
-            </Bar>
-          </BarChart>
+            <XAxis 
+              dataKey="period" 
+              tick={{ fontSize: 12, fill: '#6b7280', fontWeight: 500, fontFamily: 'inherit' }} 
+              axisLine={{ stroke: '#d1d5db', strokeWidth: 1.5 }}
+              tickLine={false}
+              angle={timePeriod === 'yearly' ? 0 : -45}
+              textAnchor={timePeriod === 'yearly' ? 'middle' : 'end'}
+              height={timePeriod === 'yearly' ? 60 : 80}
+              interval={timePeriod === 'weekly' ? 'preserveStartEnd' : 0}
+              style={{ fontFamily: 'inherit' }}
+            />
+            <YAxis 
+              allowDecimals={false} 
+              tick={{ fontSize: 12, fill: '#6b7280', fontWeight: 500, fontFamily: 'inherit' }} 
+              axisLine={{ stroke: '#d1d5db', strokeWidth: 1.5 }}
+              tickLine={{ stroke: '#d1d5db', strokeWidth: 1 }}
+              width={55}
+              style={{ fontFamily: 'inherit' }}
+            />
+            <Tooltip 
+              content={<CustomTooltip />}
+              cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '5 5', strokeOpacity: 0.6 }}
+              animationDuration={200}
+              animationEasing="ease-out"
+            />
+            <Legend 
+              wrapperStyle={{ paddingTop: '24px', paddingBottom: '8px' }}
+              iconType="line"
+              iconSize={18}
+              align="center"
+              formatter={(value) => (
+                <span style={{ 
+                  fontSize: '13px', 
+                  color: '#374151', 
+                  fontWeight: 600,
+                  fontFamily: 'inherit',
+                  marginLeft: '8px'
+                }}>
+                  {value}
+                </span>
+              )}
+              wrapperClass="chart-legend"
+            />
+            <ReferenceLine y={0} stroke="#d1d5db" strokeWidth={1.5} strokeDasharray="3 3" />
+            
+            {/* Approved Line */}
+            <Line
+              type="monotone"
+              dataKey="Approved"
+              stroke="#10b981"
+              strokeWidth={3.5}
+              dot={{ fill: '#10b981', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
+              activeDot={{ r: 9, stroke: '#10b981', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
+              fill="url(#approvedGradient)"
+              name="Approved"
+              animationDuration={1000}
+              animationEasing="ease-out"
+              connectNulls={false}
+            />
+            
+            {/* Pending Line */}
+            <Line
+              type="monotone"
+              dataKey="Pending"
+              stroke="#f59e0b"
+              strokeWidth={3.5}
+              dot={{ fill: '#f59e0b', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
+              activeDot={{ r: 9, stroke: '#f59e0b', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
+              fill="url(#pendingGradient)"
+              name="Pending"
+              animationDuration={1000}
+              animationEasing="ease-out"
+              connectNulls={false}
+            />
+            
+            {/* Cancelled Line */}
+            <Line
+              type="monotone"
+              dataKey="Cancelled"
+              stroke="#ef4444"
+              strokeWidth={3.5}
+              dot={{ fill: '#ef4444', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
+              activeDot={{ r: 9, stroke: '#ef4444', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
+              fill="url(#cancelledGradient)"
+              name="Cancelled"
+              animationDuration={1000}
+              animationEasing="ease-out"
+              connectNulls={false}
+            />
+            
+            {/* Rejected Line */}
+            <Line
+              type="monotone"
+              dataKey="Rejected"
+              stroke="#6366f1"
+              strokeWidth={3.5}
+              dot={{ fill: '#6366f1', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
+              activeDot={{ r: 9, stroke: '#6366f1', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
+              fill="url(#rejectedGradient)"
+              name="Rejected"
+              animationDuration={1000}
+              animationEasing="ease-out"
+              connectNulls={false}
+            />
+          </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
