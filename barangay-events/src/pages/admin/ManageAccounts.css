@@ -1,6 +1,6 @@
 .manage-accounts {
-  max-width: 950px;
-  margin: 88px auto 0 450px; /* Add margin-top to prevent header overlap */
+  max-width:1000px;
+  margin: 88px auto 0 500px; /* Add margin-top to prevent header overlap */
   /* shifted right for sidebar */
   padding: 16px 20px;
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 40%);
