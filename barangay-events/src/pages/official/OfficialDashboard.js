@@ -321,7 +321,7 @@ const OfficialDashboard = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by title, location, submitter, or description..."
+              placeholder="Search by title, location, orsubmitter..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input"
