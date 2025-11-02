@@ -16,13 +16,99 @@ const StaffDashboard = () => {
     total: 0,
     pending: 0,
     approved: 0,
-    declined: 0
+    declined: 0,
+    done: 0
   });
+  // Search, filter, and sorting states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("date-desc");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState(null);
 
   // Format date function
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  // Helper to format time
+  const formatTime = (timeString) => {
+    if (!timeString) return "-";
+    const [hours, minutes] = timeString.split(":");
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Handle opening modal with proposal details
+  const handleViewDetails = (proposal) => {
+    setSelectedProposal(proposal);
+    setShowModal(true);
+  };
+
+  // Handle closing modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProposal(null);
+  };
+
+  // Handle viewing attachment
+  const handleViewAttachment = (fileURL) => {
+    window.open(fileURL, "_blank", "noopener,noreferrer");
+  };
+
+  // Filter and sort proposals
+  const getFilteredAndSortedProposals = () => {
+    let filtered = [...proposals];
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (proposal) =>
+          proposal.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          proposal.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          proposal.location?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "All") {
+      filtered = filtered.filter((proposal) => proposal.status === statusFilter);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "date-desc":
+          if (a.date && b.date) {
+            return new Date(b.date) - new Date(a.date);
+          }
+          if (a.date) return -1;
+          if (b.date) return 1;
+          return 0;
+        case "date-asc":
+          if (a.date && b.date) {
+            return new Date(a.date) - new Date(b.date);
+          }
+          if (a.date) return 1;
+          if (b.date) return -1;
+          return 0;
+        case "title-asc":
+          return (a.title || "").localeCompare(b.title || "");
+        case "title-desc":
+          return (b.title || "").localeCompare(a.title || "");
+        case "status-asc":
+          return (a.status || "").localeCompare(b.status || "");
+        case "status-desc":
+          return (b.status || "").localeCompare(a.status || "");
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
   };
 
   // Calculate stats from proposals
@@ -31,7 +117,8 @@ const StaffDashboard = () => {
       total: proposals.length,
       pending: proposals.filter(p => p.status === "Pending").length,
       approved: proposals.filter(p => p.status === "Approved").length,
-      declined: proposals.filter(p => ["Rejected", "Declined (Missed Deadline)"].includes(p.status)).length
+      declined: proposals.filter(p => ["Rejected", "Declined (Missed Deadline)"].includes(p.status)).length,
+      done: proposals.filter(p => p.status === "Done").length
     };
     setStats(stats);
   };
@@ -384,16 +471,16 @@ const handleViewFeedback = (feedbackArray, status) => {
       
       <div className="quick-stats">
         <div className="stat-card">
-          <h3>Total Proposals</h3>
-          <div className="stat-value">{stats.total}</div>
+          <h3>Approved</h3>
+          <div className="stat-value">{stats.approved}</div>
         </div>
         <div className="stat-card">
           <h3>Pending Review</h3>
           <div className="stat-value">{stats.pending}</div>
         </div>
         <div className="stat-card">
-          <h3>Approved</h3>
-          <div className="stat-value">{stats.approved}</div>
+          <h3>Total Proposals</h3>
+          <div className="stat-value">{stats.total}</div>
         </div>
         <div className="stat-card">
           <h3>Declined</h3>
@@ -403,89 +490,122 @@ const handleViewFeedback = (feedbackArray, status) => {
 
       <div className="table-wrapper">
         <h2>My Proposals</h2>
+        
+        {/* Search, Filter, and Sort Controls */}
+        <div className="table-controls">
+          <div className="control-group">
+            <input
+              type="text"
+              placeholder="Search proposals..."
+              className="search-input"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <div className="control-group">
+            <select
+              className="filter-select"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="All">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Declined (Missed Deadline)">Declined (Missed Deadline)</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="Rescheduled">Rescheduled</option>
+              <option value="Done">Done</option>
+            </select>
+          </div>
+          <div className="control-group">
+            <select
+              className="sort-select"
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="date-desc">Date (Newest First)</option>
+              <option value="date-asc">Date (Oldest First)</option>
+              <option value="title-asc">Title (A-Z)</option>
+              <option value="title-desc">Title (Z-A)</option>
+              <option value="status-asc">Status (A-Z)</option>
+              <option value="status-desc">Status (Z-A)</option>
+            </select>
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="loading-spinner">
             <div className="spinner"></div>
           </div>
         ) : (
-          <table className="proposals-table">
-            <thead>
-              <tr>
-                <th>Event Title</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposals.length > 0 ? (
-                // Sort proposals by latest date first
-                proposals
-                  .slice()
-                  .sort((a, b) => {
-                    if (a.date && b.date) {
-                      return new Date(b.date) - new Date(a.date);
-                    }
-                    if (a.date) return -1;
-                    if (b.date) return 1;
-                    return 0;
-                  })
-                  .slice((currentPage - 1) * proposalsPerPage, currentPage * proposalsPerPage)
-                  .map((proposal) => {
-                    let formattedTime = '';
-                    if (proposal.time) {
-                      const [hour, minute] = proposal.time.split(":");
-                      let h = parseInt(hour, 10);
-                      const ampm = h >= 12 ? 'PM' : 'AM';
-                      h = h % 12;
-                      if (h === 0) h = 12;
-                      formattedTime = `${h}:${minute} ${ampm}`;
-                    }
-                    const handleRowClick = () => {
-                      Swal.fire({
-                        title: proposal.title,
-                        html: `
-                          <div style='text-align:left'>
-                            <b>Date:</b> ${proposal.date ? formatDate(proposal.date) : ''}<br/>
-                            <b>Time:</b> ${formattedTime}<br/>
-                            <b>Location:</b> ${proposal.location || ''}<br/>
-                            <b>Description:</b> ${proposal.description || ''}<br/>
-                            <b>Note:</b> ${proposal.note || ''}<br/>
-                            <b>Status:</b> ${proposal.status}<br/>
-                            ${proposal.fileURL ? `<b>Attachment:</b> <a href='${proposal.fileURL}' target='_blank' rel='noopener noreferrer'>View File</a><br/>` : ''}
-                          </div>
-                        `,
-                        showCloseButton: true,
-                        showConfirmButton: false,
-                        width: 500,
-                        customClass: { popup: 'swal2-proposal-modal' }
-                      });
-                    };
+          <>
+            <table className="proposals-table">
+              <thead>
+                <tr>
+                  <th>Event Title</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const filteredProposals = getFilteredAndSortedProposals();
+                  const paginatedProposals = filteredProposals.slice(
+                    (currentPage - 1) * proposalsPerPage,
+                    currentPage * proposalsPerPage
+                  );
+
+                  if (paginatedProposals.length === 0) {
                     return (
-                      <tr key={proposal.id}>
-                        <td style={{ cursor: 'pointer' }} onClick={handleRowClick}>{proposal.title}</td>
-                        <td>
+                      <tr>
+                        <td colSpan="5">
+                          <div className="no-data-message">
+                            <i className="fas fa-file-alt"></i>
+                            <p>
+                              {searchQuery || statusFilter !== "All"
+                                ? "No proposals match your search criteria"
+                                : "No proposals submitted yet"}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  return paginatedProposals.map((proposal) => (
+                    <tr key={proposal.id}>
+                      <td>{proposal.title}</td>
+                      <td>{formatDate(proposal.date)}</td>
+                      <td>{formatTime(proposal.time)}</td>
+                      <td>
+                        <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
+                          {proposal.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="action-buttons">
                           <button
-                            className="action-btn view-description-btn"
-                            onClick={e => { e.preventDefault(); e.stopPropagation(); handleRowClick(); }}
+                            className="action-btn view-details-btn"
+                            onClick={() => handleViewDetails(proposal)}
                           >
-                            View
+                            View Details
                           </button>
-                        </td>
-                        <td>{formatDate(proposal.date)}</td>
-                        <td>{formattedTime}</td>
-                        <td>
-                          <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
-                            {proposal.status}
-                          </span>
-                        </td>
-                        <td onClick={e => e.stopPropagation()}>
                           {(proposal.status === "Rejected" || 
                             proposal.status === "Cancelled" || 
                             proposal.status === "Declined (Missed Deadline)") && (
-                            <div className="action-buttons">
+                            <>
                               <button
                                 className="action-btn view-feedback-btn"
                                 onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
@@ -498,52 +618,111 @@ const handleViewFeedback = (feedbackArray, status) => {
                               >
                                 Resubmit
                               </button>
-                            </div>
+                            </>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })
-              ) : (
-                <tr>
-                  <td colSpan="6">
-                    <div className="no-data-message">
-                      <i className="fas fa-file-alt"></i>
-                      <p>No proposals submitted yet</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-          {/* Pagination Controls */}
-          {proposals.length > proposalsPerPage && (
-            <tr>
-              <td colSpan="6" style={{ textAlign: 'center', paddingTop: '18px' }}>
-                <button
-                  className="pagination-btn"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  style={{ marginRight: '8px' }}
-                >
-                  &lt;
-                </button>
-                <span style={{ fontWeight: 500 }}>
-                  Page {currentPage} of {Math.ceil(proposals.length / proposalsPerPage)}
-                </span>
-                <button
-                  className="pagination-btn"
-                  onClick={() => setCurrentPage((p) => Math.min(Math.ceil(proposals.length / proposalsPerPage), p + 1))}
-                  disabled={currentPage === Math.ceil(proposals.length / proposalsPerPage)}
-                  style={{ marginLeft: '8px' }}
-                >
-                  &gt;
-                </button>
-              </td>
-            </tr>
-          )}
-            </tbody>
-          </table>
+                        </div>
+                      </td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            {(() => {
+              const filteredProposals = getFilteredAndSortedProposals();
+              const totalPages = Math.ceil(filteredProposals.length / proposalsPerPage);
+              
+              if (totalPages > 1) {
+                return (
+                  <div className="pagination-container">
+                    <button
+                      className="pagination-button"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </button>
+                    <span className="pagination-info">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      className="pagination-button"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                      Next
+                    </button>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </>
         )}
       </div>
+
+      {/* Modal for Viewing Proposal Details */}
+      {showModal && selectedProposal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Proposal Details</h2>
+              <button className="modal-close-btn" onClick={handleCloseModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-detail-row full-width">
+                <strong>Event Title:</strong>
+                <span>{selectedProposal.title}</span>
+              </div>
+              <div className="modal-detail-row full-width">
+                <strong>Description:</strong>
+                <span>{selectedProposal.description || "No description provided"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Location:</strong>
+                <span>{selectedProposal.location || "-"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Date:</strong>
+                <span>{formatDate(selectedProposal.date)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Time:</strong>
+                <span>{formatTime(selectedProposal.time)}</span>
+              </div>
+              {selectedProposal.fileURL && (
+                <div className="modal-detail-row">
+                  <strong>Attachment:</strong>
+                  <button
+                    className="attachment-btn"
+                    onClick={() => handleViewAttachment(selectedProposal.fileURL)}
+                  >
+                    View Attachment
+                  </button>
+                </div>
+              )}
+              {selectedProposal.note && (
+                <div className="modal-detail-row full-width">
+                  <strong>Note:</strong>
+                  <span>{selectedProposal.note}</span>
+                </div>
+              )}
+              <div className="modal-detail-row full-width">
+                <strong>Status:</strong>
+                <span>{selectedProposal.status || "Pending"}</span>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <div style={{ textAlign: 'center', width: '100%', color: '#64748b', fontSize: '14px' }}>
+                This proposal has been {selectedProposal.status || "Pending"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
