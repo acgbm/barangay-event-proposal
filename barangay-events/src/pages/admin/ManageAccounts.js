@@ -388,7 +388,7 @@ const ManageAccounts = () => {
                 <td>{user.role}</td>
                 <td>{user.dob}</td>
                 <td>{user.phone}</td>
-                <td>{user.verified ? <span style={{color:'#28a745', fontWeight:600}}>Verified</span> : <span style={{color:'#dc3545', fontWeight:600}}>❌ Not Verified</span>}</td>
+                <td>{user.verified ? <span style={{color:'#28a745', fontWeight:600}}>Verified</span> : <span style={{color:'#dc3545', fontWeight:600}}>Not Verified</span>}</td>
                 <td>
                   <button className="edit" onClick={() => handleEditAccount(user)}>
                     Edit

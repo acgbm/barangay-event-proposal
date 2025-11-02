@@ -14,7 +14,7 @@ const Layout = ({ role }) => {
 
   useEffect(() => {
     const fetchFullName = async () => {
-      if (user) {
+      if (user && role !== "admin") {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           setFullName(userDoc.data().fullName || "");
@@ -22,11 +22,14 @@ const Layout = ({ role }) => {
       }
     };
     fetchFullName();
-  }, [user]);
+  }, [user, role]);
+
+  // Always show "Admin" for admin role, otherwise show the fetched fullName
+  const displayName = role === "admin" ? "Admin" : fullName;
 
   return (
     <div className="layout">
-      <Sidebar role={role} fullName={fullName} />
+      <Sidebar role={role} fullName={displayName} />
       <Header />
       <div className="content main-content">
         <Outlet />
