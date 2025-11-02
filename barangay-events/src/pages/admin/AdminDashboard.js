@@ -16,6 +16,8 @@ import {
   Legend,
   ReferenceLine,
 } from "recharts";
+import bgLogo from "../../assets/bg.png";
+import bg2Logo from "../../assets/bg2.png";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -127,21 +129,139 @@ const AdminDashboard = () => {
     });
   };
 
-  const downloadReport = () => {
-    const filteredProposals = getFilteredProposals();
-    if (reportType === "excel") {
-      const formattedData = filteredProposals.map((p) => ({
-        Title: p.title || "N/A",
-        Status: p.status || "N/A",
-        "Event Date": p.date ? new Date(p.date).toLocaleDateString() : "N/A",
-        "Submitted By": p.submittedBy || "N/A",
-        "Date Submitted": p.dateSubmitted
-          ? new Date(p.dateSubmitted).toLocaleDateString()
-          : "N/A",
-        Location: p.location || "N/A",
-      }));
+  // Helper function to load image and convert to base64
+  const loadImageAsBase64 = (imageSrc) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          resolve({
+            dataURL,
+            width: img.width,
+            height: img.height
+          });
+        } catch (error) {
+          reject(error);
+        }
+      };
+      img.onerror = (error) => {
+        console.error('Error loading image:', error);
+        reject(error);
+      };
+      // If it's already a base64 string or blob URL, use it directly
+      if (typeof imageSrc === 'string' && (imageSrc.startsWith('data:') || imageSrc.startsWith('blob:'))) {
+        img.src = imageSrc;
+      } else {
+        // For imported images, they should already be URLs from webpack
+        img.src = imageSrc;
+      }
+    });
+  };
 
-      const worksheet = XLSX.utils.json_to_sheet(formattedData);
+  const downloadReport = async () => {
+    const filteredProposals = getFilteredProposals();
+    const monthName = new Date(0, selectedMonth).toLocaleString('default', { month: 'long' });
+    const reportTitle = `Proposals Report - ${monthName} ${selectedYear}`;
+
+    if (reportType === "excel") {
+      // Create header rows
+      const headerRows = [
+        ['BARANGAY EVENT HUB', '', '', '', '', ''],
+        ['Barangay New Kababae', '', '', '', '', ''],
+        ['', '', '', '', '', ''],
+        [reportTitle, '', '', '', '', ''],
+        [`Generated on: ${new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`, '', '', '', '', ''],
+        ['', '', '', '', '', ''],
+        ['Title', 'Status', 'Event Date', 'Submitted By', 'Date Submitted', 'Location'],
+      ];
+
+      // Create data rows
+      const dataRows = filteredProposals.map((p) => [
+        p.title || "N/A",
+        p.status || "N/A",
+        p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+        p.submittedBy || "N/A",
+        p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
+        p.location || "N/A",
+      ]);
+
+      // Combine all rows
+      const allRows = [...headerRows, ...dataRows];
+      
+      // Create worksheet
+      const worksheet = XLSX.utils.aoa_to_sheet(allRows);
+
+      // Set column widths
+      worksheet['!cols'] = [
+        { wch: 30 }, // Title
+        { wch: 15 }, // Status
+        { wch: 15 }, // Event Date
+        { wch: 20 }, // Submitted By
+        { wch: 18 }, // Date Submitted
+        { wch: 25 }, // Location
+      ];
+
+      // Merge header cells (rows 0-4, columns A-F)
+      if (!worksheet['!merges']) worksheet['!merges'] = [];
+      // Merge first row (BARANGAY EVENT HUB)
+      worksheet['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } });
+      // Merge second row (Barangay New Kababae)
+      worksheet['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 5 } });
+      // Merge report title row
+      worksheet['!merges'].push({ s: { r: 3, c: 0 }, e: { r: 3, c: 5 } });
+      // Merge generated date row
+      worksheet['!merges'].push({ s: { r: 4, c: 0 }, e: { r: 4, c: 5 } });
+
+      // Style header cells - Note: XLSX.js has limited styling support
+      // Basic formatting can be applied, but advanced styling may require additional libraries
+      const titleCell = worksheet['A1'];
+      if (titleCell) {
+        titleCell.s = {
+          font: { bold: true, sz: 18 },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        };
+      }
+      
+      const subtitleCell = worksheet['A2'];
+      if (subtitleCell) {
+        subtitleCell.s = {
+          font: { bold: true, sz: 14 },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        };
+      }
+
+      const reportTitleCell = worksheet['A4'];
+      if (reportTitleCell) {
+        reportTitleCell.s = {
+          font: { bold: true, sz: 12 },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        };
+      }
+
+      // Style column headers (row 6)
+      ['A7', 'B7', 'C7', 'D7', 'E7', 'F7'].forEach(cell => {
+        if (worksheet[cell]) {
+          worksheet[cell].s = {
+            font: { bold: true },
+            fill: { fgColor: { rgb: "2563EB" } }
+          };
+        }
+      });
+
+      // Create workbook
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Proposals Report");
 
@@ -149,6 +269,149 @@ const AdminDashboard = () => {
       const file = new Blob([excelBuffer], { type: "application/octet-stream" });
       saveAs(file, `proposals_report_${selectedMonth + 1}_${selectedYear}.xlsx`);
     } else {
+      try {
+        // Load images
+        const bgLogoData = await loadImageAsBase64(bgLogo);
+        const bg2LogoData = await loadImageAsBase64(bg2Logo);
+
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        
+        // Set up bg.png as watermark in top-right corner (4px)
+        const bgLogoSize = 4; // Watermark size
+        const bgLogoAspect = bgLogoData.width / bgLogoData.height;
+        const bgLogoWidth = bgLogoSize * bgLogoAspect;
+        const watermarkX = pageWidth - bgLogoWidth - 4; // 4px from right edge
+        const watermarkY = 4; // 4px from top
+        
+        // Add bg2.png above title - centered
+        const bg2LogoSize = 20; // bg2.png size
+        const bg2LogoAspect = bg2LogoData.width / bg2LogoData.height;
+        const bg2LogoWidth = bg2LogoSize * bg2LogoAspect;
+        const logoY = 10;
+        const bg2LogoX = (pageWidth - bg2LogoWidth) / 2; // Center bg2.png
+        
+        doc.addImage(bg2LogoData.dataURL, 'PNG', bg2LogoX, logoY, bg2LogoWidth, bg2LogoSize);
+
+        // Add title below bg2.png logo
+        doc.setTextColor(0, 0, 0); // Black text
+        doc.setFontSize(20);
+        doc.setFont(undefined, 'bold');
+        const titleY = logoY + bg2LogoSize + 10;
+        doc.text('BARANGAY EVENT HUB', pageWidth / 2, titleY, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'normal');
+        doc.text('Barangay New Kababae', pageWidth / 2, titleY + 8, { align: 'center' });
+
+        // Divider line
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.5);
+        const dividerY = titleY + 18;
+        doc.line(15, dividerY, pageWidth - 15, dividerY);
+
+        // Report title
+        doc.setTextColor(0, 0, 0); // Black text
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        const reportTitleText = `PROPOSALS REPORT - ${monthName.toUpperCase()} ${selectedYear}`;
+        doc.text(reportTitleText, pageWidth / 2, dividerY + 12, { align: 'center' });
+
+        // Date generated
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(100, 100, 100);
+        const generatedDate = `Generated on: ${new Date().toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`;
+        doc.text(generatedDate, pageWidth / 2, dividerY + 19, { align: 'center' });
+
+        // Table data with time included
+        const tableData = filteredProposals.map((p) => [
+          p.title || "N/A",
+          p.status || "N/A",
+          p.date ? new Date(p.date).toLocaleString('en-US', { 
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : "N/A",
+          p.submittedBy || "N/A",
+          p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleString('en-US', { 
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : "N/A",
+          p.location || "N/A",
+        ]);
+
+        // Use full width with minimal margins for table
+        const tableStartY = dividerY + 28;
+        const tableMargin = 10; // Minimal margin on each side for full width
+        
+        // Add table with professional styling - full width
+        autoTable(doc, {
+          head: [["Title", "Status", "Event Date & Time", "Submitted By", "Date Submitted & Time", "Location"]],
+          body: tableData,
+          startY: tableStartY,
+          styles: { 
+            fontSize: 8,
+            cellPadding: 2.5,
+            textColor: [0, 0, 0],
+          },
+          headStyles: { 
+            fillColor: [37, 99, 235],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 9,
+          },
+          alternateRowStyles: {
+            fillColor: [245, 247, 250],
+          },
+          columnStyles: {
+            0: { cellWidth: 'auto' }, // Title - auto width
+            1: { cellWidth: 'auto' }, // Status - auto width
+            2: { cellWidth: 'auto' }, // Event Date & Time - auto width
+            3: { cellWidth: 'auto' }, // Submitted By - auto width
+            4: { cellWidth: 'auto' }, // Date Submitted & Time - auto width
+            5: { cellWidth: 'auto' }, // Location - auto width
+          },
+          margin: { left: tableMargin, right: tableMargin },
+          theme: 'striped',
+          tableWidth: pageWidth - (tableMargin * 2),
+        });
+
+        // Add footer and watermark on each page
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          
+          // Add bg.png watermark on every page (top-right corner)
+          doc.addImage(bgLogoData.dataURL, 'PNG', watermarkX, watermarkY, bgLogoWidth, bgLogoSize);
+          
+          // Add footer text
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text(
+            `Page ${i} of ${pageCount} - Barangay Event HUB | Barangay New Kababae`,
+            pageWidth / 2,
+            doc.internal.pageSize.getHeight() - 10,
+            { align: 'center' }
+          );
+        }
+
+        doc.save(`proposals_report_${selectedMonth + 1}_${selectedYear}.pdf`);
+      } catch (error) {
+        console.error("Error generating PDF:", error);
+        // Fallback PDF without images
       const doc = new jsPDF();
       doc.setFontSize(14);
       doc.text(`Proposals Report (${Number(selectedMonth) + 1}/${selectedYear})`, 14, 16);
@@ -171,6 +434,7 @@ const AdminDashboard = () => {
       });
 
       doc.save(`proposals_report_${selectedMonth + 1}_${selectedYear}.pdf`);
+      }
     }
   };
 
