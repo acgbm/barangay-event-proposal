@@ -111,7 +111,7 @@ const LandingPage = () => {
       </section>
       <footer className="apple-footer">
         <div className="apple-footer-content">
-          <span>Contact: behub@email.com | 0992-659-1335</span>
+          <span>Contact: behub@gmail.com | 0992-659-1335</span>
           <span>&copy; {new Date().getFullYear()} Barangay Event HUB</span>
         </div>
       </footer>
