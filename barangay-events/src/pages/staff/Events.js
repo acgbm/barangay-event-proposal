@@ -5,7 +5,6 @@ import { collection, getDocs } from "firebase/firestore";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import Swal from "sweetalert2";
 import "./Events.css";
 
 function getTodayStr() {
@@ -27,6 +26,8 @@ const Events = () => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const [showModal, setShowModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const calendarRef = useRef(null);
   const todayStr = getTodayStr();
 
@@ -93,18 +94,14 @@ const Events = () => {
   const handleEventClick = (eventInfo) => {
     const eventDetails = events.find((event) => event.id === eventInfo.event.id);
     if (eventDetails) {
-      Swal.fire({
-        title: eventDetails.title,
-        html: `
-          <p><strong>Date:</strong> ${formatDate(eventDetails.date)}</p>
-          <p><strong>Time:</strong> ${eventDetails.time || "-"}</p>
-          <p><strong>Location:</strong> ${eventDetails.location || "-"}</p>
-          <p><strong>Description:</strong> ${eventDetails.description || "-"}</p>
-        `,
-        icon: "info",
-        confirmButtonText: "Close",
-      });
+      setSelectedEvent(eventDetails);
+      setShowModal(true);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedEvent(null);
   };
 
   // Month/year display
@@ -152,6 +149,42 @@ const Events = () => {
           ))}
         </ul>
       </aside>
+
+      {/* Modal for Viewing Event Details */}
+      {showModal && selectedEvent && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Event Details</h2>
+              <button className="modal-close-btn" onClick={handleCloseModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-detail-row full-width">
+                <strong>Event Title:</strong>
+                <span>{selectedEvent.title}</span>
+              </div>
+              <div className="modal-detail-row full-width">
+                <strong>Description:</strong>
+                <span>{selectedEvent.description || "No description provided"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Location:</strong>
+                <span>{selectedEvent.location || "-"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Date:</strong>
+                <span>{formatDate(selectedEvent.date)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Time:</strong>
+                <span>{selectedEvent.time || "-"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

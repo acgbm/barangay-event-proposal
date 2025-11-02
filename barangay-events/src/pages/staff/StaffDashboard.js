@@ -38,6 +38,7 @@ const StaffDashboard = () => {
     file: null
   });
   const [resubmitErrors, setResubmitErrors] = useState({});
+  const [resubmitMessage, setResubmitMessage] = useState({ type: "", text: "" });
   const [disabledDateTimes, setDisabledDateTimes] = useState([]);
 
   // Format date function
@@ -372,6 +373,7 @@ const handleViewFeedback = (feedbackArray, status) => {
       file: null
     });
     setResubmitErrors({});
+    setResubmitMessage({ type: "", text: "" });
     setShowResubmitModal(true);
   };
 
@@ -389,6 +391,7 @@ const handleViewFeedback = (feedbackArray, status) => {
       file: null
     });
     setResubmitErrors({});
+    setResubmitMessage({ type: "", text: "" });
   };
 
   // Validate resubmit form
@@ -491,12 +494,14 @@ const handleViewFeedback = (feedbackArray, status) => {
         createdAt: serverTimestamp(),
       });
 
-      Swal.fire("Resubmitted!", "Your proposal has been resubmitted as a new entry.", "success");
-      handleCloseResubmitModal();
-      fetchUserProposals(userId);
+      setResubmitMessage({ type: "success", text: "Your proposal has been resubmitted as a new entry." });
+      setTimeout(() => {
+        handleCloseResubmitModal();
+        fetchUserProposals(userId);
+      }, 1500);
     } catch (error) {
       console.error("Error resubmitting proposal:", error.message);
-      Swal.fire("Error", "Failed to resubmit the proposal. Try again later.", "error");
+      setResubmitMessage({ type: "error", text: "Failed to resubmit the proposal. Try again later." });
     }
   };
 
@@ -794,6 +799,11 @@ const handleViewFeedback = (feedbackArray, status) => {
               </button>
             </div>
             <form onSubmit={handleResubmitSubmit} className="modal-body resubmit-modal-body">
+              {resubmitMessage.text && (
+                <div className={`resubmit-message ${resubmitMessage.type === "success" ? "resubmit-success" : "resubmit-error"}`}>
+                  {resubmitMessage.text}
+                </div>
+              )}
               <div className="resubmit-form-row">
                 <div className="resubmit-form-group">
                   <label className="resubmit-form-label">Event Title</label>

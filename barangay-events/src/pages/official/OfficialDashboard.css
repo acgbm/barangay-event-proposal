@@ -332,7 +332,6 @@
 
   .modal-content {
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 20px;
     box-shadow: 0 20px 60px rgba(2, 6, 23, 0.25), 0 8px 24px rgba(0, 0, 0, 0.1);
     max-width: 500px;
     width: calc(100% - 40px);
@@ -353,7 +352,6 @@
     border-bottom: 1px solid rgba(226, 232, 240, 0.8);
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(8px);
-    border-radius: 20px 20px 0 0;
   }
 
   .modal-header h2 {
@@ -378,7 +376,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
     transition: all 0.2s ease;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   }
@@ -476,7 +473,6 @@
     border-top: 1px solid rgba(226, 232, 240, 0.8);
     background: rgba(248, 250, 252, 0.6);
     backdrop-filter: blur(8px);
-    border-radius: 0 0 20px 20px;
   }
 
   /* Responsive Design */
@@ -573,12 +569,10 @@
       max-width: calc(100% - 20px);
       width: calc(100% - 20px);
       max-height: 95vh;
-      border-radius: 16px;
     }
 
     .modal-header {
       padding: 20px;
-      border-radius: 16px 16px 0 0;
     }
 
     .modal-header h2 {
@@ -592,7 +586,6 @@
 
     .modal-footer {
       padding: 18px 20px;
-      border-radius: 0 0 16px 16px;
     }
 
     .votes-display {
