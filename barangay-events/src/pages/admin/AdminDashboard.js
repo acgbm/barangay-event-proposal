@@ -168,6 +168,178 @@ const AdminDashboard = () => {
     });
   };
 
+  const normalizeStatusLabel = (status) => {
+    if (!status) return "N/A";
+    return status === "Rejected" ? "Declined" : status;
+  };
+
+  // Generate trend data for a specific period (weekly, monthly, yearly)
+  const generateTrendDataFor = (period) => {
+    const backup = timePeriod;
+    // Temporarily compute using existing logic by branching on period
+    const now = new Date();
+    const dataPoints = [];
+    if (period === "weekly") {
+      for (let i = 11; i >= 0; i--) {
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - (i * 7));
+        weekStart.setHours(0, 0, 0, 0);
+        const dayOfWeek = weekStart.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        weekStart.setDate(weekStart.getDate() + diff);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        const weekLabel = `${weekStart.toLocaleDateString('default', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('default', { month: 'short', day: 'numeric' })}`;
+        const weekProposals = proposals.filter((p) => {
+          const proposalDate = new Date(p.dateSubmitted || p.date);
+          return proposalDate >= weekStart && proposalDate <= weekEnd;
+        });
+        const approved = weekProposals.filter((p) => p.status === "Approved").length;
+        const pending = weekProposals.filter((p) => p.status === "Pending").length;
+        const cancelled = weekProposals.filter((p) => p.status === "Cancelled").length;
+        const declined = weekProposals.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "rejected" || s.includes("declined");
+        }).length;
+        dataPoints.push({ period: weekLabel, Approved: approved, Pending: pending, Cancelled: cancelled, Declined: declined, Total: weekProposals.length });
+      }
+    } else if (period === "monthly") {
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        const monthProposals = proposals.filter((p) => {
+          const proposalDate = new Date(p.dateSubmitted || p.date);
+          return (
+            proposalDate.getMonth() === date.getMonth() &&
+            proposalDate.getFullYear() === date.getFullYear()
+          );
+        });
+        const approved = monthProposals.filter((p) => p.status === "Approved").length;
+        const pending = monthProposals.filter((p) => p.status === "Pending").length;
+        const cancelled = monthProposals.filter((p) => p.status === "Cancelled").length;
+        const declined = monthProposals.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "rejected" || s.includes("declined");
+        }).length;
+        dataPoints.push({ period: monthName, Approved: approved, Pending: pending, Cancelled: cancelled, Declined: declined, Total: monthProposals.length });
+      }
+    } else if (period === "yearly") {
+      for (let i = 7; i >= 0; i--) {
+        const year = now.getFullYear() - i;
+        const yearProposals = proposals.filter((p) => {
+          const proposalDate = new Date(p.dateSubmitted || p.date);
+          return proposalDate.getFullYear() === year;
+        });
+        const approved = yearProposals.filter((p) => p.status === "Approved").length;
+        const pending = yearProposals.filter((p) => p.status === "Pending").length;
+        const cancelled = yearProposals.filter((p) => p.status === "Cancelled").length;
+        const declined = yearProposals.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "rejected" || s.includes("declined");
+        }).length;
+        dataPoints.push({ period: year.toString(), Approved: approved, Pending: pending, Cancelled: cancelled, Declined: declined, Total: yearProposals.length });
+      }
+    }
+    return dataPoints;
+  };
+
+  const drawTrendChart = (doc, data, title, x, y, width, height) => {
+    // Margins inside chart area - balanced for better centering
+    const leftPad = 18; const rightPad = 18; const topPad = 20; const bottomPad = 38; // Increased for date labels
+    const plotX = x + leftPad; const plotY = y + topPad;
+    const plotW = width - leftPad - rightPad; const plotH = height - topPad - bottomPad;
+    // Title
+    doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text(title, x + width / 2, y + 10, { align: 'center' });
+    // Axes & grid
+    doc.setDrawColor(220);
+    // Y grid lines (4 divisions)
+    for (let i = 0; i <= 4; i++) {
+      const gy = plotY + (i * (plotH / 4));
+      doc.line(plotX, gy, plotX + plotW, gy);
+    }
+    // Axes
+    doc.setDrawColor(200);
+    doc.line(plotX, plotY, plotX, plotY + plotH);
+    doc.line(plotX, plotY + plotH, plotX + plotW, plotY + plotH);
+    // Determine max value
+    const seriesKeys = ["Approved", "Pending", "Cancelled", "Declined"];
+    const maxVal = Math.max(1, ...data.flatMap(d => seriesKeys.map(k => d[k] || 0)));
+    // Helper to map point
+    const px = (i) => plotX + (i * (plotW / Math.max(1, data.length - 1)));
+    const py = (v) => plotY + plotH - (v / maxVal) * plotH;
+    // X-axis date labels
+    doc.setFontSize(7);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+    const labelY = plotY + plotH + 8;
+    data.forEach((d, i) => {
+      const x1 = px(i);
+      const periodText = d.period || '';
+      // Truncate long labels if needed
+      const maxLabelWidth = plotW / data.length;
+      let displayText = periodText;
+      if (doc.getTextWidth(displayText) > maxLabelWidth - 2) {
+        // Try to shorten the text
+        while (doc.getTextWidth(displayText) > maxLabelWidth - 2 && displayText.length > 0) {
+          displayText = displayText.substring(0, displayText.length - 1);
+        }
+        if (displayText.length < periodText.length) {
+          displayText = displayText + '...';
+        }
+      }
+      doc.text(displayText, x1, labelY, { align: 'center', angle: 0 });
+    });
+    const colorMap = {
+      Approved: '#10b981',
+      Pending: '#f59e0b',
+      Cancelled: '#f97316',
+      Declined: '#ef4444',
+    };
+    // Draw lines
+    seriesKeys.forEach((key) => {
+      doc.setDrawColor(colorMap[key]); doc.setLineWidth(1.8);
+      data.forEach((d, i) => {
+        const x1 = px(i);
+        const y1 = py(d[key] || 0);
+        if (i > 0) {
+          const x0 = px(i - 1);
+          const y0 = py(data[i - 1][key] || 0);
+          doc.line(x0, y0, x1, y1);
+        }
+      });
+      // Draw points and value labels
+      data.forEach((d, i) => {
+        const x1 = px(i);
+        const y1 = py(d[key] || 0);
+        doc.setFillColor(colorMap[key]);
+        doc.circle(x1, y1, 1.8, 'F');
+        // value label above point
+        doc.setFontSize(8);
+        doc.setTextColor(55);
+        doc.text(String(d[key] || 0), x1, y1 - 3, { align: 'center' });
+      });
+    });
+    // Legend (centered) - Always show Approved, Pending, Cancelled, Declined
+    const legendItems = ["Approved", "Pending", "Cancelled", "Declined"];
+    doc.setFontSize(8); doc.setFont(undefined, 'normal');
+    // Calculate text widths for proper spacing
+    const textWidths = legendItems.map(item => doc.getTextWidth(item));
+    const maxTextWidth = Math.max(...textWidths);
+    const legendItemWidth = maxTextWidth + 16; // 6px box + 2px gap + text width + 8px after
+    const totalLegendWidth = legendItems.length * legendItemWidth;
+    const legendX = x + (width - totalLegendWidth) / 2;
+    const legendY = labelY + 6; // Position legend above date labels
+    
+    legendItems.forEach((k, idx) => {
+      const lx = legendX + idx * legendItemWidth;
+      doc.setFillColor(colorMap[k]); 
+      doc.rect(lx, legendY - 3, 5, 5, 'F');
+      doc.setTextColor(0,0,0); 
+      doc.text(k, lx + 7, legendY + 1);
+    });
+  };
+
   const downloadReport = async () => {
     const filteredProposals = getFilteredProposals();
     const monthName = new Date(0, selectedMonth).toLocaleString('default', { month: 'long' });
@@ -194,7 +366,7 @@ const AdminDashboard = () => {
       // Create data rows
       const dataRows = filteredProposals.map((p) => [
         p.title || "N/A",
-        p.status || "N/A",
+        normalizeStatusLabel(p.status),
         p.date ? new Date(p.date).toLocaleDateString() : "N/A",
         p.submittedBy || "N/A",
         p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
@@ -270,7 +442,7 @@ const AdminDashboard = () => {
 
       const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
       const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-      saveAs(file, `proposals_report_${selectedMonth + 1}_${selectedYear}.xlsx`);
+      saveAs(file, `BEHUB_report_${selectedMonth + 1}_${selectedYear}.xlsx`);
     } else {
       try {
         // Load images
@@ -337,7 +509,7 @@ const AdminDashboard = () => {
         // Table data with time included
         const tableData = filteredProposals.map((p) => [
           p.title || "N/A",
-          p.status || "N/A",
+          normalizeStatusLabel(p.status),
           p.date ? new Date(p.date).toLocaleString('en-US', { 
             year: 'numeric',
             month: '2-digit',
@@ -411,7 +583,22 @@ const AdminDashboard = () => {
           );
         }
 
-        doc.save(`proposals_report_${selectedMonth + 1}_${selectedYear}.pdf`);
+        // After table, add charts for Weekly, Monthly, Yearly
+        let currentY = doc.lastAutoTable.finalY + 16;
+        const chartW = pageWidth - 40; const chartH = 100; const chartX = (pageWidth - chartW) / 2 - 5;
+        const weeklyData = generateTrendDataFor('weekly');
+        const monthlyData = generateTrendDataFor('monthly');
+        const yearlyData = generateTrendDataFor('yearly');
+        drawTrendChart(doc, weeklyData, 'Weekly Trends (Approved, Pending, Cancelled, Declined)', chartX, currentY, chartW, chartH);
+        currentY += chartH + 18;
+        // New page if overflow
+        if (currentY + chartH + 18 > pageHeight - 20) { doc.addPage(); currentY = 20; }
+        drawTrendChart(doc, monthlyData, 'Monthly Trends (Approved, Pending, Cancelled, Declined)', chartX, currentY, chartW, chartH);
+        currentY += chartH + 18;
+        if (currentY + chartH + 18 > pageHeight - 20) { doc.addPage(); currentY = 20; }
+        drawTrendChart(doc, yearlyData, 'Yearly Trends (Approved, Pending, Cancelled, Declined)', chartX, currentY, chartW, chartH);
+
+        doc.save(`BEHUB_report_${selectedMonth + 1}_${selectedYear}.pdf`);
       } catch (error) {
         console.error("Error generating PDF:", error);
         // Fallback PDF without images
@@ -421,7 +608,7 @@ const AdminDashboard = () => {
 
       const tableData = filteredProposals.map((p) => [
         p.title || "N/A",
-        p.status || "N/A",
+        normalizeStatusLabel(p.status),
         p.date ? new Date(p.date).toLocaleDateString() : "N/A",
         p.submittedBy || "N/A",
         p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
@@ -436,6 +623,19 @@ const AdminDashboard = () => {
         headStyles: { fillColor: [74, 144, 226] },
       });
 
+      // Simple charts in fallback too
+      let currentY = 28 + tableData.length * 8;
+      const pageW = doc.internal.pageSize.getWidth(); const pageH = doc.internal.pageSize.getHeight();
+      if (currentY + 300 > pageH) currentY = pageH - 300;
+      const chartW = pageW - 40; const chartH = 100; const chartX = (pageW - chartW) / 2 - 5;
+      const weeklyData = generateTrendDataFor('weekly');
+      const monthlyData = generateTrendDataFor('monthly');
+      const yearlyData = generateTrendDataFor('yearly');
+      drawTrendChart(doc, weeklyData, 'Weekly Trends (Approved, Pending, Cancelled, Declined)', chartX, currentY, chartW, chartH);
+      currentY += chartH + 16;
+      drawTrendChart(doc, monthlyData, 'Monthly Trends (Approved, Pending, Cancelled, Declined)', chartX, currentY, chartW, chartH);
+      currentY += chartH + 16;
+      drawTrendChart(doc, yearlyData, 'Yearly Trends (Approved, Pending, Cancelled, Declined)', chartX, currentY, chartW, chartH);
       doc.save(`proposals_report_${selectedMonth + 1}_${selectedYear}.pdf`);
       }
     }
