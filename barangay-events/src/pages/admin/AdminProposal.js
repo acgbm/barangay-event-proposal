@@ -36,7 +36,7 @@ const AdminProposal = () => {
   
   // Search, filter, and sort states
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all, pending, approved, rejected, cancelled, declined, rescheduled
+  const [statusFilter, setStatusFilter] = useState("all"); // all, pending, approved, cancelled, declined, rescheduled
   const [sortBy, setSortBy] = useState("date"); // date, title, status
   const [sortOrder, setSortOrder] = useState("desc"); // asc, desc
 
@@ -239,15 +239,17 @@ const AdminProposal = () => {
       case "Approved":
         return "#2ecc40"; // green
       case "Pending":
-        return "#007bff"; // blue
+        return "#f59e0b"; // yellow
       case "Rejected":
-        return "#e74c3c"; // red
+        return "#e74c3c"; // red (shown as Declined)
       case "Declined (Missed Deadline)":
-        return "#ff9800"; // orange
+        return "#e74c3c"; // red
       case "Cancelled":
         return "#888"; // gray
       case "Rescheduled":
         return "#6c63ff"; // purple/blue
+      case "Done":
+        return "#2563eb"; // blue
       default:
         return "#22223b";
     }
@@ -304,7 +306,7 @@ const AdminProposal = () => {
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rescheduled">Rescheduled</option>
-            <option value="rejected">Rejected</option>
+            <option value="declined">Declined</option>
             <option value="cancelled">Cancelled</option>
             <option value="declined">Declined</option>
           </select>
@@ -351,7 +353,7 @@ const AdminProposal = () => {
                 <td>{formatDate(proposal.date)}</td>
                 <td>
                   <span className="status-badge" style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
-                    {proposal.status}
+                    {proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending")}
                   </span>
                 </td>
                 <td className="view-details-cell">
@@ -474,7 +476,7 @@ const AdminProposal = () => {
                       ✅ Approve: {selectedProposal.votes?.approve?.length ?? 0}
                     </span>
                     <span className="vote-count reject-count">
-                      ❌ Reject: {selectedProposal.votes?.reject?.length ?? 0}
+                      ❌ Decline: {selectedProposal.votes?.reject?.length ?? 0}
                     </span>
                   </div>
                 </div>

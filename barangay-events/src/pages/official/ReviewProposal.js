@@ -142,11 +142,11 @@ const ReviewProposals = () => {
       let rejectionFeedback = proposalData.rejectionFeedback || [];
       if (voteType === "reject") {
         const { value: feedback } = await Swal.fire({
-          title: "Reject Proposal",
+          title: "Decline Proposal",
           input: "textarea",
           inputPlaceholder: "Enter feedback for rejection...",
           showCancelButton: true,
-          confirmButtonText: "Reject",
+          confirmButtonText: "Decline",
           cancelButtonText: "Cancel",
           confirmButtonColor: "#d33",
           preConfirm: (feedback) => {
@@ -207,13 +207,13 @@ const ReviewProposals = () => {
           confirmButtonColor: "#28a745",
         });
       } else if (votes.reject.length >= officialsCount) {
-        newStatus = "Rejected";
+        newStatus = "Declined";
   
         // ❌ Add Firestore Notification
         await addDoc(collection(db, "notifications"), {
-          message: `Proposal "${proposalData.title}" has been rejected.`,
+          message: `Proposal "${proposalData.title}" has been declined.`,
           timestamp: serverTimestamp(),
-          type: "Rejected",
+          type: "Declined",
         });
       }
   
@@ -226,10 +226,10 @@ const ReviewProposals = () => {
   
       Swal.fire({
         icon: voteType === "approve" ? "success" : "error",
-        title: voteType === "approve" ? "Vote Submitted" : "Rejected",
+        title: voteType === "approve" ? "Vote Submitted" : "Declined",
         text: voteType === "approve"
           ? "You have voted to approve this proposal."
-          : "Proposal rejected with feedback.",
+          : "Proposal declined with feedback.",
       });
   
       setProposals((prev) =>
@@ -501,7 +501,7 @@ const ReviewProposals = () => {
     : baseVotedProposals.filter((p) => {
         const status = (p.status || "").toLowerCase();
         if (votedStatusFilter === "declined") {
-          return status.includes("declined") || status.includes("missed deadline");
+          return status.includes("declined") || status.includes("missed deadline") || status === "rejected";
         }
         return status === votedStatusFilter.toLowerCase();
       });
@@ -651,7 +651,6 @@ const ReviewProposals = () => {
             >
               <option value="all">All Status</option>
               <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
               <option value="declined">Declined</option>
             </select>
             <select
@@ -689,13 +688,10 @@ const ReviewProposals = () => {
           </thead>
           <tbody>
             {currentVoted.map((proposal) => {
-              const statusClass =
-                proposal.status &&
-                ["cancelled", "declined (missed deadline)", "declined-missed-deadline", "deadline"].includes(
-                  proposal.status.toLowerCase().replace(/ /g, "-")
-                )
-                  ? "status-cancelled"
-                  : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+              const normalizedStatus = (proposal.status || "pending").toLowerCase();
+              const statusClass = normalizedStatus.includes("declined")
+                ? "status-declined"
+                : `status-${normalizedStatus.replace(/ /g, "-")}`;
               return (
                 <tr key={proposal.id}>
                   <td>{proposal.title}</td>
@@ -704,7 +700,7 @@ const ReviewProposals = () => {
                   </td>
                   <td>
                     <span className={`status-badge ${statusClass}`}>
-                      {proposal.status || "Pending"}
+                      {(proposal.status === "Rejected" ? "Declined" : proposal.status) || "Pending"}
                     </span>
                   </td>
                   <td>
@@ -803,7 +799,7 @@ const ReviewProposals = () => {
                     ✅ Approve: {selectedProposal.votes?.approve?.length ?? 0}
                   </span>
                   <span className="vote-count reject-count">
-                    ❌ Reject: {selectedProposal.votes?.reject?.length ?? 0}
+                    ❌ Decline: {selectedProposal.votes?.reject?.length ?? 0}
                   </span>
                 </div>
               </div>
@@ -827,7 +823,7 @@ const ReviewProposals = () => {
               )}
               {selectedProposal.status && selectedProposal.status !== "Pending" && (
                 <div style={{ textAlign: 'center', width: '100%', color: '#64748b', fontSize: '14px' }}>
-                  This proposal has been {selectedProposal.status}
+                  This proposal has been {selectedProposal.status === "Rejected" ? "Declined" : selectedProposal.status}
                 </div>
               )}
             </div>

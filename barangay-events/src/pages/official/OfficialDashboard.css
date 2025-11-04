@@ -172,10 +172,16 @@
     color: #991b1b;
   }
   
-  .status-cancelled, .status-deadline, .status-declined-missed-deadline {
-    background-color: #fee2e2;
-    color: #991b1b;
-  }
+.status-cancelled, .status-deadline, .status-declined-missed-deadline {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Ensure all Declined variants render red */
+.status-declined {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
 
   /* Table Controls (Search, Filter, Sort) */
   .table-controls {

@@ -63,7 +63,10 @@ const OfficialDashboard = () => {
     ).length;
     const pending = allProposals.filter((proposal) => proposal.status === "Pending").length;
     const cancelled = allProposals.filter((proposal) => proposal.status === "Cancelled").length;
-    const rejected = allProposals.filter((proposal) => proposal.status === "Rejected").length;
+    const rejected = allProposals.filter((proposal) => {
+      const status = (proposal.status || "").toLowerCase();
+      return status === "rejected" || status.includes("declined");
+    }).length;
 
     setStatistics({
       upcoming,
@@ -308,7 +311,7 @@ const OfficialDashboard = () => {
           <div className="stat-value">{statistics.cancelled}</div>
         </div>
         <div className="stat-card">
-          <h3>Rejected Events</h3>
+          <h3>Declined Events</h3>
           <div className="stat-value">{statistics.rejected}</div>
         </div>
       </div>
@@ -336,7 +339,7 @@ const OfficialDashboard = () => {
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
+              {/* Removed explicit Rejected to present softer wording */}
               <option value="cancelled">Cancelled</option>
               <option value="declined">Declined</option>
             </select>
@@ -377,19 +380,16 @@ const OfficialDashboard = () => {
           <tbody>
             {currentProposals.length > 0 ? (
               currentProposals.map((proposal) => {
-                const statusClass =
-                  proposal.status &&
-                  ["cancelled", "declined-missed-deadline", "deadline"].includes(
-                    proposal.status.toLowerCase().replace(/ /g, "-")
-                  )
-                    ? "status-cancelled"
-                    : `status-${(proposal.status || "pending").toLowerCase().replace(/ /g, "-")}`;
+                const normalizedStatus = (proposal.status || "pending").toLowerCase();
+                const statusClass = normalizedStatus.includes("declined")
+                  ? "status-declined"
+                  : `status-${normalizedStatus.replace(/ /g, "-")}`;
                 return (
                   <tr key={proposal.id}>
                     <td>{proposal.title}</td>
                     <td>
                       <span className={`status-badge ${statusClass}`}>
-                        {proposal.status}
+                        {proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending")}
                       </span>
                     </td>
                     <td>{formatDate(proposal.date)}</td>

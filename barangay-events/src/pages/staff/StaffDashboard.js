@@ -132,7 +132,10 @@ const StaffDashboard = () => {
       total: proposals.length,
       pending: proposals.filter(p => p.status === "Pending").length,
       approved: proposals.filter(p => p.status === "Approved").length,
-      declined: proposals.filter(p => ["Rejected", "Declined (Missed Deadline)"].includes(p.status)).length,
+      declined: proposals.filter(p => {
+        const status = (p.status || "").toLowerCase();
+        return status === "rejected" || status.includes("declined");
+      }).length,
       done: proposals.filter(p => p.status === "Done").length
     };
     setStats(stats);
@@ -281,8 +284,8 @@ const StaffDashboard = () => {
       text = `Your event proposal "${proposal.title}" has been approved.`;
     } else if (proposal.status === "Rejected") {
       icon = "error";
-      title = "Proposal Rejected!";
-      text = `Your event proposal "${proposal.title}" has been rejected.`;
+      title = "Proposal Declined!";
+      text = `Your event proposal "${proposal.title}" has been declined.`;
     } else if (proposal.status === "Declined (Missed Deadline)") {
       icon = "error";
       title = "Proposal Declined (Missed Deadline)!";
@@ -325,7 +328,7 @@ const handleViewFeedback = (feedbackArray, status) => {
     Swal.fire({
       icon: "info",
       title: "No Feedback",
-      text: "No rejection feedback available.",
+      text: "No decline feedback available.",
     });
     return;
   }
@@ -349,7 +352,7 @@ const handleViewFeedback = (feedbackArray, status) => {
 
     Swal.fire({
       icon: "error",
-      title: "Rejected Feedback",
+      title: "Declined Feedback",
       html: `<div style="text-align:left">${feedbackText}</div>`,
     });
     }
@@ -581,7 +584,7 @@ const handleViewFeedback = (feedbackArray, status) => {
               <option value="All">All Status</option>
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
+              <option value="Declined">Declined</option>
               <option value="Declined (Missed Deadline)">Declined (Missed Deadline)</option>
               <option value="Cancelled">Cancelled</option>
               <option value="Rescheduled">Rescheduled</option>
@@ -654,9 +657,18 @@ const handleViewFeedback = (feedbackArray, status) => {
                       <td>{formatDate(proposal.date)}</td>
                       <td>{formatTime(proposal.time)}</td>
                       <td>
-                        <span className={`status-badge status-${proposal.status.toLowerCase().replace(/\s/g, '-')}`}>
-                          {proposal.status}
-                        </span>
+                        {(() => {
+                          const normalized = (proposal.status || "Pending").toLowerCase();
+                          const statusClass = normalized.includes("declined")
+                            ? "status-declined"
+                            : `status-${normalized.replace(/[^a-z0-9]+/g, '-')}`;
+                          const label = proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending");
+                          return (
+                            <span className={`status-badge ${statusClass}`}>
+                              {label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td>
                         <div className="action-buttons">

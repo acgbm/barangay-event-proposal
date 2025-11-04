@@ -100,7 +100,10 @@ const AdminDashboard = () => {
     ).length;
     const pending = data.filter((p) => p.status === "Pending").length;
     const cancelled = data.filter((p) => p.status === "Cancelled").length;
-    const rejected = data.filter((p) => p.status === "Rejected").length;
+    const rejected = data.filter((p) => {
+      const status = (p.status || "").toLowerCase();
+      return status === "rejected" || status.includes("declined");
+    }).length;
     const submittedThisMonth = data.filter((p) => {
       const date = new Date(p.dateSubmitted || p.date);
       return (
@@ -469,14 +472,17 @@ const AdminDashboard = () => {
         const approved = weekProposals.filter((p) => p.status === "Approved").length;
         const pending = weekProposals.filter((p) => p.status === "Pending").length;
         const cancelled = weekProposals.filter((p) => p.status === "Cancelled").length;
-        const rejected = weekProposals.filter((p) => p.status === "Rejected").length;
+        const rejected = weekProposals.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "rejected" || s.includes("declined");
+        }).length;
 
         dataPoints.push({
           period: weekLabel,
           "Approved": approved,
           "Pending": pending,
           "Cancelled": cancelled,
-          "Rejected": rejected,
+          "Declined": rejected,
           "Total": weekProposals.length,
         });
       }
@@ -497,14 +503,17 @@ const AdminDashboard = () => {
         const approved = monthProposals.filter((p) => p.status === "Approved").length;
         const pending = monthProposals.filter((p) => p.status === "Pending").length;
         const cancelled = monthProposals.filter((p) => p.status === "Cancelled").length;
-        const rejected = monthProposals.filter((p) => p.status === "Rejected").length;
+        const rejected = monthProposals.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "rejected" || s.includes("declined");
+        }).length;
 
         dataPoints.push({
           period: monthName,
           "Approved": approved,
           "Pending": pending,
           "Cancelled": cancelled,
-          "Rejected": rejected,
+          "Declined": rejected,
           "Total": monthProposals.length,
         });
       }
@@ -521,14 +530,17 @@ const AdminDashboard = () => {
         const approved = yearProposals.filter((p) => p.status === "Approved").length;
         const pending = yearProposals.filter((p) => p.status === "Pending").length;
         const cancelled = yearProposals.filter((p) => p.status === "Cancelled").length;
-        const rejected = yearProposals.filter((p) => p.status === "Rejected").length;
+        const rejected = yearProposals.filter((p) => {
+          const s = (p.status || "").toLowerCase();
+          return s === "rejected" || s.includes("declined");
+        }).length;
 
         dataPoints.push({
           period: year.toString(),
           "Approved": approved,
           "Pending": pending,
           "Cancelled": cancelled,
-          "Rejected": rejected,
+          "Declined": rejected,
           "Total": yearProposals.length,
         });
       }
@@ -663,7 +675,7 @@ const AdminDashboard = () => {
           <div className="stat-value">{statistics.cancelled}</div>
         </div>
         <div className="stat-card">
-          <h3>Rejected Events</h3>
+          <h3>Declined Events</h3>
           <div className="stat-value">{statistics.rejected}</div>
         </div>
         <div className="stat-card">
@@ -809,12 +821,12 @@ const AdminDashboard = () => {
                 <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="cancelledGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f97316" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="declinedGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#ef4444" stopOpacity={0.25} />
                 <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="rejectedGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
               </linearGradient>
               <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
@@ -910,14 +922,14 @@ const AdminDashboard = () => {
               connectNulls={false}
             />
             
-            {/* Cancelled Line */}
+            {/* Cancelled Line (orange) */}
             <Line
               type="monotone"
               dataKey="Cancelled"
-              stroke="#ef4444"
+              stroke="#f97316"
               strokeWidth={3.5}
-              dot={{ fill: '#ef4444', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
-              activeDot={{ r: 9, stroke: '#ef4444', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
+              dot={{ fill: '#f97316', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
+              activeDot={{ r: 9, stroke: '#f97316', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
               fill="url(#cancelledGradient)"
               name="Cancelled"
               animationDuration={1000}
@@ -925,16 +937,16 @@ const AdminDashboard = () => {
               connectNulls={false}
             />
             
-            {/* Rejected Line */}
+            {/* Declined Line (red) */}
             <Line
               type="monotone"
-              dataKey="Rejected"
-              stroke="#6366f1"
+              dataKey="Declined"
+              stroke="#ef4444"
               strokeWidth={3.5}
-              dot={{ fill: '#6366f1', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
-              activeDot={{ r: 9, stroke: '#6366f1', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
-              fill="url(#rejectedGradient)"
-              name="Rejected"
+              dot={{ fill: '#ef4444', strokeWidth: 3, r: 6, stroke: '#ffffff', filter: 'url(#shadow)' }}
+              activeDot={{ r: 9, stroke: '#ef4444', strokeWidth: 3, fill: '#ffffff', strokeOpacity: 1 }}
+              fill="url(#declinedGradient)"
+              name="Declined"
               animationDuration={1000}
               animationEasing="ease-out"
               connectNulls={false}
