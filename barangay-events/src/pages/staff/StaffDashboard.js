@@ -40,6 +40,9 @@ const StaffDashboard = () => {
   const [resubmitErrors, setResubmitErrors] = useState({});
   const [resubmitMessage, setResubmitMessage] = useState({ type: "", text: "" });
   const [disabledDateTimes, setDisabledDateTimes] = useState([]);
+  // Feedback modal states
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackData, setFeedbackData] = useState({ feedbackArray: [], status: "" });
 
   // Format date function
   const formatDate = (dateString) => {
@@ -257,7 +260,7 @@ const StaffDashboard = () => {
     // Only show notifications for proposals that have not been notified
     const newNotifications = userProposals.filter(
       (proposal) =>
-        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled" || proposal.status === "Cancelled") &&
+        (proposal.status === "Approved" || proposal.status === "Rejected" || proposal.status === "Declined" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled" || proposal.status === "Cancelled") &&
         proposal.notified !== true
     );
     if (newNotifications.length > 0) {
@@ -282,7 +285,7 @@ const StaffDashboard = () => {
       icon = "success";
       title = "Proposal Approved!";
       text = `Your event proposal "${proposal.title}" has been approved.`;
-    } else if (proposal.status === "Rejected") {
+    } else if (proposal.status === "Rejected" || proposal.status === "Declined") {
       icon = "error";
       title = "Proposal Declined!";
       text = `Your event proposal "${proposal.title}" has been declined.`;
@@ -320,42 +323,25 @@ const StaffDashboard = () => {
     updatePastEventsToDone();
   }, []);
 
-  // ✅ Handle Viewing Feedback for Rejected and Cancelled Proposals
-const handleViewFeedback = (feedbackArray, status) => {
-  let feedbackText = "";
-
-  if (status === "Rejected" && (!feedbackArray || feedbackArray.length === 0)) {
-    Swal.fire({
-      icon: "info",
-      title: "No Feedback",
-      text: "No decline feedback available.",
-    });
-    return;
-  }
-
-  if (status === "Cancelled") {
-    feedbackText = feedbackArray && feedbackArray.length > 0 
-      ? feedbackArray
-          .map((entry, index) => `${index + 1}. ${entry.feedback}`)
-          .join("<br><br>")
-      : "No cancellation feedback available.";
-
-    Swal.fire({
-      icon: "error",
-      title: "Cancelled Event Feedback",
-      html: `<div style="text-align:left">${feedbackText}</div>`,
-    });
-  } else if (status === "Rejected") {
-    feedbackText = feedbackArray
-      .map((entry, index) => `${index + 1}. ${entry.feedback}`)
-      .join("<br><br>");
-
-    Swal.fire({
-      icon: "error",
-      title: "Declined Feedback",
-      html: `<div style="text-align:left">${feedbackText}</div>`,
-    });
+  // ✅ Handle Viewing Feedback for Rejected, Declined, and Cancelled Proposals
+  const handleViewFeedback = (feedbackArray, status) => {
+    if ((status === "Rejected" || status === "Declined") && (!feedbackArray || feedbackArray.length === 0)) {
+      Swal.fire({
+        icon: "info",
+        title: "No Feedback",
+        text: "No decline feedback available.",
+      });
+      return;
     }
+
+    setFeedbackData({ feedbackArray: feedbackArray || [], status });
+    setShowFeedbackModal(true);
+  };
+
+  // Close feedback modal
+  const handleCloseFeedbackModal = () => {
+    setShowFeedbackModal(false);
+    setFeedbackData({ feedbackArray: [], status: "" });
   };
 
   // Open resubmit modal
@@ -679,12 +665,13 @@ const handleViewFeedback = (feedbackArray, status) => {
                             View Details
                           </button>
                           {(proposal.status === "Rejected" || 
+                            proposal.status === "Declined" ||
                             proposal.status === "Cancelled" || 
                             proposal.status === "Declined (Missed Deadline)") && (
                             <>
                               <button
                                 className="action-btn view-feedback-btn"
-                                onClick={() => handleViewFeedback(proposal.feedback, proposal.status)}
+                                onClick={() => handleViewFeedback(proposal.rejectionFeedback || proposal.feedback, proposal.status)}
                               >
                                 View Feedback
                               </button>
@@ -947,6 +934,50 @@ const handleViewFeedback = (feedbackArray, status) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="modal-overlay" onClick={handleCloseFeedbackModal}>
+          <div className="modal-content feedback-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {feedbackData.status === "Cancelled" 
+                  ? "Cancelled Event Feedback" 
+                  : "Declined Feedback"}
+              </h2>
+              <button className="modal-close-btn" onClick={handleCloseFeedbackModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body feedback-modal-body">
+              {feedbackData.feedbackArray && feedbackData.feedbackArray.length > 0 ? (
+                <div className="feedback-list">
+                  {feedbackData.feedbackArray.map((entry, index) => (
+                    <div key={index} className="feedback-item">
+                      <div className="feedback-number">{index + 1}</div>
+                      <div className="feedback-text">{entry.feedback}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-feedback-message">
+                  <i className="fas fa-info-circle"></i>
+                  <p>
+                    {feedbackData.status === "Cancelled"
+                      ? "No cancellation feedback available."
+                      : "No decline feedback available."}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="feedback-close-btn" onClick={handleCloseFeedbackModal}>
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

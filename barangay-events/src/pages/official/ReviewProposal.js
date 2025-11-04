@@ -102,6 +102,9 @@ const ReviewProposals = () => {
       const proposalData = proposalSnap.data();
       let votes = proposalData.votes || { approve: [], reject: [] };
   
+      // Handle rejection feedback
+      let rejectionFeedback = proposalData.rejectionFeedback || [];
+      
       // Check if user has already voted
       if (votes.approve.includes(userId) || votes.reject.includes(userId)) {
         const { isConfirmed } = await Swal.fire({
@@ -120,6 +123,9 @@ const ReviewProposals = () => {
         // Remove previous vote
         votes.approve = votes.approve.filter((id) => id !== userId);
         votes.reject = votes.reject.filter((id) => id !== userId);
+        
+        // Remove previous feedback entry if user had voted reject
+        rejectionFeedback = rejectionFeedback.filter((entry) => entry.officialId !== userId);
       }
   
       // Confirm approval
@@ -138,8 +144,6 @@ const ReviewProposals = () => {
         if (!isConfirmed) return;
       }
   
-      // Handle rejection feedback
-      let rejectionFeedback = proposalData.rejectionFeedback || [];
       if (voteType === "reject") {
         const { value: feedback } = await Swal.fire({
           title: "Decline Proposal",
