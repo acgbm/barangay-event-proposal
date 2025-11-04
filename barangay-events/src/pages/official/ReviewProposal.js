@@ -541,7 +541,7 @@ const ReviewProposals = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by title, location, orsubmitter..."
+              placeholder="Search by title, location, or submitter..."
               value={pendingSearch}
               onChange={(e) => setPendingSearch(e.target.value)}
               className="search-input"
@@ -637,7 +637,7 @@ const ReviewProposals = () => {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search by title, location, submitter, or description..."
+              placeholder="Search by title, location, or submitter..."
               value={votedSearch}
               onChange={(e) => setVotedSearch(e.target.value)}
               className="search-input"
