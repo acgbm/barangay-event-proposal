@@ -4,7 +4,49 @@
     font-family: "Google Sans", Roboto, Arial, sans-serif;
     max-width: 100%;
     min-height: calc(100vh - 48px);
+    transition: margin 0.3s, max-width 0.3s;
   }
+
+/* Laptop resolution (1366x768) */
+@media (min-width: 1366px) and (max-width: 1920px) {
+  .official-dashboard {
+    margin-left: calc(150px + (100vw - 150px - 1200px) / 2);
+    margin-right: auto;
+    max-width: 1200px;
+  }
+}
+
+/* Desktop but smaller than 1366px */
+@media (max-width: 1365px) and (min-width: 1201px) {
+  .official-dashboard {
+    margin-left: calc(150px + (100vw - 150px - 1200px) / 2);
+    margin-right: auto;
+    max-width: 1200px;
+  }
+}
+
+/* Laptop specific adjustments for 1366x768 and similar resolutions */
+@media (min-width: 1280px) and (max-width: 1440px) {
+  .official-dashboard {
+    margin-left: calc(150px + (100vw - 150px - 1200px) / 2);
+    margin-right: auto;
+    max-width: 1200px;
+  }
+  .proposals-table th,
+  .proposals-table td {
+    font-size: 14px;
+    padding: 14px 20px;
+  }
+  .table-controls {
+    gap: 10px;
+  }
+  .search-input,
+  .filter-select,
+  .sort-select {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}
   
   .official-dashboard h1 {
     font-size: 32px;
@@ -484,7 +526,8 @@
   /* Responsive Design */
   @media screen and (max-width: 1024px) {
     .official-dashboard {
-      margin-left: 0;
+      margin-left: 180px;
+      max-width: calc(100vw - 200px);
     }
   
     .quick-stats {

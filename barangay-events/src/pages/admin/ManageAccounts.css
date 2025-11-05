@@ -10,10 +10,30 @@
   transition: margin 0.3s, max-width 0.3s;
 }
 
+/* Laptop resolution (1366x768) */
+@media (min-width: 1366px) and (max-width: 1920px) {
+  .manage-accounts {
+    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
+    margin-right: auto;
+    max-width: 1000px;
+    margin-top: 88px;
+  }
+}
+
+/* Desktop but smaller than 1366px */
+@media (max-width: 1365px) and (min-width: 1201px) {
+  .manage-accounts {
+    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
+    margin-right: auto;
+    max-width: 1000px;
+    margin-top: 88px;
+  }
+}
+
 @media (max-width: 1200px) {
   .manage-accounts {
     margin-left: 180px;
-    max-width: 98vw;
+    max-width: calc(100vw - 200px);
     margin-top: 88px;
   }
 }
@@ -31,6 +51,23 @@
   }
   .manage-accounts .form-row {
     gap: 8px 8px;
+  }
+}
+
+/* Laptop specific adjustments for 1366x768 and similar resolutions */
+@media (min-width: 1280px) and (max-width: 1440px) {
+  .manage-accounts {
+    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
+    margin-right: auto;
+    max-width: 1000px;
+  }
+  .accounts-table th,
+  .accounts-table td {
+    font-size: 0.82rem;
+    padding: 7px 8px;
+  }
+  .manage-accounts .form-row {
+    gap: 10px 12px;
   }
 }
 @media (max-width: 600px) {

@@ -23,7 +23,35 @@
     font-family: "Google Sans", Roboto, Arial, sans-serif;
     margin-top: 6rem !important; /* Add significant top padding to avoid header overlap */
     padding-top: 2rem; /* Additional padding inside container */
+    transition: margin 0.3s, max-width 0.3s;
   }
+
+/* Laptop resolution (1366x768) */
+@media (min-width: 1366px) and (max-width: 1920px) {
+  .staff-account-container {
+    margin-left: calc(150px + (100vw - 150px - 700px) / 2);
+    margin-right: auto;
+    max-width: 700px;
+  }
+}
+
+/* Desktop but smaller than 1366px */
+@media (max-width: 1365px) and (min-width: 1201px) {
+  .staff-account-container {
+    margin-left: calc(150px + (100vw - 150px - 700px) / 2);
+    margin-right: auto;
+    max-width: 700px;
+  }
+}
+
+/* Laptop specific adjustments for 1366x768 and similar resolutions */
+@media (min-width: 1280px) and (max-width: 1440px) {
+  .staff-account-container {
+    margin-left: calc(150px + (100vw - 150px - 700px) / 2);
+    margin-right: auto;
+    max-width: 700px;
+  }
+}
   
   .staff-account-container h2 {
     margin-bottom: 1.5rem;

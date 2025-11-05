@@ -13,10 +13,30 @@
   transition: margin 0.3s, max-width 0.3s;
 }
 
+/* Laptop resolution (1366x768) */
+@media (min-width: 1366px) and (max-width: 1920px) {
+  .admin-proposal {
+    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
+    margin-right: auto;
+    max-width: 1000px;
+    margin-top: 88px;
+  }
+}
+
+/* Desktop but smaller than 1366px */
+@media (max-width: 1365px) and (min-width: 1201px) {
+  .admin-proposal {
+    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
+    margin-right: auto;
+    max-width: 1000px;
+    margin-top: 88px;
+  }
+}
+
 @media (max-width: 1200px) {
   .admin-proposal {
     margin-left: 180px;
-    max-width: 98vw;
+    max-width: calc(100vw - 200px);
     margin-top: 88px;
   }
 }
@@ -31,6 +51,32 @@
   .table td {
     font-size: 0.93rem;
     padding: 7px 3px;
+  }
+}
+
+/* Laptop specific adjustments for 1366x768 and similar resolutions */
+@media (min-width: 1280px) and (max-width: 1440px) {
+  .admin-proposal {
+    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
+    margin-right: auto;
+    max-width: 1000px;
+  }
+  .table-controls {
+    gap: 12px;
+  }
+  .search-box {
+    min-width: 200px;
+  }
+  .filter-select,
+  .sort-select {
+    min-width: 130px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .table th,
+  .table td {
+    font-size: 0.83rem;
+    padding: 8px 8px;
   }
 }
 @media (max-width: 600px) {
