@@ -96,7 +96,7 @@ const AdminDashboard = () => {
     const currentYear = now.getFullYear();
 
     const upcoming = data.filter(
-      (p) => p.status === "Approved" && new Date(p.date) > now
+      (p) => p.status === "Approved" && new Date(p.finishDate) > now
     ).length;
     const pending = data.filter((p) => p.status === "Pending").length;
     const cancelled = data.filter((p) => p.status === "Cancelled").length;
@@ -367,7 +367,7 @@ const AdminDashboard = () => {
       const dataRows = filteredProposals.map((p) => [
         p.title || "N/A",
         normalizeStatusLabel(p.status),
-        p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+        (p.startDate && p.finishDate) ? `${new Date(p.startDate).toLocaleDateString()} - ${new Date(p.finishDate).toLocaleDateString()}` : "N/A",
         p.submittedBy || "N/A",
         p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
         p.location || "N/A",
@@ -510,13 +510,7 @@ const AdminDashboard = () => {
         const tableData = filteredProposals.map((p) => [
           p.title || "N/A",
           normalizeStatusLabel(p.status),
-          p.date ? new Date(p.date).toLocaleString('en-US', { 
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          }) : "N/A",
+          (p.startDate && p.finishDate && p.startTime && p.finishTime) ? `${new Date(p.startDate).toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit'})} ${p.startTime} - ${new Date(p.finishDate).toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit'})} ${p.finishTime}` : "N/A",
           p.submittedBy || "N/A",
           p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleString('en-US', { 
             year: 'numeric',
@@ -609,7 +603,7 @@ const AdminDashboard = () => {
       const tableData = filteredProposals.map((p) => [
         p.title || "N/A",
         normalizeStatusLabel(p.status),
-        p.date ? new Date(p.date).toLocaleDateString() : "N/A",
+        (p.startDate && p.finishDate) ? `${new Date(p.startDate).toLocaleDateString()} - ${new Date(p.finishDate).toLocaleDateString()}` : "N/A",
         p.submittedBy || "N/A",
         p.dateSubmitted ? new Date(p.dateSubmitted).toLocaleDateString() : "N/A",
         p.location || "N/A",

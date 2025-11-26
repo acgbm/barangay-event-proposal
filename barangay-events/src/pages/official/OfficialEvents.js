@@ -41,16 +41,21 @@ const Events = () => {
           .map((event) => ({
             id: event.id,
             title: event.title,
-            date: event.date,
-            time: event.time,
+            startDate: event.startDate,
+            finishDate: event.finishDate,
+            startTime: event.startTime,
+            finishTime: event.finishTime,
             location: event.location,
             description: event.description,
+            // For FullCalendar: create start and end dates with times
+            start: event.startDate,
+            end: event.finishDate,
           }));
         setEvents(approvedEvents);
         // 3 nearest upcoming events (today or future)
         const upcomingList = approvedEvents
-          .filter(ev => ev.date >= todayStr)
-          .sort((a, b) => a.date.localeCompare(b.date) || (a.time || "").localeCompare(b.time || ""))
+          .filter(ev => ev.startDate >= todayStr)
+          .sort((a, b) => a.startDate.localeCompare(b.startDate) || (a.startTime || "").localeCompare(b.startTime || ""))
           .slice(0, 3);
         setUpcoming(upcomingList);
       } catch (error) {
@@ -142,8 +147,8 @@ const Events = () => {
             <li className="events-pro-upcoming-item" key={ev.id}>
               <div className="events-pro-upcoming-main">
                 <div className="events-pro-upcoming-name">{ev.title}</div>
-                <div className="events-pro-upcoming-date">{formatDate(ev.date)}</div>
-                <div className="events-pro-upcoming-time">{ev.time || "-"}</div>
+                <div className="events-pro-upcoming-date">{formatDate(ev.startDate)} - {formatDate(ev.finishDate)}</div>
+                <div className="events-pro-upcoming-time">{ev.startTime || "-"} - {ev.finishTime || "-"}</div>
               </div>
             </li>
           ))}
@@ -174,12 +179,20 @@ const Events = () => {
                 <span>{selectedEvent.location || "-"}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Date:</strong>
-                <span>{formatDate(selectedEvent.date)}</span>
+                <strong>Start Date:</strong>
+                <span>{formatDate(selectedEvent.startDate)}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Time:</strong>
-                <span>{selectedEvent.time || "-"}</span>
+                <strong>Finish Date:</strong>
+                <span>{formatDate(selectedEvent.finishDate)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Start Time:</strong>
+                <span>{selectedEvent.startTime || "-"}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Finish Time:</strong>
+                <span>{selectedEvent.finishTime || "-"}</span>
               </div>
             </div>
           </div>

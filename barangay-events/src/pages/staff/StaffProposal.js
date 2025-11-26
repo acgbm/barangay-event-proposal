@@ -9,24 +9,35 @@ const StaffProposal = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [date, setDate] = useState("");
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [finishDate, setFinishDate] = useState("");
   const [note, setNote] = useState(""); // Added note field
-  const [time, setTime] = useState("");
-  const [disabledDateTimes, setDisabledDateTimes] = useState([]);
-  // Fetch approved proposals to disable used date+time
+  const [startTime, setStartTime] = useState("");
+  const [finishTime, setFinishTime] = useState("");
+  const [disabledSlots, setDisabledSlots] = useState([]);
+
+  // Predefined location options
+  const predefinedLocations = [
+    "Barangay Hall",
+    "Barangay Clinic",
+    "James L. Gordon School",
+    "Banicain Court",
+  ];
+  // Fetch approved proposals to disable used date+time slots
   useEffect(() => {
-    const fetchDisabledDateTimes = async () => {
+    const fetchDisabledSlots = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "proposals"));
         const disabled = querySnapshot.docs
-          .filter(doc => doc.data().status === "Approved" && doc.data().date && doc.data().time)
-          .map(doc => ({ date: doc.data().date, time: doc.data().time }));
-        setDisabledDateTimes(disabled);
+          .filter(doc => doc.data().status === "Approved" && doc.data().startDate && doc.data().finishDate && doc.data().startTime && doc.data().finishTime)
+          .map(doc => ({ startDate: doc.data().startDate, finishDate: doc.data().finishDate, startTime: doc.data().startTime, finishTime: doc.data().finishTime }));
+        setDisabledSlots(disabled);
       } catch (err) {
-        setDisabledDateTimes([]);
+        setDisabledSlots([]);
       }
     };
-    fetchDisabledDateTimes();
+    fetchDisabledSlots();
   }, []);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -82,6 +93,29 @@ const StaffProposal = () => {
     setLocation(value);
   };
 
+  // Handle Location selection from dropdown
+  const handleLocationSelect = (selectedLocation) => {
+    setLocation(selectedLocation);
+    setShowLocationDropdown(false);
+  };
+
+  // Handle Location input field focus
+  const handleLocationFocus = () => {
+    setShowLocationDropdown(true);
+  };
+
+  // Handle Location input field blur (close dropdown after a small delay)
+  const handleLocationBlur = () => {
+    setTimeout(() => {
+      setShowLocationDropdown(false);
+    }, 200);
+  };
+
+  // Filter locations based on input
+  const filteredLocations = predefinedLocations.filter(loc =>
+    loc.toLowerCase().includes(location.toLowerCase())
+  );
+
   // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -123,8 +157,10 @@ const StaffProposal = () => {
         title,
         description,
         location,
-        date,
-        time,
+        startDate,
+        finishDate,
+        startTime,
+        finishTime,
         note: note || "", // Save the note
         fileURL,
         createdAt: serverTimestamp(),
@@ -143,11 +179,13 @@ const StaffProposal = () => {
       setTitle("");
       setDescription("");
       setLocation("");
-      setDate("");
-  setNote(""); // Reset note field
-  setTime("");
-  setFile(null);
-  if (fileInputRef.current) fileInputRef.current.value = "";
+      setStartDate("");
+      setFinishDate("");
+      setNote(""); // Reset note field
+      setStartTime("");
+      setFinishTime("");
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("❌ Error submitting proposal:", error.message);
         Swal.fire({
@@ -181,53 +219,122 @@ const StaffProposal = () => {
             </div>
             <div className="modern-form-group">
               <label className="modern-form-label">Location</label>
-              <input
-                type="text"
-                value={location}
-                onChange={handleLocationChange}
-                required
-                className="modern-form-input"
-                maxLength={LOCATION_LIMIT}
-                placeholder="Location"
-              />
+              <div className="location-input-wrapper">
+                <input
+                  type="text"
+                  value={location}
+                  onChange={handleLocationChange}
+                  onFocus={handleLocationFocus}
+                  onBlur={handleLocationBlur}
+                  required
+                  className="modern-form-input"
+                  maxLength={LOCATION_LIMIT}
+                  placeholder="Select or type location"
+                  autoComplete="off"
+                />
+                {showLocationDropdown && filteredLocations.length > 0 && (
+                  <ul className="location-dropdown">
+                    {filteredLocations.map((loc, idx) => (
+                      <li key={idx} className="location-option">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleLocationSelect(loc);
+                          }}
+                          className="location-option-btn"
+                        >
+                          {loc}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
           <div className="modern-form-row">
             <div className="modern-form-group">
-              <label className="modern-form-label">Date</label>
+              <label className="modern-form-label">Allocation of Date - Start</label>
               <input
                 type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
                 min={minDate}
                 required
                 className="modern-form-input"
               />
             </div>
             <div className="modern-form-group">
-              <label className="modern-form-label">Time</label>
+              <label className="modern-form-label">Allocation of Date - Finish</label>
+              <input
+                type="date"
+                value={finishDate}
+                onChange={(e) => setFinishDate(e.target.value)}
+                min={startDate || minDate}
+                required
+                className="modern-form-input"
+              />
+              {startDate && finishDate && finishDate < startDate && (
+                <div style={{color:'#e53935',fontSize:13,marginTop:4}}>Finish date must be on or after start date.</div>
+              )}
+            </div>
+          </div>
+          <div className="modern-form-row">
+            <div className="modern-form-group">
+              <label className="modern-form-label">Allocation of Time - Start</label>
               <input
                 type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
                 required
                 className="modern-form-input"
                 step="1800" // 30 min steps
-                list="available-times"
-                disabled={!date}
+                list="available-start-times"
+                disabled={!startDate}
               />
-              <datalist id="available-times">
+              <datalist id="available-start-times">
                 {[
                   "08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30",
                   "12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30",
-                  "16:00","16:30","17:00","17:30","18:00"
+                  "16:00","16:30","17:00","17:30"
+                ].map(t => <option key={t} value={t}>{t}</option>)}
+              </datalist>
+            </div>
+            <div className="modern-form-group">
+              <label className="modern-form-label">Allocation of Time - Finish</label>
+              <input
+                type="time"
+                value={finishTime}
+                onChange={(e) => setFinishTime(e.target.value)}
+                required
+                className="modern-form-input"
+                step="1800" // 30 min steps
+                list="available-finish-times"
+                disabled={!startDate || !startTime}
+              />
+              <datalist id="available-finish-times">
+                {[
+                  "08:30","09:00","09:30","10:00","10:30","11:00","11:30",
+                  "12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30",
+                  "16:00","16:30","17:00","17:30","18:00","18:30"
                 ].map(t => {
-                  const isDisabled = disabledDateTimes.some(dt => dt.date === date && dt.time === t);
-                  return <option key={t} value={t} disabled={isDisabled}>{t}{isDisabled ? " (Taken)" : ""}</option>;
+                  const isValidFinishTime = startTime && t > startTime;
+                  return <option key={t} value={t} disabled={!isValidFinishTime}>{t}</option>;
                 })}
               </datalist>
-              {date && time && disabledDateTimes.some(dt => dt.date === date && dt.time === time) && (
-                <div style={{color:'#e53935',fontSize:13,marginTop:4}}>This date and time is already taken.</div>
+              {startDate && startTime && finishTime && finishTime <= startTime && (
+                <div style={{color:'#e53935',fontSize:13,marginTop:4}}>Finish time must be after start time.</div>
+              )}
+              {startDate && finishDate && startTime && finishTime && disabledSlots.some(slot => {
+                // Check if the proposed slot overlaps with any approved slot
+                const proposedStart = new Date(`${startDate}T${startTime}`);
+                const proposedEnd = new Date(`${finishDate}T${finishTime}`);
+                const approvedStart = new Date(`${slot.startDate}T${slot.startTime}`);
+                const approvedEnd = new Date(`${slot.finishDate}T${slot.finishTime}`);
+                return proposedStart < approvedEnd && proposedEnd > approvedStart;
+              }) && (
+                <div style={{color:'#e53935',fontSize:13,marginTop:4}}>This time slot conflicts with an already approved event.</div>
               )}
             </div>
           </div>

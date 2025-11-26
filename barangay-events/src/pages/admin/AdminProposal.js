@@ -84,15 +84,15 @@ const AdminProposal = () => {
     // Get the current date in YYYY-MM-DD format
     const currentDate = new Date().toISOString().split("T")[0]; // Format as 'YYYY-MM-DD'
   
-    const { value: newDate } = await Swal.fire({
+    const { value: newStartDate } = await Swal.fire({
       title: "Reschedule Event",
       input: "date",
-      inputLabel: "New Event Date",
-      inputValue: proposal.date,
+      inputLabel: "New Start Date",
+      inputValue: proposal.startDate,
       showCancelButton: true,
       inputValidator: (value) => {
         if (!value) {
-          return "You must provide a new date!";
+          return "You must provide a new start date!";
         }
       },
       inputAttributes: {
@@ -100,11 +100,33 @@ const AdminProposal = () => {
       },
     });
   
-    if (newDate) {
+    if (!newStartDate) return;
+
+    const { value: newFinishDate } = await Swal.fire({
+      title: "Reschedule Event",
+      input: "date",
+      inputLabel: "New Finish Date",
+      inputValue: proposal.finishDate,
+      showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value) {
+          return "You must provide a new finish date!";
+        }
+        if (value < newStartDate) {
+          return "Finish date must be after start date!";
+        }
+      },
+      inputAttributes: {
+        min: newStartDate, // Finish date must be after start date
+      },
+    });
+  
+    if (newFinishDate) {
       try {
         const proposalRef = doc(db, "proposals", proposal.id);
         await updateDoc(proposalRef, {
-          date: newDate,
+          startDate: newStartDate,
+          finishDate: newFinishDate,
           status: "Rescheduled", // Update the status to "Rescheduled"
         });
   
@@ -112,7 +134,7 @@ const AdminProposal = () => {
         Swal.fire({
           icon: "success",
           title: "Event Rescheduled",
-          text: `The event "${proposal.title}" has been rescheduled to ${newDate}.`,
+          text: `The event "${proposal.title}" has been rescheduled from ${formatDate(proposal.startDate)} to ${formatDate(newStartDate)}.`,
         });
   
         fetchProposals(); // Re-fetch proposals to update the view
@@ -214,8 +236,8 @@ const AdminProposal = () => {
           bValue = (b.status || "").toLowerCase();
           break;
         case "date":
-          aValue = new Date(a.date || 0).getTime();
-          bValue = new Date(b.date || 0).getTime();
+          aValue = new Date(a.startDate || 0).getTime();
+          bValue = new Date(b.startDate || 0).getTime();
           break;
         default:
           return 0;
@@ -350,7 +372,7 @@ const AdminProposal = () => {
             {currentProposals.map((proposal) => (
               <tr key={proposal.id}>
                 <td>{proposal.title}</td>
-                <td>{formatDate(proposal.date)}</td>
+                <td>{formatDate(proposal.startDate)} - {formatDate(proposal.finishDate)}</td>
                 <td>
                   <span className="status-badge" style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
                     {proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending")}
@@ -430,12 +452,20 @@ const AdminProposal = () => {
                 <span>{selectedProposal.location || "-"}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Date:</strong>
-                <span>{formatDate(selectedProposal.date)}</span>
+                <strong>Start Date:</strong>
+                <span>{formatDate(selectedProposal.startDate)}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Time:</strong>
-                <span>{formatTime(selectedProposal.time)}</span>
+                <strong>Finish Date:</strong>
+                <span>{formatDate(selectedProposal.finishDate)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Start Time:</strong>
+                <span>{formatTime(selectedProposal.startTime)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Finish Time:</strong>
+                <span>{formatTime(selectedProposal.finishTime)}</span>
               </div>
               {selectedProposal.fileURL && (
                 <div className="modal-detail-row">

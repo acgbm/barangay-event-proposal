@@ -32,14 +32,16 @@ const StaffDashboard = () => {
     title: "",
     description: "",
     location: "",
-    date: "",
-    time: "",
+    startDate: "",
+    finishDate: "",
+    startTime: "",
+    finishTime: "",
     note: "",
     file: null
   });
   const [resubmitErrors, setResubmitErrors] = useState({});
   const [resubmitMessage, setResubmitMessage] = useState({ type: "", text: "" });
-  const [disabledDateTimes, setDisabledDateTimes] = useState([]);
+  const [disabledSlots, setDisabledSlots] = useState([]);
   // Feedback modal states
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackData, setFeedbackData] = useState({ feedbackArray: [], status: "" });
@@ -157,18 +159,18 @@ const StaffDashboard = () => {
 
   // Fetch disabled date/times for resubmit form
   useEffect(() => {
-    const fetchDisabledDateTimes = async () => {
+    const fetchDisabledSlots = async () => {
       try {
         const proposalsSnapshot = await getDocs(collection(db, "proposals"));
         const disabled = proposalsSnapshot.docs
-          .filter(doc => doc.data().status === "Approved" && doc.data().date && doc.data().time)
-          .map(doc => ({ date: doc.data().date, time: doc.data().time }));
-        setDisabledDateTimes(disabled);
+          .filter(doc => doc.data().status === "Approved" && doc.data().startDate && doc.data().finishDate && doc.data().startTime && doc.data().finishTime)
+          .map(doc => ({ startDate: doc.data().startDate, finishDate: doc.data().finishDate, startTime: doc.data().startTime, finishTime: doc.data().finishTime }));
+        setDisabledSlots(disabled);
       } catch (err) {
-        setDisabledDateTimes([]);
+        setDisabledSlots([]);
       }
     };
-    fetchDisabledDateTimes();
+    fetchDisabledSlots();
   }, []);
 
   // ✅ Auto-Reject Proposals Past Deadline (Even Without Votes)
@@ -203,7 +205,7 @@ const StaffDashboard = () => {
 
       const pastApprovedEvents = proposalsSnapshot.docs.filter((docSnap) => {
         const proposal = docSnap.data();
-        const eventDate = new Date(proposal.date); // Ensure event date is valid
+        const eventDate = new Date(proposal.finishDate); // Check finish date
         return eventDate < currentDate && proposal.status === "Approved";
       });
 
@@ -395,8 +397,10 @@ const StaffDashboard = () => {
       title: proposal.title || "",
       description: proposal.description || "",
       location: proposal.location || "",
-      date: proposal.date || "",
-      time: proposal.time || "",
+      startDate: proposal.startDate || "",
+      finishDate: proposal.finishDate || "",
+      startTime: proposal.startTime || "",
+      finishTime: proposal.finishTime || "",
       note: proposal.note || "",
       file: null
     });
@@ -413,8 +417,10 @@ const StaffDashboard = () => {
       title: "",
       description: "",
       location: "",
-      date: "",
-      time: "",
+      startDate: "",
+      finishDate: "",
+      startTime: "",
+      finishTime: "",
       note: "",
       file: null
     });
@@ -452,20 +458,38 @@ const StaffDashboard = () => {
       errors.location = "Location must be 40 characters or less.";
     }
 
-    if (!resubmitForm.date) {
-      errors.date = "Date is required.";
+    if (!resubmitForm.startDate) {
+      errors.startDate = "Start date is required.";
     } else {
-      const selectedDate = new Date(resubmitForm.date);
+      const selectedDate = new Date(resubmitForm.startDate);
       const todayDate = new Date(today);
       if (selectedDate <= todayDate) {
-        errors.date = "Please select a future date.";
+        errors.startDate = "Please select a future date.";
       }
     }
 
-    if (!resubmitForm.time) {
-      errors.time = "Time is required.";
-    } else if (disabledDateTimes.some(dt => dt.date === resubmitForm.date && dt.time === resubmitForm.time)) {
-      errors.time = "This date and time is already taken.";
+    if (!resubmitForm.finishDate) {
+      errors.finishDate = "Finish date is required.";
+    } else if (resubmitForm.startDate && resubmitForm.finishDate < resubmitForm.startDate) {
+      errors.finishDate = "Finish date must be on or after start date.";
+    }
+
+    if (!resubmitForm.startTime) {
+      errors.startTime = "Start time is required.";
+    }
+
+    if (!resubmitForm.finishTime) {
+      errors.finishTime = "Finish time is required.";
+    } else if (resubmitForm.startTime && resubmitForm.finishTime <= resubmitForm.startTime) {
+      errors.finishTime = "Finish time must be after start time.";
+    } else if (resubmitForm.startDate && resubmitForm.finishDate && resubmitForm.startTime && resubmitForm.finishTime && disabledSlots.some(slot => {
+      const proposedStart = new Date(`${resubmitForm.startDate}T${resubmitForm.startTime}`);
+      const proposedEnd = new Date(`${resubmitForm.finishDate}T${resubmitForm.finishTime}`);
+      const approvedStart = new Date(`${slot.startDate}T${slot.startTime}`);
+      const approvedEnd = new Date(`${slot.finishDate}T${slot.finishTime}`);
+      return proposedStart < approvedEnd && proposedEnd > approvedStart;
+    })) {
+      errors.finishTime = "This time slot conflicts with an already approved event.";
     }
 
     if (resubmitForm.note.length > 60) {
@@ -513,8 +537,10 @@ const StaffDashboard = () => {
         title: resubmitForm.title.trim(),
         description: resubmitForm.description.trim(),
         location: resubmitForm.location.trim(),
-        date: resubmitForm.date,
-        time: resubmitForm.time,
+        startDate: resubmitForm.startDate,
+        finishDate: resubmitForm.finishDate,
+        startTime: resubmitForm.startTime,
+        finishTime: resubmitForm.finishTime,
         note: resubmitForm.note.trim(),
         fileURL,
         status: "Pending",
@@ -679,8 +705,8 @@ const StaffDashboard = () => {
                   return paginatedProposals.map((proposal) => (
                     <tr key={proposal.id}>
                       <td>{proposal.title}</td>
-                      <td>{formatDate(proposal.date)}</td>
-                      <td>{formatTime(proposal.time)}</td>
+                      <td>{formatDate(proposal.startDate)} - {formatDate(proposal.finishDate)}</td>
+                      <td>{formatTime(proposal.startTime)} - {formatTime(proposal.finishTime)}</td>
                       <td>
                         {(() => {
                           const normalized = (proposal.status || "Pending").toLowerCase();
@@ -788,12 +814,20 @@ const StaffDashboard = () => {
                 <span>{selectedProposal.location || "-"}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Date:</strong>
-                <span>{formatDate(selectedProposal.date)}</span>
+                <strong>Start Date:</strong>
+                <span>{formatDate(selectedProposal.startDate)}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Time:</strong>
-                <span>{formatTime(selectedProposal.time)}</span>
+                <strong>Finish Date:</strong>
+                <span>{formatDate(selectedProposal.finishDate)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Start Time:</strong>
+                <span>{formatTime(selectedProposal.startTime)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Finish Time:</strong>
+                <span>{formatTime(selectedProposal.finishTime)}</span>
               </div>
               {selectedProposal.fileURL && (
                 <div className="modal-detail-row">
@@ -870,17 +904,17 @@ const StaffDashboard = () => {
               </div>
               <div className="resubmit-form-row">
                 <div className="resubmit-form-group">
-                  <label className="resubmit-form-label">Date</label>
+                  <label className="resubmit-form-label">Start Date</label>
                   <input
                     type="date"
                     className="resubmit-form-input"
-                    value={resubmitForm.date}
+                    value={resubmitForm.startDate}
                     onChange={(e) => {
-                      handleResubmitFormChange("date", e.target.value);
-                      if (resubmitErrors.date) {
+                      handleResubmitFormChange("startDate", e.target.value);
+                      if (resubmitErrors.startDate) {
                         setResubmitErrors(prev => {
                           const newErrors = { ...prev };
-                          delete newErrors.date;
+                          delete newErrors.startDate;
                           return newErrors;
                         });
                       }
@@ -893,32 +927,79 @@ const StaffDashboard = () => {
                     })()}
                     required
                   />
-                  {resubmitErrors.date && <span className="resubmit-error">{resubmitErrors.date}</span>}
+                  {resubmitErrors.startDate && <span className="resubmit-error">{resubmitErrors.startDate}</span>}
                 </div>
                 <div className="resubmit-form-group">
-                  <label className="resubmit-form-label">Time</label>
+                  <label className="resubmit-form-label">Finish Date</label>
+                  <input
+                    type="date"
+                    className="resubmit-form-input"
+                    value={resubmitForm.finishDate}
+                    onChange={(e) => {
+                      handleResubmitFormChange("finishDate", e.target.value);
+                      if (resubmitErrors.finishDate) {
+                        setResubmitErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.finishDate;
+                          return newErrors;
+                        });
+                      }
+                    }}
+                    min={resubmitForm.startDate || (() => {
+                      const now = new Date();
+                      now.setHours(0, 0, 0, 0);
+                      const minDateObj = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                      return minDateObj.toISOString().split("T")[0];
+                    })()}
+                    required
+                  />
+                  {resubmitErrors.finishDate && <span className="resubmit-error">{resubmitErrors.finishDate}</span>}
+                </div>
+              </div>
+              <div className="resubmit-form-row">
+                <div className="resubmit-form-group">
+                  <label className="resubmit-form-label">Start Time</label>
                   <input
                     type="time"
                     className="resubmit-form-input"
-                    value={resubmitForm.time}
+                    value={resubmitForm.startTime}
                     onChange={(e) => {
-                      handleResubmitFormChange("time", e.target.value);
-                      if (resubmitErrors.time) {
+                      handleResubmitFormChange("startTime", e.target.value);
+                      if (resubmitErrors.startTime) {
                         setResubmitErrors(prev => {
                           const newErrors = { ...prev };
-                          delete newErrors.time;
+                          delete newErrors.startTime;
                           return newErrors;
                         });
                       }
                     }}
                     step="1800"
-                    disabled={!resubmitForm.date}
+                    disabled={!resubmitForm.startDate}
                     required
                   />
-                  {resubmitForm.date && resubmitForm.time && disabledDateTimes.some(dt => dt.date === resubmitForm.date && dt.time === resubmitForm.time) && (
-                    <span className="resubmit-error" style={{color: '#e53935', fontSize: '12px', marginTop: '4px', display: 'block'}}>This date and time is already taken.</span>
-                  )}
-                  {resubmitErrors.time && <span className="resubmit-error">{resubmitErrors.time}</span>}
+                  {resubmitErrors.startTime && <span className="resubmit-error">{resubmitErrors.startTime}</span>}
+                </div>
+                <div className="resubmit-form-group">
+                  <label className="resubmit-form-label">Finish Time</label>
+                  <input
+                    type="time"
+                    className="resubmit-form-input"
+                    value={resubmitForm.finishTime}
+                    onChange={(e) => {
+                      handleResubmitFormChange("finishTime", e.target.value);
+                      if (resubmitErrors.finishTime) {
+                        setResubmitErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors.finishTime;
+                          return newErrors;
+                        });
+                      }
+                    }}
+                    step="1800"
+                    disabled={!resubmitForm.startDate || !resubmitForm.startTime}
+                    required
+                  />
+                  {resubmitErrors.finishTime && <span className="resubmit-error">{resubmitErrors.finishTime}</span>}
                 </div>
               </div>
               <div className="resubmit-form-group full-width">

@@ -192,16 +192,17 @@ const ReviewProposals = () => {
       // Add new vote
       votes[voteType].push(userId);
   
-      // **80% Approval Calculation**
+      // **Majority Voting System**
       if (!officialsCount || officialsCount <= 0) {
         console.error("Officials count is missing or invalid.");
         return;
       }
   
-      const approvalThreshold = Math.ceil(officialsCount * 0.8);
+      const majorityThreshold = Math.floor(officialsCount / 2) + 1;
       let newStatus = "Pending";
   
-      if (votes.approve.length >= approvalThreshold) {
+      // Check if majority of approvals reached
+      if (votes.approve.length >= majorityThreshold) {
         newStatus = "Approved";
   
         // ✅ Add Firestore Notification
@@ -226,7 +227,7 @@ const ReviewProposals = () => {
               email,
               proposalData.title,
               proposalData.location,
-              proposalData.date ? new Date(proposalData.date).toLocaleDateString() : "N/A",
+              proposalData.startDate ? new Date(proposalData.startDate).toLocaleDateString() : "N/A",
               proposalData.description
             );
               // Send email
@@ -239,7 +240,7 @@ const ReviewProposals = () => {
           text: "This proposal has been officially approved.",
           confirmButtonColor: "#28a745",
         });
-      } else if (votes.reject.length >= officialsCount) {
+      } else if (votes.reject.length >= majorityThreshold) {
         newStatus = "Declined";
   
         // ❌ Add Firestore Notification
@@ -334,15 +335,15 @@ const ReviewProposals = () => {
         return;
       }
 
-      const approvalThreshold = Math.ceil(officialCount * 0.8);
+      const majorityThreshold = Math.floor(officialCount / 2) + 1;
 
       for (const docSnap of proposalsSnapshot.docs) {
         const proposalData = docSnap.data();
         const proposalRef = doc(db, "proposals", docSnap.id);
 
-        if (!proposalData.date || proposalData.status !== "Pending") continue;
+        if (!proposalData.startDate || proposalData.status !== "Pending") continue;
 
-        const eventDate = new Date(proposalData.date);
+        const eventDate = new Date(proposalData.startDate);
         eventDate.setHours(0, 0, 0, 0); // Remove time component for accurate comparison
 
         // Check if voting requirements are NOT met
@@ -362,7 +363,7 @@ const ReviewProposals = () => {
         // 1. Event date has passed, OR
         // 2. Today is one day before event date
         // AND voting requirements are NOT met
-        if ((isPastDate || isOneDayBefore) && approveCount < approvalThreshold) {
+        if ((isPastDate || isOneDayBefore) && approveCount < majorityThreshold) {
           await updateDoc(proposalRef, { status: "Declined (Missed Deadline)" });
 
           const declineReason = isPastDate 
@@ -497,8 +498,8 @@ const ReviewProposals = () => {
           bValue = (b.submitterName || "").toLowerCase();
           break;
         case "date":
-          aValue = new Date(a.date || 0).getTime();
-          bValue = new Date(b.date || 0).getTime();
+          aValue = new Date(a.startDate || 0).getTime();
+          bValue = new Date(b.startDate || 0).getTime();
           break;
         case "status":
           aValue = (a.status || "").toLowerCase();
@@ -632,8 +633,8 @@ const ReviewProposals = () => {
                 <tr key={proposal.id}>
                   <td>{proposal.title}</td>
                   <td>{proposal.location}</td>
-                  <td>{formatDate(proposal.date)}</td>
-                  <td>{formatTime(proposal.time)}</td>
+                  <td>{formatDate(proposal.startDate)} - {formatDate(proposal.finishDate)}</td>
+                  <td>{formatTime(proposal.startTime)} - {formatTime(proposal.finishTime)}</td>
                   <td>{proposal.submitterName}</td>
                   <td>
                     <button
@@ -807,12 +808,20 @@ const ReviewProposals = () => {
                 <span>{selectedProposal.location}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Date:</strong>
-                <span>{formatDate(selectedProposal.date)}</span>
+                <strong>Start Date:</strong>
+                <span>{formatDate(selectedProposal.startDate)}</span>
               </div>
               <div className="modal-detail-row">
-                <strong>Time:</strong>
-                <span>{formatTime(selectedProposal.time)}</span>
+                <strong>Finish Date:</strong>
+                <span>{formatDate(selectedProposal.finishDate)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Start Time:</strong>
+                <span>{formatTime(selectedProposal.startTime)}</span>
+              </div>
+              <div className="modal-detail-row">
+                <strong>Finish Time:</strong>
+                <span>{formatTime(selectedProposal.finishTime)}</span>
               </div>
               {selectedProposal.fileURL && (
                 <div className="modal-detail-row">
