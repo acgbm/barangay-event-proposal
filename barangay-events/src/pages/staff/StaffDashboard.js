@@ -279,37 +279,76 @@ const StaffDashboard = () => {
     let icon = "";
     let title = "";
     let text = "";
-  
+    let notificationType = "info";
+    let statusLabel = proposal.status;
+
     // Set notification details based on proposal status
     if (proposal.status === "Approved") {
       icon = "success";
       title = "Proposal Approved!";
       text = `Your event proposal "${proposal.title}" has been approved.`;
+      notificationType = "approved";
     } else if (proposal.status === "Rejected" || proposal.status === "Declined") {
       icon = "error";
       title = "Proposal Declined!";
       text = `Your event proposal "${proposal.title}" has been declined.`;
+      notificationType = "declined";
+      statusLabel = "Declined";
     } else if (proposal.status === "Declined (Missed Deadline)") {
       icon = "error";
       title = "Proposal Declined (Missed Deadline)!";
       text = `Your event proposal "${proposal.title}" was declined because the deadline was missed.`;
+      notificationType = "deadline";
     } else if (proposal.status === "Rescheduled") {
       icon = "info";
       title = "Event Rescheduled!";
       text = `The event "${proposal.title}" has been rescheduled.`;
+      notificationType = "info";
     } else if (proposal.status === "Cancelled") {
       icon = "error";
       title = "Event Cancelled!";
       text = `The event "${proposal.title}" has been cancelled.`;
+      notificationType = "declined";
     }
-  
+
+    // Persist notification for header dropdown (avoid duplicates)
+    try {
+      const notificationsRef = collection(db, "notifications");
+      const existingSnapshot = await getDocs(
+        query(notificationsRef, where("proposalId", "==", proposal.id))
+      );
+
+      const alreadyExists = existingSnapshot.docs.some((docSnap) => {
+        const data = docSnap.data();
+        return (
+          (data.status || "") === statusLabel &&
+          (data.targetUserId || "") === (proposal.userId || userId)
+        );
+      });
+
+      if (!alreadyExists) {
+        await addDoc(notificationsRef, {
+          message: text,
+          timestamp: serverTimestamp(),
+          type: notificationType,
+          status: statusLabel,
+          targetRole: "staff",
+          targetUserId: proposal.userId || userId,
+          proposalId: proposal.id,
+          proposalTitle: proposal.title || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving notification:", error);
+    }
+
     // Show the notification with the appropriate message
     await Swal.fire({
       icon: icon,
       title: title,
       text: text,
     });
-  
+
     // Update the proposal document to mark it as notified
     const proposalRef = doc(db, "proposals", proposal.id);
     await updateDoc(proposalRef, { notified: true });

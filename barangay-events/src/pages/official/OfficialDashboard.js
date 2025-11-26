@@ -1,9 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp, getDoc, query, where } from "firebase/firestore";
 import "./OfficialDashboard.css";
 
 const OfficialDashboard = () => {
+  const saveNotificationIfMissing = async (payload) => {
+    try {
+      if (!payload.proposalId || !payload.status) {
+        await addDoc(collection(db, "notifications"), payload);
+        return;
+      }
+
+      const existingSnapshot = await getDocs(
+        query(
+          collection(db, "notifications"),
+          where("proposalId", "==", payload.proposalId),
+          where("status", "==", payload.status)
+        )
+      );
+
+      if (!existingSnapshot.empty) {
+        return;
+      }
+
+      await addDoc(collection(db, "notifications"), payload);
+    } catch (error) {
+      console.error("Error saving notification:", error);
+    }
+  };
   const [proposals, setProposals] = useState([]);
   const [statistics, setStatistics] = useState({
     upcoming: 0,
@@ -133,10 +157,15 @@ const OfficialDashboard = () => {
             ? "event date has passed"
             : "missing the deadline";
 
-          await addDoc(collection(db, "notifications"), {
+          await saveNotificationIfMissing({
             message: `Proposal "${proposalData.title}" has been automatically declined because the ${declineReason} and voting requirements were not met.`,
             timestamp: serverTimestamp(),
             type: "Declined",
+            status: "Declined (Missed Deadline)",
+            targetRole: "staff",
+            targetUserId: proposalData.userId || null,
+            proposalId: docSnap.id,
+            proposalTitle: proposalData.title || "",
           });
 
           console.log(`Proposal "${proposalData.title}" has been automatically declined (${declineReason}).`);

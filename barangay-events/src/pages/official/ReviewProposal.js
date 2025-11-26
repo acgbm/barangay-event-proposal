@@ -1,11 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig";
-import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, setDoc, query, where } from "firebase/firestore";
 import Swal from "sweetalert2";
 import emailjs from 'emailjs-com';
 import "./ReviewProposal.css";
 
 const ReviewProposals = () => {
+  const saveNotificationIfMissing = async (payload) => {
+    try {
+      if (!payload.proposalId || !payload.status) {
+        await addDoc(collection(db, "notifications"), payload);
+        return;
+      }
+
+      const existingSnapshot = await getDocs(
+        query(
+          collection(db, "notifications"),
+          where("proposalId", "==", payload.proposalId),
+          where("status", "==", payload.status)
+        )
+      );
+
+      if (!existingSnapshot.empty) {
+        return;
+      }
+
+      await addDoc(collection(db, "notifications"), payload);
+    } catch (error) {
+      console.error("Error saving notification:", error);
+    }
+  };
   const [proposals, setProposals] = useState([]);
   const [officialsCount, setOfficialsCount] = useState(0);
   const [userId, setUserId] = useState(null);
@@ -181,10 +205,15 @@ const ReviewProposals = () => {
         newStatus = "Approved";
   
         // ✅ Add Firestore Notification
-        await addDoc(collection(db, "notifications"), {
+        await saveNotificationIfMissing({
           message: `Proposal "${proposalData.title}" has been approved.`,
           timestamp: serverTimestamp(),
           type: "Approved",
+          status: "Approved",
+          targetRole: "staff",
+          targetUserId: proposalData.userId || null,
+          proposalId,
+          proposalTitle: proposalData.title || "",
         });
 
               // Send email notification when approved
@@ -214,10 +243,15 @@ const ReviewProposals = () => {
         newStatus = "Declined";
   
         // ❌ Add Firestore Notification
-        await addDoc(collection(db, "notifications"), {
+        await saveNotificationIfMissing({
           message: `Proposal "${proposalData.title}" has been declined.`,
           timestamp: serverTimestamp(),
           type: "Declined",
+          status: "Declined",
+          targetRole: "staff",
+          targetUserId: proposalData.userId || null,
+          proposalId,
+          proposalTitle: proposalData.title || "",
         });
       }
   
@@ -335,10 +369,15 @@ const ReviewProposals = () => {
             ? "event date has passed"
             : "missing the deadline";
 
-          await addDoc(collection(db, "notifications"), {
+          await saveNotificationIfMissing({
             message: `Proposal "${proposalData.title}" has been automatically declined because the ${declineReason} and voting requirements were not met.`,
             timestamp: serverTimestamp(),
             type: "Declined",
+            status: "Declined (Missed Deadline)",
+            targetRole: "staff",
+            targetUserId: proposalData.userId || null,
+            proposalId: docSnap.id,
+            proposalTitle: proposalData.title || "",
           });
 
           console.log(`Proposal "${proposalData.title}" has been automatically declined (${declineReason}).`);
