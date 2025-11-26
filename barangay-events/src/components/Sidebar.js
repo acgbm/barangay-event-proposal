@@ -85,7 +85,14 @@ const Sidebar = ({ role, fullName }) => {
         </div>
         <div style={{ marginBottom: 32 }}></div>
         {fullName && (
-          <div className="sidebar-fullname">{fullName}</div>
+          <>
+            <div className="sidebar-fullname">{fullName}</div>
+            {(role === 'staff' || role === 'official') && (
+              <div className="sidebar-role-label">
+                {role === 'staff' ? 'Staff' : 'Official'}
+              </div>
+            )}
+          </>
         )}
         <ul>
           {menuItems[role]?.map((item, idx, arr) => (
