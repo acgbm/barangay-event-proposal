@@ -638,3 +638,144 @@
     width: calc(100% - 30px);
   }
 }
+
+/* Votes Cell and Button Styles */
+.votes-cell {
+  text-align: center;
+  padding: 8px !important;
+}
+
+.votes-button {
+  background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);
+  color: #2563eb;
+  border: 2px solid #bfdbfe;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  white-space: nowrap;
+}
+
+.votes-button:hover {
+  background: linear-gradient(135deg, #bfdbfe 0%, #dbeafe 100%);
+  color: #1e40af;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+}
+
+.votes-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+}
+
+.no-votes-text {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* Votes Modal Styles - Simplified and Modern */
+.votes-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.votes-modal-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.votes-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.votes-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.votes-table thead {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid rgba(226, 232, 240, 0.8);
+}
+
+.votes-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+}
+
+.votes-table th:last-child {
+  text-align: right;
+}
+
+.votes-table tbody tr {
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  transition: background-color 0.2s ease;
+}
+
+.votes-table tbody tr:hover {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+.votes-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.votes-table td {
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.voter-name-cell {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.vote-badge-cell {
+  text-align: right;
+}
+
+.vote-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vote-badge.approve-badge {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.vote-badge.reject-badge {
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.no-votes-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  background: rgba(248, 250, 252, 0.6);
+}
+

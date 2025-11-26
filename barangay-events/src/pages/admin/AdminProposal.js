@@ -33,6 +33,8 @@ const AdminProposal = () => {
   const proposalsPerPage = 10;
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showVotesModal, setShowVotesModal] = useState(false);
+  const [votesData, setVotesData] = useState(null);
   
   // Search, filter, and sort states
   const [searchQuery, setSearchQuery] = useState("");
@@ -203,6 +205,67 @@ const AdminProposal = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const handleViewVotes = async (proposal) => {
+    try {
+      // Fetch fullNames for approve votes
+      let approveVoters = [];
+      if (proposal.votes?.approve && proposal.votes.approve.length > 0) {
+        approveVoters = await Promise.all(
+          proposal.votes.approve.map(async (userId) => {
+            try {
+              const userRef = doc(db, "users", userId);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                return { userId, fullName: userSnap.data().fullName || "Unknown" };
+              }
+              return { userId, fullName: "Unknown" };
+            } catch (error) {
+              console.error("Error fetching user:", error);
+              return { userId, fullName: "Unknown" };
+            }
+          })
+        );
+      }
+
+      // Fetch fullNames for reject votes
+      let rejectVoters = [];
+      if (proposal.votes?.reject && proposal.votes.reject.length > 0) {
+        rejectVoters = await Promise.all(
+          proposal.votes.reject.map(async (userId) => {
+            try {
+              const userRef = doc(db, "users", userId);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                return { userId, fullName: userSnap.data().fullName || "Unknown" };
+              }
+              return { userId, fullName: "Unknown" };
+            } catch (error) {
+              console.error("Error fetching user:", error);
+              return { userId, fullName: "Unknown" };
+            }
+          })
+        );
+      }
+
+      // Set votes data with fullNames
+      setVotesData({
+        ...proposal,
+        approveVoters,
+        rejectVoters,
+      });
+      setShowVotesModal(true);
+    } catch (error) {
+      console.error("Error viewing votes:", error);
+      setVotesData(proposal);
+      setShowVotesModal(true);
+    }
+  };
+
+  const handleCloseVotesModal = () => {
+    setShowVotesModal(false);
+    setVotesData(null);
+  };
+
   // Search function
   const searchProposals = (proposalsList, query) => {
     if (!query.trim()) return proposalsList;
@@ -364,6 +427,7 @@ const AdminProposal = () => {
               <th>Title</th>
               <th>Date</th>
               <th>Status</th>
+              <th>Votes</th>
               <th>View Details</th>
               <th>Actions</th>
             </tr>
@@ -377,6 +441,15 @@ const AdminProposal = () => {
                   <span className="status-badge" style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
                     {proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending")}
                   </span>
+                </td>
+                <td className="votes-cell">
+                  {proposal.votes && (proposal.votes.approve?.length > 0 || proposal.votes.reject?.length > 0) ? (
+                    <button className="votes-button" onClick={() => handleViewVotes(proposal)}>
+                      👍 {proposal.votes.approve?.length ?? 0} | 👎 {proposal.votes.reject?.length ?? 0}
+                    </button>
+                  ) : (
+                    <span className="no-votes-text">No votes yet</span>
+                  )}
                 </td>
                 <td className="view-details-cell">
                   <button className="viewDetailsButton" onClick={() => handleViewDetails(proposal)}>View Details</button>
@@ -515,6 +588,56 @@ const AdminProposal = () => {
             <div className="modal-footer">
               <div style={{ textAlign: 'center', width: '100%', color: '#64748b', fontSize: '14px' }}>
                 This proposal has been {selectedProposal.status || "Pending"}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Viewing Votes Details */}
+      {showVotesModal && votesData && (
+        <div className="modal-overlay" onClick={handleCloseVotesModal}>
+          <div className="modal-content votes-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Votes - {votesData.title}</h2>
+              <button className="modal-close-btn" onClick={handleCloseVotesModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body votes-modal-body">
+              <div className="votes-table-wrapper">
+                <table className="votes-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Vote</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {votesData.approveVoters && votesData.approveVoters.map((voter) => (
+                      <tr key={`approve-${voter.userId}`} className="vote-row approve-row">
+                        <td className="voter-name-cell">{voter.fullName}</td>
+                        <td className="vote-badge-cell">
+                          <span className="vote-badge approve-badge">✓ Approved</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {votesData.rejectVoters && votesData.rejectVoters.map((voter) => (
+                      <tr key={`reject-${voter.userId}`} className="vote-row reject-row">
+                        <td className="voter-name-cell">{voter.fullName}</td>
+                        <td className="vote-badge-cell">
+                          <span className="vote-badge reject-badge">✕ Declined</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(!votesData.approveVoters || votesData.approveVoters.length === 0) && 
+                 (!votesData.rejectVoters || votesData.rejectVoters.length === 0) && (
+                  <div className="no-votes-message">
+                    <p>No votes recorded yet for this proposal.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
