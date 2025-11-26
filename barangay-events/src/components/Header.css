@@ -193,6 +193,14 @@
 	}
 }
 
+@media (max-width: 768px) and (min-width: 601px) {
+	.notification-dropdown {
+		position: absolute;
+		width: 320px;
+		right: 0;
+	}
+}
+
 
 .header-pro-date {
 	font-size: 1.08rem;
@@ -224,6 +232,44 @@
 	.notification-button {
 		width: 34px;
 		height: 34px;
+	}
+	.notification-dropdown {
+		position: fixed;
+		top: calc(58px + 12px);
+		right: 4px;
+		left: 4px;
+		width: auto;
+		max-width: none;
+		max-height: calc(100vh - 70px);
+		overflow-y: auto;
+	}
+	.notification-list {
+		max-height: calc(100vh - 150px);
+	}
+}
+
+@media (max-width: 480px) {
+	.notification-dropdown {
+		top: calc(58px + 8px);
+		right: 2px;
+		left: 2px;
+		padding: 10px;
+	}
+	.notification-header {
+		font-size: 0.9rem;
+		padding-bottom: 6px;
+		margin-bottom: 6px;
+	}
+	.notification-item {
+		padding: 8px 6px;
+		margin-bottom: 2px;
+	}
+	.notification-message {
+		font-size: 0.85rem;
+	}
+	.notification-time {
+		font-size: 0.75rem;
+		margin-top: 2px;
 	}
 }
 
