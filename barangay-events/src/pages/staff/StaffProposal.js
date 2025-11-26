@@ -5,6 +5,22 @@ import { supabase } from "../../firebaseConfig"; // Supabase Storage
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import "./StaffProposal.css"; // Ensure this file is styled
 
+// Function to create notification for officials
+const createNotificationForOfficials = async (proposalTitle) => {
+  try {
+    await addDoc(collection(db, "notifications"), {
+      message: `New pending proposal: ${proposalTitle}`,
+      type: "info",
+      timestamp: serverTimestamp(),
+      proposalTitle: proposalTitle,
+      status: "Pending",
+      targetRole: "official",
+    });
+  } catch (error) {
+    console.error("Error creating notification:", error);
+  }
+};
+
 const StaffProposal = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -168,6 +184,9 @@ const StaffProposal = () => {
         userEmail: user.email, // 🔹 Store user email
         status: "Pending",
       });
+
+      // Create notification for officials
+      await createNotificationForOfficials(title);
 
   setMessage("");
       Swal.fire({

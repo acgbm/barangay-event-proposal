@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebaseConfig"; // Firebase Firestore
-import { collection, query, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
+import { collection, query, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import Swal from "sweetalert2";
 import "./AdminProposal.css"; // Ensure this file is styled
 
@@ -35,6 +35,14 @@ const AdminProposal = () => {
   const [showModal, setShowModal] = useState(false);
   const [showVotesModal, setShowVotesModal] = useState(false);
   const [votesData, setVotesData] = useState(null);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [rescheduleProposal, setRescheduleProposal] = useState(null);
+  const [rescheduleForm, setRescheduleForm] = useState({
+    startDate: "",
+    startTime: "",
+    finishDate: "",
+    finishTime: "",
+  });
   
   // Search, filter, and sort states
   const [searchQuery, setSearchQuery] = useState("");
@@ -81,73 +89,107 @@ const AdminProposal = () => {
     fetchProposals();
   }, []);
 
-  // Handle event rescheduling
-  const handleReschedule = async (proposal) => {
-    // Get the current date in YYYY-MM-DD format
-    const currentDate = new Date().toISOString().split("T")[0]; // Format as 'YYYY-MM-DD'
-  
-    const { value: newStartDate } = await Swal.fire({
-      title: "Reschedule Event",
-      input: "date",
-      inputLabel: "New Start Date",
-      inputValue: proposal.startDate,
-      showCancelButton: true,
-      inputValidator: (value) => {
-        if (!value) {
-          return "You must provide a new start date!";
-        }
-      },
-      inputAttributes: {
-        min: currentDate, // Disables selecting past dates
-      },
+  // Handle opening reschedule modal
+  const handleReschedule = (proposal) => {
+    setRescheduleProposal(proposal);
+    setRescheduleForm({
+      startDate: proposal.startDate,
+      startTime: proposal.startTime,
+      finishDate: proposal.finishDate,
+      finishTime: proposal.finishTime,
     });
-  
-    if (!newStartDate) return;
+    setShowRescheduleModal(true);
+  };
 
-    const { value: newFinishDate } = await Swal.fire({
-      title: "Reschedule Event",
-      input: "date",
-      inputLabel: "New Finish Date",
-      inputValue: proposal.finishDate,
-      showCancelButton: true,
-      inputValidator: (value) => {
-        if (!value) {
-          return "You must provide a new finish date!";
-        }
-        if (value < newStartDate) {
-          return "Finish date must be after start date!";
-        }
-      },
-      inputAttributes: {
-        min: newStartDate, // Finish date must be after start date
-      },
-    });
-  
-    if (newFinishDate) {
-      try {
-        const proposalRef = doc(db, "proposals", proposal.id);
-        await updateDoc(proposalRef, {
-          startDate: newStartDate,
-          finishDate: newFinishDate,
-          status: "Rescheduled", // Update the status to "Rescheduled"
-        });
-  
-        // Notify both staff and official side about the rescheduling
-        Swal.fire({
-          icon: "success",
-          title: "Event Rescheduled",
-          text: `The event "${proposal.title}" has been rescheduled from ${formatDate(proposal.startDate)} to ${formatDate(newStartDate)}.`,
-        });
-  
-        fetchProposals(); // Re-fetch proposals to update the view
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Error Rescheduling Event",
-          text: error.message,
-        });
-      }
+  // Handle reschedule form input change
+  const handleRescheduleFormChange = (e) => {
+    const { name, value } = e.target;
+    setRescheduleForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle reschedule submission
+  const handleRescheduleSubmit = async () => {
+    if (!rescheduleForm.startDate || !rescheduleForm.finishDate) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Information",
+        text: "Please fill in both start and finish dates.",
+      });
+      return;
     }
+
+    if (rescheduleForm.finishDate < rescheduleForm.startDate) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Dates",
+        text: "Finish date must be after start date.",
+      });
+      return;
+    }
+
+    try {
+      const proposalRef = doc(db, "proposals", rescheduleProposal.id);
+      await updateDoc(proposalRef, {
+        startDate: rescheduleForm.startDate,
+        startTime: rescheduleForm.startTime,
+        finishDate: rescheduleForm.finishDate,
+        finishTime: rescheduleForm.finishTime,
+        status: "Pending",
+        votes: {
+          approve: [],
+          reject: [],
+        },
+      });
+
+      // Create notification for officials about the rescheduled proposal
+      await addDoc(collection(db, "notifications"), {
+        message: `Proposal "${rescheduleProposal.title}" has been rescheduled and requires re-voting.`,
+        timestamp: serverTimestamp(),
+        type: "Pending",
+        status: "Pending",
+        targetRole: "official",
+        targetUserId: null,
+        proposalId: rescheduleProposal.id,
+        proposalTitle: rescheduleProposal.title || "",
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Event Rescheduled",
+        text: `The event "${rescheduleProposal.title}" has been successfully rescheduled and returned to pending status for re-voting.`,
+      });
+
+      setShowRescheduleModal(false);
+      setRescheduleProposal(null);
+      setRescheduleForm({
+        startDate: "",
+        startTime: "",
+        finishDate: "",
+        finishTime: "",
+      });
+      fetchProposals();
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error Rescheduling Event",
+        text: error.message,
+      });
+    }
+  };
+
+  // Handle close reschedule modal
+  const handleCloseRescheduleModal = () => {
+    setShowRescheduleModal(false);
+    setRescheduleProposal(null);
+    setRescheduleForm({
+      startDate: "",
+      startTime: "",
+      finishDate: "",
+      finishTime: "",
+    });
   };
 
   // Handle event cancellation
@@ -455,7 +497,7 @@ const AdminProposal = () => {
                   <button className="viewDetailsButton" onClick={() => handleViewDetails(proposal)}>View Details</button>
                 </td>
                 <td className={
-                  proposal.status === "Approved" || proposal.status === "Rescheduled"
+                  proposal.status === "Approved"
                     ? "action-buttons"
                     : "no-actions-cell"
                 }>
@@ -465,13 +507,7 @@ const AdminProposal = () => {
                       <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
                     </>
                   )}
-                  {proposal.status === "Rescheduled" && (
-                    <>
-                      <button className="rescheduleButton" onClick={() => handleReschedule(proposal)}>Reschedule Again</button>
-                      <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
-                    </>
-                  )}
-                  {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)") && (
+                  {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled") && (
                     <span className="no-actions-text">No actions available</span>
                   )}
                 </td>
@@ -639,6 +675,79 @@ const AdminProposal = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Rescheduling Event */}
+      {showRescheduleModal && rescheduleProposal && (
+        <div className="modal-overlay" onClick={handleCloseRescheduleModal}>
+          <div className="modal-content reschedule-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Reschedule Event: {rescheduleProposal.title}</h2>
+              <button className="modal-close-btn" onClick={handleCloseRescheduleModal}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body reschedule-modal-body">
+              <div className="form-section">
+                <h3>Start Date & Time</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Start Date</label>
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={rescheduleForm.startDate}
+                      onChange={handleRescheduleFormChange}
+                      min={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Start Time</label>
+                    <input
+                      type="time"
+                      name="startTime"
+                      value={rescheduleForm.startTime}
+                      onChange={handleRescheduleFormChange}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h3>Finish Date & Time</h3>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Finish Date</label>
+                    <input
+                      type="date"
+                      name="finishDate"
+                      value={rescheduleForm.finishDate}
+                      onChange={handleRescheduleFormChange}
+                      min={rescheduleForm.startDate || new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Finish Time</label>
+                    <input
+                      type="time"
+                      name="finishTime"
+                      value={rescheduleForm.finishTime}
+                      onChange={handleRescheduleFormChange}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={handleCloseRescheduleModal}>
+                Cancel
+              </button>
+              <button className="btn-submit" onClick={handleRescheduleSubmit}>
+                Reschedule Event
+              </button>
             </div>
           </div>
         </div>

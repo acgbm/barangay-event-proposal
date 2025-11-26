@@ -8,23 +8,8 @@ import "./ReviewProposal.css";
 const ReviewProposals = () => {
   const saveNotificationIfMissing = async (payload) => {
     try {
-      if (!payload.proposalId || !payload.status) {
-        await addDoc(collection(db, "notifications"), payload);
-        return;
-      }
-
-      const existingSnapshot = await getDocs(
-        query(
-          collection(db, "notifications"),
-          where("proposalId", "==", payload.proposalId),
-          where("status", "==", payload.status)
-        )
-      );
-
-      if (!existingSnapshot.empty) {
-        return;
-      }
-
+      // Always create notification for status changes (Approved, Declined, Missed Deadline)
+      // This ensures notifications are created even if the proposal was rescheduled
       await addDoc(collection(db, "notifications"), payload);
     } catch (error) {
       console.error("Error saving notification:", error);
