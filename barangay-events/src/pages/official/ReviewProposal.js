@@ -624,6 +624,7 @@ const ReviewProposals = () => {
               <th>Date</th>
               <th>Time</th>
               <th>Submitted By</th>
+              <th>Your Vote</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -636,6 +637,17 @@ const ReviewProposals = () => {
                   <td>{formatDate(proposal.startDate)} - {formatDate(proposal.finishDate)}</td>
                   <td>{formatTime(proposal.startTime)} - {formatTime(proposal.finishTime)}</td>
                   <td>{proposal.submitterName}</td>
+                  <td>
+                    {proposal.votes?.approve?.includes(userId) && (
+                      <span style={{ color: '#10b981', fontWeight: '600', whiteSpace: 'nowrap' }}>Approved</span>
+                    )}
+                    {proposal.votes?.reject?.includes(userId) && (
+                      <span style={{ color: '#ef4444', fontWeight: '600', whiteSpace: 'nowrap' }}>Declined</span>
+                    )}
+                    {!proposal.votes?.approve?.includes(userId) && !proposal.votes?.reject?.includes(userId) && (
+                      <span style={{ color: '#9ca3af', fontWeight: '600', whiteSpace: 'nowrap' }}>Not voted</span>
+                    )}
+                  </td>
                   <td>
                     <button
                       onClick={() => handleViewDetails(proposal)}
