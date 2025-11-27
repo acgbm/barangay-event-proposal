@@ -5,6 +5,8 @@ import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { checkAndNotifyUpcomingEvents } from "../../services/notificationService";
+import SendReminderModal from "../../components/SendReminderModal";
 import {
   LineChart,
   Line,
@@ -34,6 +36,14 @@ const AdminDashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [reportType, setReportType] = useState("pdf");
   const [timePeriod, setTimePeriod] = useState("monthly"); // weekly, monthly, yearly
+  
+  // Reminder modal states
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  
+  // Notification trigger states
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [lastNotificationRun, setLastNotificationRun] = useState(null);
 
   useEffect(() => {
     fetchProposals();
@@ -88,6 +98,31 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error("Error fetching users:", err);
     }
+  };
+
+  // Manual trigger for upcoming event notifications
+  const handleTriggerNotifications = async () => {
+    setNotificationLoading(true);
+    setNotificationMessage("");
+    
+    try {
+      console.log("🔔 Manually triggering upcoming event notifications...");
+      const result = await checkAndNotifyUpcomingEvents();
+      
+      if (result.success) {
+        setNotificationMessage(`✅ Success! Sent ${result.notified} notification(s) for events tomorrow.`);
+        setLastNotificationRun(new Date().toLocaleTimeString());
+        console.log("✅ Notifications sent:", result);
+      } else {
+        setNotificationMessage(`⚠️ ${result.message || "No events found for tomorrow."}`);
+        console.log("⚠️ No notifications sent:", result);
+      }
+    } catch (error) {
+      console.error("❌ Error triggering notifications:", error);
+      setNotificationMessage(`❌ Error: ${error.message}`);
+    }
+    
+    setNotificationLoading(false);
   };
 
   const computeStatistics = (data) => {
@@ -865,10 +900,6 @@ const AdminDashboard = () => {
           <div className="stat-value">{statistics.pending}</div>
         </div>
         <div className="stat-card">
-          <h3>Cancelled Events</h3>
-          <div className="stat-value">{statistics.cancelled}</div>
-        </div>
-        <div className="stat-card">
           <h3>Declined Events</h3>
           <div className="stat-value">{statistics.rejected}</div>
         </div>
@@ -879,6 +910,31 @@ const AdminDashboard = () => {
         <div className="stat-card">
           <h3>Proposals This Month</h3>
           <div className="stat-value">{statistics.submittedThisMonth}</div>
+        </div>
+        <div className="stat-card notification-trigger-card">
+          <h3>🔔 Send Event Reminder</h3>
+          <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
+            Send real-time reminders to participants
+          </p>
+          <button
+            onClick={() => setShowReminderModal(true)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#667eea',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              width: '100%',
+              transition: 'background-color 0.3s',
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#764ba2'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#667eea'}
+          >
+            📧 Send Reminder
+          </button>
         </div>
         <div className="report-generation-card stat-card">
           <h3>Report Generation</h3>
@@ -1148,6 +1204,12 @@ const AdminDashboard = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
+      
+      {/* Send Reminder Modal */}
+      <SendReminderModal 
+        isOpen={showReminderModal} 
+        onClose={() => setShowReminderModal(false)} 
+      />
     </div>
   );
 };

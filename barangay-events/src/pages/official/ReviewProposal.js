@@ -4,6 +4,7 @@ import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, addDoc, serverT
 import Swal from "sweetalert2";
 import emailjs from 'emailjs-com';
 import "./ReviewProposal.css";
+import { notifyApprovedEvent, notifyDeclinedEvent } from "../../services/notificationService";
 
 const ReviewProposals = () => {
   const saveNotificationIfMissing = async (payload) => {
@@ -202,7 +203,15 @@ const ReviewProposals = () => {
           proposalTitle: proposalData.title || "",
         });
 
-              // Send email notification when approved
+        // Send push notification about approval
+        try {
+          const recipientIds = [proposalData.userId];
+          await notifyApprovedEvent(proposalData, recipientIds);
+        } catch (notificationError) {
+          console.error('Error sending approval notification:', notificationError);
+        }
+
+        // Send email notification when approved
         if (proposalData.userId) {
           const userRef = doc(db, "users", proposalData.userId);
           const userSnap = await getDoc(userRef);
@@ -239,6 +248,14 @@ const ReviewProposals = () => {
           proposalId,
           proposalTitle: proposalData.title || "",
         });
+
+        // Send push notification about decline
+        try {
+          const recipientIds = [proposalData.userId];
+          await notifyDeclinedEvent(proposalData, recipientIds);
+        } catch (notificationError) {
+          console.error('Error sending declined notification:', notificationError);
+        }
       }
   
       // ✅ Use `setDoc()` instead of `updateDoc()`

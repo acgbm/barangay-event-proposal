@@ -3,9 +3,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { db, auth } from "../../firebaseConfig"; // Firebase Firestore & Auth
 import { supabase } from "../../firebaseConfig"; // Supabase Storage
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { notifyNewPendingProposal } from "../../services/notificationService";
 import "./StaffProposal.css"; // Ensure this file is styled
 
-// Function to create notification for officials
+// Function to create notification for officials (Legacy Firestore notifications)
 const createNotificationForOfficials = async (proposalTitle) => {
   try {
     await addDoc(collection(db, "notifications"), {
@@ -185,8 +186,15 @@ const StaffProposal = () => {
         status: "Pending",
       });
 
-      // Create notification for officials
+      // Create Firestore notification for officials (Legacy)
       await createNotificationForOfficials(title);
+
+      // Send desktop notification to all officials
+      const staffName = user.displayName || user.email;
+      await notifyNewPendingProposal(
+        { id: Date.now().toString(), title: title },
+        staffName
+      );
 
   setMessage("");
       Swal.fire({

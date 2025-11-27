@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { auth, db } from "../firebaseConfig"; // Import db
+import { auth, db, requestNotificationPermission, setupMessageListener, initializeMessaging } from "../firebaseConfig";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore"; // Import Firestore methods
+import { doc, getDoc } from "firebase/firestore";
 
 const AuthContext = createContext();
 
@@ -10,19 +10,37 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
 
   useEffect(() => {
+    // Initialize messaging when app loads
+    initializeMessaging().then(() => {
+      console.log('✅ Messaging initialized');
+    }).catch(error => {
+      console.error('Failed to initialize messaging:', error);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setUser(currentUser);
-          setRole(userDoc.data().role); // ✅ Store role in state
+      try {
+        if (currentUser) {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUser(currentUser);
+            setRole(userData?.role || "staff");
+            
+            // Request notification permission
+            const permission = await requestNotificationPermission();
+            if (permission) {
+              console.log('✅ Notifications enabled');
+            }
+          } else {
+            setUser(null);
+            setRole(null);
+          }
         } else {
           setUser(null);
           setRole(null);
         }
-      } else {
-        setUser(null);
-        setRole(null);
+      } catch (error) {
+        console.error('Auth state change error:', error);
       }
     });
 

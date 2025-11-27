@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebaseConfig"; // Firebase Firestore
-import { collection, query, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, updateDoc, doc, getDoc, addDoc, serverTimestamp, where } from "firebase/firestore";
 import { supabase } from "../../firebaseConfig"; // Supabase Storage
 import Swal from "sweetalert2";
 import jsPDF from "jspdf";
@@ -9,6 +9,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import bgLogo from "../../assets/bg.png";
 import bg2Logo from "../../assets/bg2.png";
 import "./AdminProposal.css"; // Ensure this file is styled
+import { notifyApprovedEvent, notifyDeclinedEvent, notifyRescheduleEvent } from "../../services/notificationService";
 
 // Set up PDF.js worker - dynamically load from node_modules
 if (typeof window !== 'undefined') {
@@ -277,6 +278,21 @@ const AdminProposal = () => {
         proposalId: rescheduleProposal.id,
         proposalTitle: rescheduleProposal.title || "",
       });
+
+      // Send push notification about reschedule
+      try {
+        const officialsQuery = query(collection(db, "users"), where("role", "==", "official"));
+        const officialsSnapshot = await getDocs(officialsQuery);
+        const officialIds = [];
+        officialsSnapshot.forEach(doc => officialIds.push(doc.id));
+        
+        // Add submitter to recipients
+        const recipientIds = [rescheduleProposal.submitterId, ...officialIds];
+        
+        await notifyRescheduleEvent(rescheduleProposal, rescheduleForm.startDate, rescheduleForm.finishDate, recipientIds);
+      } catch (notificationError) {
+        console.error('Error sending reschedule notification:', notificationError);
+      }
 
       Swal.fire({
         icon: "success",

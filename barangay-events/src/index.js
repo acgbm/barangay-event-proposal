@@ -14,3 +14,4 @@ root.render(
 );
 
 serviceWorkerRegistration.register(); // ✅ Enables PWA features
+
