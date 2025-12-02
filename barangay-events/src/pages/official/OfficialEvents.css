@@ -197,6 +197,33 @@
   padding: 0;
   margin: 0;
   list-style: none;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.events-pro-upcoming-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.events-pro-upcoming-list::-webkit-scrollbar-track {
+  background: #f0f1f3;
+  border-radius: 10px;
+}
+
+.events-pro-upcoming-list::-webkit-scrollbar-thumb {
+  background: #5f6fff;
+  border-radius: 10px;
+  border: 2px solid #f0f1f3;
+}
+
+.events-pro-upcoming-list::-webkit-scrollbar-thumb:hover {
+  background: #2d3eff;
+}
+
+.events-pro-upcoming-list {
+  scrollbar-color: #5f6fff #f0f1f3;
+  scrollbar-width: thin;
 }
 .events-pro-upcoming-item {
   background: #f6f8fc;

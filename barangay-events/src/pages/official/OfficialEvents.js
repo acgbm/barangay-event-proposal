@@ -47,16 +47,12 @@ const Events = () => {
             finishTime: event.finishTime,
             location: event.location,
             description: event.description,
-            // For FullCalendar: create start and end dates with times
-            start: event.startDate,
-            end: event.finishDate,
           }));
         setEvents(approvedEvents);
-        // 3 nearest upcoming events (today or future)
+        // All upcoming events (today or future)
         const upcomingList = approvedEvents
           .filter(ev => ev.startDate >= todayStr)
-          .sort((a, b) => a.startDate.localeCompare(b.startDate) || (a.startTime || "").localeCompare(b.startTime || ""))
-          .slice(0, 3);
+          .sort((a, b) => a.startDate.localeCompare(b.startDate) || (a.startTime || "").localeCompare(b.startTime || ""));
         setUpcoming(upcomingList);
       } catch (error) {
         console.error("Error fetching approved proposals:", error.message);
@@ -134,7 +130,12 @@ const Events = () => {
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
           headerToolbar={false}
-          events={events}
+          events={events.map(event => ({
+            id: event.id,
+            title: event.title,
+            start: event.startDate,
+            end: event.finishDate,
+          }))}
           eventClick={handleEventClick}
           height="auto"
         />
@@ -148,7 +149,7 @@ const Events = () => {
               <div className="events-pro-upcoming-main">
                 <div className="events-pro-upcoming-name">{ev.title}</div>
                 <div className="events-pro-upcoming-date">{formatDate(ev.startDate)} - {formatDate(ev.finishDate)}</div>
-                <div className="events-pro-upcoming-time">{ev.startTime || "-"} - {ev.finishTime || "-"}</div>
+                <div className="events-pro-upcoming-time">{ev.startTime || "-"} to {ev.finishTime || "-"}</div>
               </div>
             </li>
           ))}
