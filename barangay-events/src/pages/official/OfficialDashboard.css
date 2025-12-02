@@ -160,6 +160,12 @@
     border-spacing: 0;
     margin: 0 auto;
   }
+
+  /* Add a scroll wrapper for mobile */
+  .table-wrapper > .proposals-table {
+    overflow-x: auto;
+    display: block;
+  }
   
   .proposals-table th {
     background: #f8fafc;
@@ -528,25 +534,73 @@
     .official-dashboard {
       margin-left: 180px;
       max-width: calc(100vw - 200px);
+      padding: 16px;
     }
   
     .quick-stats {
       grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
     }
   
     .table-wrapper {
-      padding: 16px;
+      padding: 14px;
     }
   
     .proposals-table th,
     .proposals-table td {
-      padding: 12px 16px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+
+    .search-input,
+    .filter-select,
+    .sort-select {
+      font-size: 13px;
+      padding: 8px 12px;
+    }
+
+    .table-controls {
+      gap: 12px;
+    }
+  }
+
+  @media screen and (max-width: 900px) {
+    .official-dashboard {
+      margin-left: 160px;
+      max-width: calc(100vw - 180px);
+    }
+
+    .quick-stats {
+      gap: 14px;
+    }
+
+    .stat-card {
+      padding: 16px;
+    }
+
+    .table-wrapper {
+      padding: 12px;
+    }
+
+    .proposals-table th,
+    .proposals-table td {
+      padding: 10px 12px;
     }
   }
   
+  @media screen and (max-width: 768px) {
+    .official-dashboard {
+      margin-left: 0;
+      padding: 12px;
+      max-width: 100%;
+    }
+  }
+
   @media screen and (max-width: 640px) {
     .official-dashboard {
-      padding: 16px;
+      padding: 12px;
+      margin-left: 0;
+      margin-top: 56px !important;
     }
   
     .official-dashboard h1 {
@@ -556,38 +610,78 @@
   
     .quick-stats {
       grid-template-columns: 1fr;
-      gap: 16px;
+      gap: 12px;
+      margin-bottom: 20px;
     }
   
     .stat-card {
-      padding: 16px;
+      padding: 14px;
+    }
+
+    .stat-card h3 {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .stat-value {
+      font-size: 28px;
     }
   
     .table-wrapper {
       padding: 12px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    .table-wrapper h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
     }
   
     .proposals-table {
-      display: block;
+      width: 100%;
+      border-collapse: collapse;
+      display: table;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+    }
+
+    .proposals-table tbody {
+      display: table-row-group;
+    }
+
+    .proposals-table tr {
+      display: table-row;
     }
   
     .proposals-table th,
     .proposals-table td {
-      padding: 12px;
-      font-size: 14px;
+      padding: 10px 8px;
+      font-size: 12px;
+      min-width: 60px;
     }
-  
+
+    .proposals-table th {
+      font-size: 12px;
+      padding: 10px 8px;
+    }
+
     .status-badge {
       padding: 4px 8px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
       font-size: 12px;
+      min-width: 80px;
     }
 
     .table-controls {
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     .search-box {
@@ -595,19 +689,36 @@
       min-width: 100%;
     }
 
+    .search-input {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
     .filter-sort-group {
       width: 100%;
-      flex-wrap: wrap;
+      gap: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
     }
 
     .filter-select,
     .sort-select {
-      flex: 1;
-      min-width: 120px;
+      padding: 8px 10px;
+      font-size: 12px;
+      min-width: auto;
+    }
+
+    .sort-order-btn {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      padding: 8px 12px;
+      font-size: 14px;
     }
 
     .results-count {
-      font-size: 12px;
+      font-size: 11px;
+      margin-bottom: 10px;
     }
 
     .modal-overlay {
@@ -615,26 +726,34 @@
     }
 
     .modal-content {
-      max-width: calc(100% - 20px);
-      width: calc(100% - 20px);
-      max-height: 95vh;
+      max-width: calc(100vw - 20px);
+      width: calc(100vw - 20px);
+      max-height: 90vh;
+      border-radius: 10px;
     }
 
     .modal-header {
-      padding: 20px;
+      padding: 16px 20px;
     }
 
     .modal-header h2 {
-      font-size: 22px;
+      font-size: 20px;
     }
 
     .modal-body {
-      padding: 20px;
-      gap: 14px;
+      padding: 16px 20px;
+      gap: 12px;
+      max-height: calc(85vh - 100px);
+      overflow-y: auto;
+    }
+
+    .modal-detail-row span {
+      font-size: 14px;
+      word-wrap: break-word;
     }
 
     .modal-footer {
-      padding: 18px 20px;
+      padding: 14px 20px;
     }
 
     .votes-display {
@@ -645,5 +764,22 @@
     .vote-count {
       width: 100%;
       text-align: center;
+      font-size: 12px;
+    }
+
+    .official-pagination {
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .official-pagination button {
+      flex: 1;
+      max-width: 90px;
+      padding: 6px !important;
+      font-size: 12px;
+    }
+
+    .official-pagination span {
+      font-size: 12px;
     }
   }

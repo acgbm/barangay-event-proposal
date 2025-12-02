@@ -6,6 +6,7 @@
   max-width: 100%;
   min-height: calc(100vh - 48px);
   transition: margin 0.3s, max-width 0.3s;
+  box-sizing: border-box;
 }
 
 /* Laptop resolution (1366x768) */
@@ -69,7 +70,11 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
   padding: 24px;
   margin-bottom: 32px;
-  /* Removed overflow-x: auto to prevent horizontal scroll */
+  margin-left: 16px;
+  margin-right: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 /* Table Controls (Search, Filter, Sort) */
@@ -163,7 +168,44 @@
   border-collapse: separate;
   border-spacing: 0;
   margin: 0 auto;
-  table-layout: auto; /* Allow columns to size based on content */
+  table-layout: fixed;
+  min-width: 500px;
+}
+
+/* Set column widths for all tables */
+.proposals-table th:nth-child(1),
+.proposals-table td:nth-child(1) {
+  width: 20%;
+}
+
+.proposals-table th:nth-child(2),
+.proposals-table td:nth-child(2) {
+  width: 18%;
+}
+
+.proposals-table th:nth-child(3),
+.proposals-table td:nth-child(3) {
+  width: 18%;
+}
+
+.proposals-table th:nth-child(4),
+.proposals-table td:nth-child(4) {
+  width: 15%;
+}
+
+.proposals-table th:nth-child(5),
+.proposals-table td:nth-child(5) {
+  width: 12%;
+}
+
+.proposals-table th:nth-child(6),
+.proposals-table td:nth-child(6) {
+  width: 10%;
+}
+
+.proposals-table th:nth-child(7),
+.proposals-table td:nth-child(7) {
+  width: 7%;
 }
 
 .proposals-table th {
@@ -516,29 +558,42 @@
   }
 }
 
-@media screen and (max-width: 640px) {
+@media screen and (max-width: 768px) {
   .review-container {
-    padding: 16px;
+    margin-left: 0;
+    padding: 12px;
+    max-width: 100%;
+    width: 100%;
   }
   .review-container h2 {
     font-size: 20px;
     margin-bottom: 16px;
   }
+  .review-container h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
   .table-wrapper {
     padding: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+    margin-left: 8px;
+    margin-right: 8px;
+    border-radius: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .table-controls {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   .search-box {
     width: 100%;
-    min-width: 100%;
+    min-width: auto;
   }
   .filter-sort-group {
     width: 100%;
     flex-wrap: wrap;
+    gap: 8px;
   }
   .filter-select,
   .sort-select {
@@ -547,59 +602,54 @@
   }
   .results-count {
     font-size: 12px;
+    margin-bottom: 10px;
   }
   .proposals-table {
-    /* Removed display: block and overflow-x: auto */
+    min-width: 450px;
   }
   .proposals-table th,
   .proposals-table td {
-    padding: 12px;
-    font-size: 14px;
+    padding: 10px 8px;
+    font-size: 12px;
   }
   .status-badge {
     padding: 4px 8px;
+    font-size: 11px;
+  }
+  .action-btn {
+    padding: 8px 12px;
     font-size: 12px;
-  }
-  .action-btn {
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-  .action-buttons {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-  .action-btn {
-    width: 100%;
-    min-width: 0;
-    font-size: 15px;
-    padding: 10px 0;
-  }
-  .modal-overlay {
-    padding: 10px;
+    min-width: 80px;
   }
   .modal-content {
     max-width: calc(100% - 20px);
     width: calc(100% - 20px);
-    max-height: 95vh;
   }
   .modal-header {
-    padding: 20px;
+    padding: 16px 12px;
   }
   .modal-header h2 {
-    font-size: 22px;
+    font-size: 18px;
   }
   .modal-body {
-    padding: 20px;
-    gap: 14px;
+    padding: 16px 12px;
+    gap: 12px;
+  }
+  .modal-detail-row strong {
+    font-size: 11px;
+  }
+  .modal-detail-row span {
+    font-size: 13px;
   }
   .modal-footer {
-    padding: 20px;
+    padding: 12px;
     flex-direction: column;
+    gap: 8px;
   }
   .modal-footer .action-btn {
     width: 100%;
     min-width: 0;
+    padding: 10px 0;
   }
   .votes-display {
     flex-direction: column;
@@ -608,5 +658,90 @@
   .vote-count {
     width: 100%;
     text-align: center;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .review-container {
+    padding: 10px;
+  }
+  .review-container h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  .review-container h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .table-wrapper {
+    padding: 10px;
+    margin-bottom: 16px;
+    margin-left: 4px;
+    margin-right: 4px;
+  }
+  .table-controls {
+    gap: 8px;
+  }
+  .search-input {
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+  .filter-select,
+  .sort-select {
+    min-width: 100px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .sort-order-btn {
+    padding: 8px 10px;
+    font-size: 14px;
+    min-width: 40px;
+  }
+  .proposals-table {
+    min-width: 400px;
+  }
+  .proposals-table th,
+  .proposals-table td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+  .status-badge {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+  .action-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-width: 70px;
+  }
+  .modal-overlay {
+    padding: 8px;
+  }
+  .modal-content {
+    max-width: calc(100% - 16px);
+    width: calc(100% - 16px);
+  }
+  .modal-header {
+    padding: 12px 10px;
+  }
+  .modal-header h2 {
+    font-size: 16px;
+  }
+  .modal-body {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .modal-detail-row strong {
+    font-size: 10px;
+  }
+  .modal-detail-row span {
+    font-size: 12px;
+  }
+  .modal-footer {
+    padding: 10px;
+  }
+  .modal-footer .action-btn {
+    padding: 8px 0;
+    font-size: 12px;
   }
 }
