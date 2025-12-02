@@ -314,3 +314,16 @@
 .reminder-modal-body::-webkit-scrollbar-thumb:hover {
   background: #764ba2;
 }
+
+/* Info Box */
+.reminder-info {
+  padding: 12px 15px;
+  border-radius: 6px;
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border-left: 4px solid #2196f3;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 15px;
+  animation: slideInMessage 0.3s ease-in-out;
+}

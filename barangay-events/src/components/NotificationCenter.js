@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getUserNotifications, markNotificationAsRead, deleteNotification } from '../services/notificationService';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
+import { markNotificationAsRead, deleteNotification } from '../services/notificationService';
 import './NotificationCenter.css';
 
 const NotificationCenter = () => {
@@ -8,137 +10,154 @@ const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchNotifications();
-      // Refresh notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
+    if (!currentUser) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
     }
+
+    // Set up real-time listener for notifications
+    const notificationsRef = collection(db, "users", currentUser.uid, "notifications");
+    const q = query(
+      notificationsRef,
+      orderBy("createdAt", "desc")
+    );
+
+    console.log(`🔔 Setting up real-time listener for user ${currentUser.uid}`);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const notifs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })).filter(notif => !notif.deleted);
+
+      setNotifications(notifs);
+      
+      // Count unread notifications
+      const unread = notifs.filter(n => !n.read).length;
+      setUnreadCount(unread);
+
+      console.log(`✅ Received ${notifs.length} notifications (${unread} unread)`);
+    }, (error) => {
+      console.error("❌ Error listening to notifications:", error);
+    });
+
+    return () => {
+      console.log("🔔 Unsubscribing from notifications");
+      unsubscribe();
+    };
   }, [currentUser]);
 
-  const fetchNotifications = async () => {
+  const handleMarkAsRead = async (notificationId) => {
     if (!currentUser) return;
-    setLoading(true);
+    
     try {
-      const notifs = await getUserNotifications(currentUser.uid);
-      // Filter out deleted notifications
-      setNotifications(notifs.filter(n => !n.deleted));
+      await markNotificationAsRead(currentUser.uid, notificationId);
+      console.log(`✅ Marked as read: ${notificationId}`);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error marking as read:", error);
     }
-    setLoading(false);
   };
 
-  const handleMarkAsRead = async (e, notificationId) => {
-    e.stopPropagation();
-    await markNotificationAsRead(currentUser.uid, notificationId);
-    await fetchNotifications();
+  const handleDeleteNotification = async (notificationId) => {
+    if (!currentUser) return;
+
+    try {
+      await deleteNotification(currentUser.uid, notificationId);
+      console.log(`✅ Deleted notification: ${notificationId}`);
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
   };
 
-  const handleDelete = async (e, notificationId) => {
-    e.stopPropagation();
-    await deleteNotification(currentUser.uid, notificationId);
-    await fetchNotifications();
-  };
+  const formatTime = (timestamp) => {
+    if (!timestamp) return "";
+    
+    try {
+      const date = timestamp.toDate?.() || new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const formatNotificationTime = (timestamp) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+      if (diffMins < 1) return "just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      return date.toLocaleDateString();
+    } catch (error) {
+      return "";
+    }
   };
 
   return (
-    <div className="notification-center">
-      <div 
+    <div className="notification-center-container">
+      {/* Bell Icon */}
+      <button
         className="notification-bell"
         onClick={() => setShowDropdown(!showDropdown)}
+        title="Notifications"
       >
-        <span className="bell-icon">🔔</span>
+        <span className="notification-bell-icon">🔔</span>
         {unreadCount > 0 && (
-          <span className="unread-badge">{unreadCount}</span>
+          <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
         )}
-      </div>
+      </button>
 
+      {/* Notifications Dropdown */}
       {showDropdown && (
         <div className="notification-dropdown">
-          <div className="notification-header">
-            <h3>Notifications {unreadCount > 0 && `(${unreadCount} unread)`}</h3>
-            <button 
-              className="close-btn"
-              onClick={() => setShowDropdown(false)}
-            >
-              ✕
-            </button>
+          <div className="notification-dropdown-header">
+            <h3>Notifications {unreadCount > 0 && `(${unreadCount})`}</h3>
           </div>
 
-          <div className="notification-list">
-            {loading && <div className="loading">Loading...</div>}
-            
-            {!loading && notifications.length === 0 && (
-              <div className="empty-state">
-                <p>No notifications yet</p>
-              </div>
-            )}
-
-            {!loading && notifications.map((notif) => (
-              <div
-                key={notif.id}
-                className={`notification-item ${notif.read ? 'read' : 'unread'}`}
-              >
-                <div className="notification-content">
-                  <div className="notification-title">{notif.title}</div>
-                  <div className="notification-body">{notif.body}</div>
-                  <div className="notification-time">
-                    {formatNotificationTime(notif.createdAt)}
+          {loading ? (
+            <div className="notification-loading">Loading...</div>
+          ) : notifications.length === 0 ? (
+            <div className="notification-empty">
+              <span>📭 No notifications</span>
+            </div>
+          ) : (
+            <div className="notification-list">
+              {notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  className={`notification-item ${notif.read ? 'read' : 'unread'}`}
+                >
+                  <div className="notification-item-content">
+                    <div className="notification-item-title">{notif.title}</div>
+                    <div className="notification-item-body">{notif.body}</div>
+                    <div className="notification-item-time">
+                      {formatTime(notif.createdAt)}
+                    </div>
+                  </div>
+                  <div className="notification-item-actions">
+                    {!notif.read && (
+                      <button
+                        className="notification-action-btn read-btn"
+                        onClick={() => handleMarkAsRead(notif.id)}
+                        title="Mark as read"
+                      >
+                        ✓
+                      </button>
+                    )}
+                    <button
+                      className="notification-action-btn delete-btn"
+                      onClick={() => handleDeleteNotification(notif.id)}
+                      title="Delete"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
-
-                <div className="notification-actions">
-                  {!notif.read && (
-                    <button
-                      className="action-btn mark-read"
-                      onClick={(e) => handleMarkAsRead(e, notif.id)}
-                      title="Mark as read"
-                    >
-                      ✓
-                    </button>
-                  )}
-                  <button
-                    className="action-btn delete"
-                    onClick={(e) => handleDelete(e, notif.id)}
-                    title="Delete"
-                  >
-                    🗑
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="notification-footer">
-            {notifications.length > 0 && (
-              <button 
-                className="refresh-btn"
-                onClick={fetchNotifications}
-              >
-                Refresh
-              </button>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

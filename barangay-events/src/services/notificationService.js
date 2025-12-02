@@ -49,18 +49,24 @@ export const sendNotificationsToUsers = async (userIds, notificationData) => {
       return { success: false, message: "No valid user IDs" };
     }
 
-    // Send desktop notification to current user (if they're viewing the app)
+    // Remove duplicates
+    const uniqueUserIds = [...new Set(userIds)];
+
+    console.log(`📢 Sending notifications to ${uniqueUserIds.length} user(s)...`);
+
+    // Save notification to Firestore for ALL recipients (concurrently)
+    const savePromises = uniqueUserIds.map(userId => 
+      saveNotificationToFirestore(userId, notificationData)
+    );
+
+    const results = await Promise.all(savePromises);
+    const savedCount = results.filter(r => r === true).length;
+
+    // Also send desktop notification to current user
     sendDesktopNotification(notificationData);
 
-    // Save notification to Firestore for all recipients (for mobile & offline viewing)
-    let savedCount = 0;
-    for (const userId of userIds) {
-      const saved = await saveNotificationToFirestore(userId, notificationData);
-      if (saved) savedCount++;
-    }
-
-    console.log(`📢 Notification saved for ${savedCount}/${userIds.length} users`);
-    return { success: true, message: `Notification saved for ${savedCount} user(s)` };
+    console.log(`📢 Notification saved for ${savedCount}/${uniqueUserIds.length} users`);
+    return { success: true, message: `Notification sent to ${savedCount} user(s)` };
   } catch (error) {
     console.error("Error sending notifications:", error);
     return { success: false, message: error.message };
@@ -339,10 +345,16 @@ export const sendReminderToEventStaff = async (proposalId) => {
     }
 
     const result = await sendEventReminder(proposal, [staffId]);
+    
+    // Also send email
+    const emailResult = await sendEventReminderEmails(proposal, [staffId]);
+    
     return { 
-      success: result.success, 
-      message: `Reminder sent to staff for: ${proposal.title}`,
-      proposalTitle: proposal.title 
+      success: result.success && emailResult.success, 
+      message: `✅ Reminder sent to staff for: ${proposal.title}`,
+      proposalTitle: proposal.title,
+      notificationSent: result.success,
+      emailSent: emailResult.success
     };
   } catch (error) {
     console.error("Error sending reminder to staff:", error);
@@ -371,12 +383,19 @@ export const sendReminderToOfficials = async (proposalId) => {
     }
 
     const officialIds = officialsSnapshot.docs.map(doc => doc.id);
+    
+    console.log(`📤 Sending reminder to ${officialIds.length} officials`);
     const result = await sendEventReminder(proposal, officialIds);
     
+    // Also send emails
+    const emailResult = await sendEventReminderEmails(proposal, officialIds);
+    
     return { 
-      success: result.success, 
-      message: `Reminder sent to ${officialIds.length} official(s)`,
-      proposalTitle: proposal.title 
+      success: result.success && emailResult.success, 
+      message: `✅ Reminder sent to ${officialIds.length} official(s)`,
+      proposalTitle: proposal.title,
+      notificationSent: result.success,
+      emailSent: emailResult.success
     };
   } catch (error) {
     console.error("Error sending reminder to officials:", error);
@@ -412,16 +431,294 @@ export const sendReminderToAllParticipants = async (proposalId) => {
       return { success: false, message: "No recipients found" };
     }
 
+    console.log(`📤 Sending reminder to ${officialIds.length} participants`);
     const result = await sendEventReminder(proposal, officialIds);
     
+    // Also send emails
+    const emailResult = await sendEventReminderEmails(proposal, officialIds);
+    
     return { 
-      success: result.success, 
-      message: `Reminder sent to ${officialIds.length} participant(s)`,
+      success: result.success && emailResult.success, 
+      message: `✅ Reminder sent to ${officialIds.length} participant(s)`,
       proposalTitle: proposal.title,
-      recipientCount: officialIds.length
+      recipientCount: officialIds.length,
+      notificationSent: result.success,
+      emailSent: emailResult.success
     };
   } catch (error) {
     console.error("Error sending reminder to participants:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// ============================================================
+// PENDING PROPOSAL VOTE REMINDER FUNCTIONS
+// ============================================================
+
+// Function to send reminder to officials to vote on pending proposals
+export const sendVoteReminderForPendingProposal = async (proposal) => {
+  try {
+    // Get all officials
+    const officialsQuery = query(collection(db, "users"), where("role", "==", "official"));
+    const officialsSnapshot = await getDocs(officialsQuery);
+    
+    if (officialsSnapshot.empty) {
+      return { success: false, message: "No officials found" };
+    }
+
+    const officialIds = officialsSnapshot.docs.map(doc => doc.id);
+
+    const notificationData = {
+      title: "🗳️ Vote Needed - Pending Proposal",
+      body: `"${proposal.title}" by ${proposal.submittedBy || "Staff"} is awaiting your vote`,
+      icon: "/barangay-logo.png",
+      data: {
+        proposalId: proposal.id,
+        type: "pending_vote_reminder",
+        status: proposal.status,
+        submittedBy: proposal.submittedBy,
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    console.log(`📤 Sending vote reminders to ${officialIds.length} officials for: ${proposal.title}`);
+    const result = await sendNotificationsToUsers(officialIds, notificationData);
+    
+    // Also send emails
+    const emailResult = await sendVoteReminderEmails(proposal);
+    
+    return { 
+      success: result.success && emailResult.success, 
+      message: `✅ Vote reminders sent to ${officialIds.length} official(s)`,
+      proposalTitle: proposal.title,
+      recipientCount: officialIds.length,
+      notificationSent: result.success,
+      emailSent: emailResult.success
+    };
+  } catch (error) {
+    console.error("Error sending vote reminders:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Function to send reminder to officials about a specific pending proposal ID
+export const sendVoteReminderByProposalId = async (proposalId) => {
+  try {
+    const proposalRef = doc(db, "proposals", proposalId);
+    const proposalSnapshot = await getDoc(proposalRef);
+    
+    if (!proposalSnapshot.exists()) {
+      return { success: false, message: "Proposal not found" };
+    }
+
+    const proposal = { id: proposalId, ...proposalSnapshot.data() };
+
+    if (proposal.status !== "Pending") {
+      return { success: false, message: `Cannot send vote reminder for ${proposal.status} proposal` };
+    }
+
+    return sendVoteReminderForPendingProposal(proposal);
+  } catch (error) {
+    console.error("Error sending vote reminder by proposal ID:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Function to send reminders for ALL pending proposals
+export const sendVoteRemindersForAllPending = async () => {
+  try {
+    const pendingQuery = query(
+      collection(db, "proposals"),
+      where("status", "==", "Pending")
+    );
+    const pendingSnapshot = await getDocs(pendingQuery);
+
+    if (pendingSnapshot.empty) {
+      console.log("⚠️ No pending proposals found");
+      return { success: true, message: "No pending proposals to remind about", remindersSent: 0 };
+    }
+
+    console.log(`🔍 Found ${pendingSnapshot.size} pending proposal(s)`);
+
+    let remindersSent = 0;
+    const results = [];
+
+    for (const docSnapshot of pendingSnapshot.docs) {
+      const proposal = { id: docSnapshot.id, ...docSnapshot.data() };
+      
+      try {
+        const result = await sendVoteReminderForPendingProposal(proposal);
+        if (result.success) {
+          remindersSent++;
+          results.push({
+            proposalId: proposal.id,
+            title: proposal.title,
+            success: true
+          });
+        }
+      } catch (error) {
+        console.error(`Error sending reminder for ${proposal.title}:`, error);
+        results.push({
+          proposalId: proposal.id,
+          title: proposal.title,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+
+    return {
+      success: true,
+      message: `✅ Vote reminders sent for ${remindersSent}/${pendingSnapshot.size} pending proposal(s)`,
+      remindersSent,
+      totalPending: pendingSnapshot.size,
+      results
+    };
+  } catch (error) {
+    console.error("Error sending vote reminders for all pending:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// ============================================================
+// EMAIL NOTIFICATION FUNCTIONS
+// ============================================================
+
+// Function to send email to user
+export const sendEmailNotification = async (userEmail, subject, htmlContent) => {
+  try {
+    // Save email request to Firestore for processing
+    const emailRequestsRef = collection(db, "email_queue");
+    
+    const result = await addDoc(emailRequestsRef, {
+      to: userEmail,
+      subject: subject,
+      htmlContent: htmlContent,
+      status: "pending",
+      createdAt: serverTimestamp(),
+      sentAt: null,
+      error: null,
+    });
+
+    console.log(`📧 Email queued for ${userEmail}: ${subject}`);
+    return { success: true, message: "Email queued for sending" };
+  } catch (error) {
+    console.error("Error queuing email:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Function to send event reminder emails
+export const sendEventReminderEmails = async (proposal, recipientIds) => {
+  try {
+    const emailPromises = [];
+
+    for (const userId of recipientIds) {
+      // Get user email
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists() && userSnap.data().email) {
+        const userEmail = userSnap.data().email;
+        const userName = userSnap.data().fullName || "User";
+
+        const subject = `🎉 Event Reminder: ${proposal.title}`;
+        const htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Event Reminder</h2>
+            <p>Hi ${userName},</p>
+            <p>This is a reminder about the upcoming event:</p>
+            
+            <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #667eea;">${proposal.title}</h3>
+              <p><strong>Date:</strong> ${formatDateForNotification(proposal.startDate)}</p>
+              <p><strong>Time:</strong> ${formatTimeForNotification(proposal.startTime)}</p>
+              <p><strong>Description:</strong> ${proposal.description || "N/A"}</p>
+            </div>
+
+            <p>Please make sure you're prepared for this event.</p>
+            
+            <p>Best regards,<br>Barangay Events System</p>
+          </div>
+        `;
+
+        emailPromises.push(sendEmailNotification(userEmail, subject, htmlContent));
+      }
+    }
+
+    const results = await Promise.all(emailPromises);
+    const successCount = results.filter(r => r.success).length;
+
+    console.log(`📧 Reminder emails queued for ${successCount}/${recipientIds.length} recipients`);
+    return { 
+      success: true, 
+      message: `Reminder emails queued for ${successCount} recipient(s)`,
+      emailsSent: successCount 
+    };
+  } catch (error) {
+    console.error("Error sending event reminder emails:", error);
+    return { success: false, message: error.message };
+  }
+};
+
+// Function to send vote reminder emails
+export const sendVoteReminderEmails = async (proposal) => {
+  try {
+    // Get all officials
+    const officialsQuery = query(collection(db, "users"), where("role", "==", "official"));
+    const officialsSnapshot = await getDocs(officialsQuery);
+
+    if (officialsSnapshot.empty) {
+      return { success: false, message: "No officials found" };
+    }
+
+    const emailPromises = [];
+
+    for (const officialDoc of officialsSnapshot.docs) {
+      const official = officialDoc.data();
+      if (official.email) {
+        const subject = `🗳️ Action Required: Vote Needed on "${proposal.title}"`;
+        const htmlContent = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Vote Required - Pending Proposal</h2>
+            <p>Hi ${official.fullName || "Official"},</p>
+            <p>A proposal requires your vote:</p>
+            
+            <div style="background-color: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
+              <h3 style="margin-top: 0; color: #ff6f00;">${proposal.title}</h3>
+              <p><strong>Submitted by:</strong> ${proposal.submittedBy || "Staff Member"}</p>
+              <p><strong>Description:</strong> ${proposal.description || "N/A"}</p>
+              <p><strong>Status:</strong> Pending Review</p>
+            </div>
+
+            <p style="color: #d32f2f; font-weight: bold;">⚠️ Please log in to the system and cast your vote on this proposal.</p>
+            
+            <p>Click below to view the proposal:</p>
+            <p style="text-align: center;">
+              <a href="${window.location.origin}" style="background-color: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Vote Now
+              </a>
+            </p>
+            
+            <p>Best regards,<br>Barangay Events System</p>
+          </div>
+        `;
+
+        emailPromises.push(sendEmailNotification(official.email, subject, htmlContent));
+      }
+    }
+
+    const results = await Promise.all(emailPromises);
+    const successCount = results.filter(r => r.success).length;
+
+    console.log(`📧 Vote reminder emails queued for ${successCount} officials`);
+    return { 
+      success: true, 
+      message: `Vote reminder emails queued for ${successCount} official(s)`,
+      emailsSent: successCount 
+    };
+  } catch (error) {
+    console.error("Error sending vote reminder emails:", error);
     return { success: false, message: error.message };
   }
 };
