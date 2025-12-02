@@ -17,7 +17,7 @@ const StaffDashboard = () => {
     pending: 0,
     approved: 0,
     declined: 0,
-    done: 0
+    completed: 0
   });
   // Search, filter, and sorting states
   const [searchQuery, setSearchQuery] = useState("");
@@ -141,7 +141,7 @@ const StaffDashboard = () => {
         const status = (p.status || "").toLowerCase();
         return status === "rejected" || status.includes("declined");
       }).length,
-      done: proposals.filter(p => p.status === "Done").length
+      completed: proposals.filter(p => p.status === "Completed").length
     };
     setStats(stats);
   };
@@ -197,8 +197,8 @@ const StaffDashboard = () => {
     }
   };
 
-  // ✅ Auto-Update Approved Events to "Done" if Past the Event Date
-  const updatePastEventsToDone = async () => {
+  // ✅ Auto-Update Approved Events to "Completed" if Past the Event Date
+  const updatePastEventsToCompleted = async () => {
     try {
       const proposalsSnapshot = await getDocs(collection(db, "proposals"));
       const currentDate = new Date();
@@ -211,10 +211,10 @@ const StaffDashboard = () => {
 
       for (const eventDoc of pastApprovedEvents) {
         const eventRef = doc(db, "proposals", eventDoc.id);
-        await updateDoc(eventRef, { status: "Done" });
+        await updateDoc(eventRef, { status: "Completed" });
       }
     } catch (error) {
-      console.error("Error updating past events to Done:", error.message);
+      console.error("Error updating past events to Completed:", error.message);
     }
   };
 
@@ -361,7 +361,7 @@ const StaffDashboard = () => {
   // ✅ Run Auto-Update Functions on Dashboard Load
   useEffect(() => {
     checkForAutoRejection();
-    updatePastEventsToDone();
+    updatePastEventsToCompleted();
   }, []);
 
   // ✅ Handle Viewing Feedback for Rejected, Declined, and Cancelled Proposals
@@ -639,7 +639,7 @@ const StaffDashboard = () => {
               <option value="Declined (Missed Deadline)">Declined (Missed Deadline)</option>
               <option value="Cancelled">Cancelled</option>
               <option value="Rescheduled">Rescheduled</option>
-              <option value="Done">Done</option>
+              <option value="Completed">Completed</option>
             </select>
           </div>
           <div className="control-group">

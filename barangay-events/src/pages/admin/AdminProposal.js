@@ -383,7 +383,7 @@ const AdminProposal = () => {
         try {
           const proposalRef = doc(db, "proposals", proposal.id);
           await updateDoc(proposalRef, {
-            status: "Done",
+            status: "Completed",
             completedDate: new Date().toISOString().split("T")[0],
           });
 
@@ -392,7 +392,7 @@ const AdminProposal = () => {
             message: `Event "${proposal.title}" has been marked as completed.`,
             timestamp: serverTimestamp(),
             type: "Event Completed",
-            status: "Done",
+            status: "Completed",
             targetRole: "all",
             proposalId: proposal.id,
             proposalTitle: proposal.title || "",
@@ -1123,7 +1123,7 @@ const AdminProposal = () => {
         return "#888"; // gray
       case "Rescheduled":
         return "#6c63ff"; // purple/blue
-      case "Done":
+      case "Completed":
         return "#2563eb"; // blue
       default:
         return "#22223b";
@@ -1255,7 +1255,7 @@ const AdminProposal = () => {
                       <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
                     </>
                   )}
-                  {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled" || proposal.status === "Done") && (
+                  {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled" || proposal.status === "Completed") && (
                     <span className="no-actions-text">No actions available</span>
                   )}
                 </td>
