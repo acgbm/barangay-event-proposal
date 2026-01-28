@@ -125,7 +125,13 @@ const StaffProposal = () => {
   const handleLocationBlur = () => {
     setTimeout(() => {
       setShowLocationDropdown(false);
-    }, 200);
+    }, 250);
+  };
+
+  // Handle mouse down on dropdown button to prevent blur from closing dropdown
+  const handleLocationOptionMouseDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   // Filter locations based on input
@@ -265,6 +271,7 @@ const StaffProposal = () => {
                       <li key={idx} className="location-option">
                         <button
                           type="button"
+                          onMouseDown={handleLocationOptionMouseDown}
                           onClick={(e) => {
                             e.preventDefault();
                             handleLocationSelect(loc);

@@ -504,6 +504,7 @@
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+  pointer-events: auto;
 }
 
 .location-option {
@@ -522,6 +523,7 @@
   cursor: pointer;
   transition: background-color 0.2s;
   font-family: "Google Sans", Roboto, Arial, sans-serif;
+  pointer-events: auto;
 }
 
 .location-option-btn:hover {
