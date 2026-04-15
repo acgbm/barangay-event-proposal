@@ -63,9 +63,9 @@ const ManageAccounts = () => {
         fullName,
         dob,
         phone,
-        verified: isAdmin ? true : false,
+        verified: true, // Temporarily auto-verify all new accounts
       });
-      if (!isAdmin) {
+      if (false) { // Temporarily disabled verification email logic
         // Use your production domain for verification link
         const baseUrl = "https://barangay-events-system.web.app";
         const verificationLink = `${baseUrl}/verify-email?uid=${userId}`;
@@ -89,7 +89,7 @@ const ManageAccounts = () => {
           return;
         }
       }
-      setAccounts([...accounts, { id: userId, email, role, fullName, dob, phone, verified: isAdmin }]);
+      setAccounts([...accounts, { id: userId, email, role, fullName, dob, phone, verified: true }]);
       setEmail("");
       setRole("staff");
       setFullName("");
@@ -98,9 +98,7 @@ const ManageAccounts = () => {
       Swal.fire({
         icon: "success",
         title: "Account Created",
-        text: isAdmin
-          ? `Admin account created successfully.`
-          : `A verification email has been sent to ${email}. The user cannot log in until they verify their email.`,
+        text: `Account created successfully and auto-verified.`,
       });
     } catch (err) {
       setError("Error creating account: " + err.message);
