@@ -16,15 +16,15 @@ if (typeof window !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worker.min.js`;
 }
 
-// Helper to format date as "Month DD, YYYY"
+// Helper to format date as "MM/DD/YY"
 function formatDate(dateStr) {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
   if (isNaN(date)) return dateStr; // fallback for invalid
   return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
   });
 }
 
@@ -1157,8 +1157,16 @@ const AdminProposal = () => {
 
   return (
     <div className="admin-proposal">
-      <h2>Proposals</h2>
-      {loading ? <p>Loading proposals...</p> : null}
+      <div className="admin-page-header">
+        <div className="header-titles">
+          <h2>Event Proposals</h2>
+          <p className="page-subtitle">Review, manage, and track all submitted community event requests.</p>
+        </div>
+      </div>
+      
+      {loading && <div className="loading-spinner">Loading proposals...</div>}
+      
+      <div className="admin-content-card">
       
       {/* Search, Filter, and Sort Controls */}
       <div className="table-controls">
@@ -1218,7 +1226,6 @@ const AdminProposal = () => {
               <th>Date</th>
               <th>Status</th>
               <th>Votes</th>
-              <th>View Details</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -1241,23 +1248,16 @@ const AdminProposal = () => {
                     <span className="no-votes-text">No votes yet</span>
                   )}
                 </td>
-                <td className="view-details-cell">
-                  <button className="viewDetailsButton" onClick={() => handleViewDetails(proposal)}>View Details</button>
-                </td>
-                <td className={
-                  proposal.status === "Approved"
-                    ? "action-buttons"
-                    : "no-actions-cell"
-                }>
-                  {proposal.status === "Approved" && (
-                    <>
-                      <button className="rescheduleButton" onClick={() => handleReschedule(proposal)}>Reschedule</button>
-                      <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
-                    </>
-                  )}
-                  {(proposal.status === "Cancelled" || proposal.status === "Rejected" || proposal.status === "Pending" || proposal.status === "Declined (Missed Deadline)" || proposal.status === "Rescheduled" || proposal.status === "Completed") && (
-                    <span className="no-actions-text">No actions available</span>
-                  )}
+                <td className="actions-cell">
+                  <div className="action-buttons">
+                    <button className="viewDetailsButton" onClick={() => handleViewDetails(proposal)}>Details</button>
+                    {proposal.status === "Approved" && (
+                      <>
+                        <button className="rescheduleButton" onClick={() => handleReschedule(proposal)}>Reschedule</button>
+                        <button className="cancelButton" onClick={() => handleCancel(proposal)}>Cancel</button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -1284,6 +1284,7 @@ const AdminProposal = () => {
           Next
         </button>
       </div>
+      </div> {/* End admin-content-card */}
 
       {/* Modal for Viewing Proposal Details */}
       {showModal && selectedProposal && (
