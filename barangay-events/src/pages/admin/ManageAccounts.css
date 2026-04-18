@@ -1,444 +1,418 @@
+﻿:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: transparent;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #f1f5f9;
+  --surface: #ffffff;
+}
+
 .manage-accounts {
-  max-width:1000px;
-  margin: 88px auto 0 500px; /* Add margin-top to prevent header overlap */
-  /* shifted right for sidebar */
-  padding: 16px 20px;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 40%);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(37,99,235,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  transition: margin 0.3s, max-width 0.3s;
-}
-
-/* Laptop resolution (1366x768) */
-@media (min-width: 1366px) and (max-width: 1920px) {
-  .manage-accounts {
-    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
-    margin-right: auto;
-    max-width: 1000px;
-    margin-top: 88px;
-  }
-}
-
-/* Desktop but smaller than 1366px */
-@media (max-width: 1365px) and (min-width: 1201px) {
-  .manage-accounts {
-    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
-    margin-right: auto;
-    max-width: 1000px;
-    margin-top: 88px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .manage-accounts {
-    margin-left: 180px;
-    max-width: calc(100vw - 200px);
-    margin-top: 88px;
-  }
-}
-@media (max-width: 900px) {
-  .manage-accounts {
-    margin-left: 0;
-    max-width: 100vw;
-    padding: 16px 20px;
-    margin-top: 88px;
-  }
-  .accounts-table th,
-  .accounts-table td {
-    font-size: 0.93rem;
-    padding: 7px 3px;
-  }
-  .manage-accounts .form-row {
-    gap: 8px 8px;
-  }
-}
-
-/* Laptop specific adjustments for 1366x768 and similar resolutions */
-@media (min-width: 1280px) and (max-width: 1440px) {
-  .manage-accounts {
-    margin-left: calc(150px + (100vw - 150px - 1000px) / 2);
-    margin-right: auto;
-    max-width: 1000px;
-  }
-  .accounts-table th,
-  .accounts-table td {
-    font-size: 0.82rem;
-    padding: 7px 8px;
-  }
-  .manage-accounts .form-row {
-    gap: 10px 12px;
-  }
-}
-@media (max-width: 600px) {
-  .manage-accounts {
-    padding: 16px 12px;
-    margin-top: 88px;
-    border-radius: 0;
-    box-shadow: none;
-    max-width: 100vw;
-    margin-left: 0;
-  }
-  .manage-accounts form {
-    padding: 8px 2px 4px 2px;
-  }
-  .manage-accounts .form-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-  .manage-accounts .form-group {
-    width: 100%;
-  }
-  .manage-accounts form input,
-  .manage-accounts form select {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-  .manage-accounts .form-actions {
-    justify-content: flex-start;
-  }
-  .accounts-table th,
-  .accounts-table td {
-    font-size: 0.9rem;
-    padding: 5px 2px;
-  }
-}
-
-.manage-accounts h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #071024;
-  margin-bottom: 12px;
-  text-align: left;
-  letter-spacing: -0.5px;
-}
-
-.manage-accounts form {
+  margin-top: 88px;
+  /* Sidebar is 260px wide. We use margin-left to prevent overlap. */
+  margin-left: 260px; 
+  padding: 40px;
+  min-height: calc(100vh - 88px);
+  background-color: var(--bg-main);
+  font-family: 'Inter', -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: linear-gradient(120deg, rgba(255,255,255,0.85) 60%, rgba(96,165,250,0.13) 100%);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 8px 32px rgba(37,99,235,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
-  border: 1px solid rgba(96,165,250,0.10);
-  backdrop-filter: blur(8px);
-  transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
+  /* Centering logic: */
+  align-items: center; 
 }
 
-.manage-accounts .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
-}
-
-.manage-accounts .form-group {
+/* Wrapper to constrain max width while staying centered in the remaining space */
+.manage-content-wrapper {
+  width: 100%;
+  max-width: 1200px; /* Adjust this value to control how wide the "centered" content should be */
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
-.manage-accounts .form-actions {
+/* Header Section */
+.manage-header {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  height: 100%;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  width: 100%;
 }
 
-.manage-accounts label {
-  font-size: 0.9rem;
-  color: #071024;
-  margin-bottom: 4px;
+.manage-header h2 {
+  font-size: 24px;
   font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
-.manage-accounts form input,
-.manage-accounts form select {
-  padding: 8px 12px;
-  border: 1px solid rgba(11,18,32,0.08);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: rgba(255,255,255,0.95);
-  transition: border 0.2s, box-shadow 0.2s;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-}
-
-.manage-accounts form input:focus,
-.manage-accounts form select:focus {
-  border: 1px solid #2563eb;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-}
-
-.manage-accounts form button {
-  background: linear-gradient(90deg, #60a5fa, #2563eb);
-  color: #fff;
+.add-user-btn {
+  background: var(--primary);
+  color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 14px;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.12);
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-  min-width: 80px;
-  max-width: 100px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
 }
 
-.manage-accounts form button:hover {
-  background: linear-gradient(90deg, #2563eb, #60a5fa);
-  box-shadow: 0 12px 40px rgba(37,99,235,0.16);
-  transform: translateY(-2px);
+.add-user-btn:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-.create-account-button {
-  height: auto;
-  min-height: 40px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #60a5fa, #2563eb);
-  color: #fff;
-  border: none;
-  font-weight: 600;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-  box-sizing: border-box;
-  display: inline-block;
-  vertical-align: middle;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.12);
-}
-
-.create-account-button:hover:not(:disabled) {
-  background: linear-gradient(90deg, #2563eb, #60a5fa);
-  box-shadow: 0 12px 40px rgba(37,99,235,0.16);
-  transform: translateY(-2px);
-}
-
-.manage-accounts h3 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #071024;
-  margin-bottom: 10px;
-  margin-top: 12px;
-  letter-spacing: -0.5px;
+/* Table Design */
+.table-wrapper {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  width: 100%;
 }
 
 .accounts-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: linear-gradient(120deg, rgba(255,255,255,0.85) 60%, rgba(96,165,250,0.13) 100%);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(37,99,235,0.08), 0 1.5px 8px rgba(0,0,0,0.04);
-  border: 1px solid rgba(96,165,250,0.10);
-  overflow: hidden;
-  backdrop-filter: blur(8px);
-}
-
-.accounts-table th,
-.accounts-table td {
-  padding: 8px 10px;
+  border-collapse: collapse;
   text-align: left;
-  font-size: 0.85rem;
-  border-bottom: 1px solid rgba(96,165,250,0.10);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
 .accounts-table th {
-  background: rgba(255,255,255,0.6);
-  font-weight: 700;
-  color: #071024;
+  padding: 12px 24px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-color);
+  background: #f8fafc;
 }
 
-.accounts-table tr:nth-child(even) td {
-  background: rgba(255,255,255,0.5);
-}
-
-.accounts-table tr:hover td {
-  background: rgba(96,165,250,0.08);
-  transform: scale(1.01);
-  transition: background 0.2s, transform 0.2s;
+.accounts-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 14px;
+  vertical-align: middle;
 }
 
 .accounts-table tr:last-child td {
   border-bottom: none;
 }
 
+.accounts-table tr:nth-child(even) {
+  background-color: rgba(241, 245, 249, 0.3);
+}
+
+.accounts-table tr {
+  transition: background 0.15s ease;
+}
+
+.accounts-table tr:hover {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+
+/* Status Badges */
+.verified-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.not-verified-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Action Buttons */
 .accounts-table button {
-  padding: 6px 10px;
-  margin-right: 6px;
-  font-size: 0.8rem;
+  padding: 8px 12px;
   border-radius: 6px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  margin-right: 8px;
+}
+
+.accounts-table button.profile-btn {
+  background: #f8fafc;
+  color: var(--primary);
+  border: 1px solid #e2e8f0;
+}
+
+.accounts-table button.profile-btn:hover {
+  background: #f1f5f9;
+  border-color: var(--primary);
+}
+
+.accounts-table button.edit {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid #e2e8f0;
+}
+
+.accounts-table button.edit:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.accounts-table button.toggle.active {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.accounts-table button.toggle.inactive {
+  background: #f8fafc;
+  color: var(--text-muted);
+  border-color: #e2e8f0;
+}
+
+.accounts-table button.delete {
+  background: transparent;
+  color: #dc2626;
+}
+
+.accounts-table button.delete:hover {
+  background: #fef2f2;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
   border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.modal-body { padding: 24px; }
+
+/* Profile Modal Specifics */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.profile-main-info h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-main);
+}
+
+.profile-role {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.detail-item span {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.verified-text { color: #059669; font-weight: 500; }
+.unverified-text { color: #dc2626; font-weight: 500; }
+.enabled-text { color: #2563eb; font-weight: 500; }
+.disabled-text { color: #64748b; font-weight: 500; }
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.edit-profile-btn, .save-account-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.save-account-button {
+  width: auto;
+  padding: 10px 24px;
+}
+
+.close-profile-btn, .cancel-edit-btn {
+  background: #f8fafc;
+  color: var(--text-main);
+  border: 1px solid #e2e8f0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* User Form */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-group input:disabled {
+  background-color: #f8fafc;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.create-account-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  min-width: 70px;
-  max-width: 70px;
-  width: 70px;
-  text-align: center;
-  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
-  display: inline-block;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  width: 100%;
 }
 
-.accounts-table button:not(:last-child) {
-  margin-bottom: 2px;
-}
-
-.accounts-table button.save {
-  background: #28a745;
-  color: #fff;
-}
-.accounts-table button.cancel {
-  background: #6c757d;
-  color: #fff;
-}
-.accounts-table button.edit {
-  background: linear-gradient(90deg, #60a5fa, #2563eb);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(37,99,235,0.12);
-}
-.accounts-table button.delete {
-  background: linear-gradient(90deg, #f87171, #ef4444);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(239,68,68,0.12);
-}
-.accounts-table button.toggle {
-  background: rgba(255,255,255,0.9);
-  color: #071024;
-  border: 1px solid rgba(11,18,32,0.08);
-}
-.accounts-table button.toggle.active {
-  background: linear-gradient(90deg, #6ee7b7, #10b981);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(16,185,129,0.12);
-}
-.accounts-table button.toggle.inactive {
-  background: linear-gradient(90deg, #94a3b8, #64748b);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(100,116,139,0.12);
-}
-.accounts-table button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
-
-.swal2-modern {
-  border-radius: 18px !important;
-  box-shadow: 0 8px 32px rgba(37,99,235,0.08), 0 1.5px 8px rgba(0,0,0,0.04) !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial !important;
-  padding: 28px 22px 22px 22px !important;
-  background: linear-gradient(120deg, rgba(255,255,255,0.95) 60%, rgba(96,165,250,0.13) 100%) !important;
-  border: 1px solid rgba(96,165,250,0.10) !important;
-}
-.swal2-modern-btn {
-  background: linear-gradient(90deg, #60a5fa, #2563eb) !important;
-  color: #fff !important;
-  border-radius: 12px !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
-  min-width: 90px !important;
-  padding: 14px 22px !important;
-  box-shadow: 0 8px 32px rgba(37,99,235,0.12) !important;
-  border: none !important;
-}
-.swal2-modern-btn-cancel {
-  background: linear-gradient(90deg, #94a3b8, #64748b) !important;
-  color: #fff !important;
-  border-radius: 12px !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important;
-  min-width: 90px !important;
-  padding: 14px 22px !important;
-  box-shadow: 0 4px 16px rgba(100,116,139,0.12) !important;
-  border: none !important;
-}
-.swal2-modern .swal2-html-container {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  padding: 0 !important;
-}
-.swal2-modern .swal2-input {
-  text-align: center !important;
-  width: 84% !important;
-  min-width: 220px !important;
-  max-width: 260px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  box-sizing: border-box !important;
-}
-.swal2-modern select.swal2-input {
-  text-align: center !important;
-  width: 84% !important;
-  min-width: 220px !important;
-  max-width: 260px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  box-sizing: border-box !important;
-}
-.swal2-input {
-  border-radius: 12px !important;
-  border: 1px solid rgba(11,18,32,0.08) !important;
-  font-size: 1.05rem !important;
-  padding: 12px 16px !important;
-  margin-bottom: 10px !important;
-  background: rgba(255,255,255,0.95) !important;
-  box-shadow: none !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial !important;
-}
-.swal2-input:focus {
-  border: 1px solid #2563eb !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
-}
-
-/* Pagination Controls */
+/* Pagination */
 .pagination-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 24px;
+  width: 100%;
 }
 
 .pagination-button {
-  min-width: 70px;
-  max-width: 90px;
-  padding: 6px 12px;
+  padding: 6px 14px;
+  border: 1px solid #e2e8f0;
+  background: white;
   border-radius: 6px;
-  background: rgba(255,255,255,0.9);
-  color: #071024;
-  border: 1px solid rgba(11,18,32,0.08);
-  font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 13px;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
-.pagination-button:hover:not(:disabled) {
-  background: rgba(255,255,255,1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+/* Responsiveness */
+@media (max-width: 1024px) {
+  .manage-accounts { margin-left: 0; padding: 24px; }
 }
 
-.pagination-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: rgba(255,255,255,0.6);
-}
-
-.pagination-info {
-  align-self: center;
-  font-weight: 500;
-  color: #071024;
-  font-size: 0.9rem;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+@media (max-width: 640px) {
+  .profile-grid { grid-template-columns: 1fr; }
+  .manage-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .add-user-btn { width: 100%; justify-content: center; }
+  .accounts-table th { display: none; }
+  .accounts-table tr { display: block; padding: 16px 0; border-bottom: 1px solid var(--border-color); }
+  .accounts-table td { display: block; border: none; padding: 8px 0; }
 }
