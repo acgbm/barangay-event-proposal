@@ -727,7 +727,7 @@ const StaffDashboard = () => {
                             className="action-btn view-details-btn"
                             onClick={() => handleViewDetails(proposal)}
                           >
-                            View Details
+                            Details
                           </button>
                           {(proposal.status === "Rejected" || 
                             proposal.status === "Declined" ||
@@ -738,7 +738,7 @@ const StaffDashboard = () => {
                                 className="action-btn view-feedback-btn"
                                 onClick={() => handleViewFeedback(proposal.rejectionFeedback || proposal.feedback, proposal.status)}
                               >
-                                View Feedback
+                                Feedback
                               </button>
                               <button
                                 className="action-btn resubmit-btn"

@@ -88,9 +88,9 @@
   padding: 12px 24px;
   font-weight: 600;
   color: var(--text-muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 14px;
+  text-transform: none; /* Changed from uppercase to none */
+  letter-spacing: normal;
   border-bottom: 1px solid var(--border-color);
   background: #f8fafc;
 }

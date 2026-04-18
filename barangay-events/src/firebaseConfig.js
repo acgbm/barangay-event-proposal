@@ -70,11 +70,16 @@ export const requestNotificationPermission = async () => {
     }
 
     if (Notification.permission === 'denied') {
-      console.warn('⚠️ Notification permission denied by user');
       return null;
     }
 
-    // Request permission from user
+    // If permission is already granted, just return the status
+    if (Notification.permission === 'granted') {
+      console.log('✅ Notification permission already granted');
+      return 'desktop-notification';
+    }
+
+    // Request permission from user (only happens if permission is 'default')
     console.log('Requesting notification permission...');
     const permission = await Notification.requestPermission();
     

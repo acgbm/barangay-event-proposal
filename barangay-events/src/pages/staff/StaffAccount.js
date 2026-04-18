@@ -7,6 +7,7 @@ import {
   updatePassword,
 } from "firebase/auth";
 import Swal from "sweetalert2";
+import { ShieldCheck, UserCircle, Eye, EyeOff } from "lucide-react";
 import "./StaffAccount.css";
 
 const StaffAccount = () => {
@@ -14,6 +15,12 @@ const StaffAccount = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Visibility states for password fields
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const fetchStaffInfo = async () => {
@@ -35,6 +42,8 @@ const StaffAccount = () => {
   const handleChangePassword = async (e) => {
     e.preventDefault();
 
+    if (isLoading) return;
+
     if (newPassword !== confirmPassword) {
       return Swal.fire({
         icon: "error",
@@ -42,6 +51,8 @@ const StaffAccount = () => {
         text: "New passwords do not match.",
       });
     }
+
+    setIsLoading(true);
 
     const user = auth.currentUser;
     const credentials = EmailAuthProvider.credential(user.email, currentPassword);
@@ -74,59 +85,163 @@ const StaffAccount = () => {
           text: "Failed to update password. Please try again.",
         });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="staff-account-container">
-      <h2>Account Profile</h2>
-
-      {staffData && (
-        <div className="staff-account-info">
-          <p><strong>Full Name:</strong> {staffData.fullName}</p>
-          <p><strong>Email:</strong> {staffData.email}</p>
-          <p><strong>Date of Birth:</strong> {staffData.dob ? new Date(staffData.dob).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : ""}</p>
-          <p><strong>Phone Number:</strong> {staffData.phone}</p>
+    <div className="account-management-wrapper">
+      <header className="page-header">
+        <div className="header-content">
+          <h1>Account Settings</h1>
+          <p>View your profile details and manage your account security preferences.</p>
         </div>
-      )}
+      </header>
 
-      <hr className="staff-account-separator" />
-
-      <div className="password-section">
-        <h3 className="staff-account-subheading">Change Password</h3>
-        <form onSubmit={handleChangePassword} className="staff-account-form">
-          <div className="form-field">
-            <label>Current Password</label>
-            <input
-              type="password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
+      <div className="settings-grid">
+        {/* Profile Information Card */}
+        <div className="settings-card">
+          <div className="card-header">
+            <div className="icon-wrapper">
+              <UserCircle size={22} strokeWidth={1.5} />
+            </div>
+            <div className="header-text">
+              <h3>Profile Information</h3>
+              <span>Your personal account details</span>
+            </div>
           </div>
+          
+          <div className="card-body">
+            {staffData ? (
+              <div className="profile-info-grid">
+                <div className="info-item">
+                  <label>Full Name</label>
+                  <p>{staffData.fullName}</p>
+                </div>
 
-          <div className="form-field">
-            <label>New Password</label>
-            <input
-              type="password"
-              required
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
+                <div className="info-item">
+                  <label>Email Address</label>
+                  <p>{staffData.email}</p>
+                </div>
+
+                <div className="info-item">
+                  <label>Date of Birth</label>
+                  <p>
+                    {staffData.dob ? new Date(staffData.dob).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
+                  </p>
+                </div>
+
+                <div className="info-item">
+                  <label>Phone Number</label>
+                  <p>{staffData.phone || "—"}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="loading-container">
+                <div className="shimmer"></div>
+                <span>Loading your profile data...</span>
+              </div>
+            )}
           </div>
+        </div>
 
-          <div className="form-field">
-            <label>Confirm Password</label>
-            <input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+        {/* Security / Password Card */}
+        <div className="settings-card">
+          <div className="card-header">
+            <div className="icon-wrapper">
+              <ShieldCheck size={22} strokeWidth={1.5} />
+            </div>
+            <div className="header-text">
+              <h3>Security</h3>
+              <span>Update your login credentials</span>
+            </div>
           </div>
+          
+          <div className="card-body">
+            <form onSubmit={handleChangePassword} className="modern-security-form">
+              <div className="form-input-group full-width">
+                <label>Current Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    required
+                    placeholder="Verify your identity"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                  <button 
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    tabIndex="-1"
+                  >
+                    {showCurrentPassword ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+                  </button>
+                </div>
+              </div>
 
-          <button type="submit">Update Password</button>
-        </form>
+              <div className="form-input-group full-width">
+                <label>New Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    required
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                  <button 
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    tabIndex="-1"
+                  >
+                    {showNewPassword ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-input-group full-width">
+                <label>Confirm Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    placeholder="Repeat for confirmation"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  <button 
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex="-1"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-footer">
+                <button 
+                  type="submit" 
+                  className={`modern-save-btn ${isLoading ? 'loading' : ''}`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="btn-loader">
+                      <div className="spinner"></div>
+                      <span>Updating...</span>
+                    </div>
+                  ) : (
+                    "Update Password"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,195 +1,280 @@
-/* StaffAccount.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Hide scrollbars in desktop mode */
-@media (min-width: 769px) {
-  .staff-account-container,
-  .password-section {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-  .staff-account-container::-webkit-scrollbar,
-  .password-section::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
+.account-management-wrapper {
+  max-width: 1000px;
+  margin: 6rem auto 2rem;
+  padding: 0 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0f172a;
+  transition: all 0.3s ease;
 }
 
-.staff-account-container {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: #ffffff;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    border-radius: 12px;
-    font-family: "Google Sans", Roboto, Arial, sans-serif;
-    margin-top: 6rem !important; /* Add significant top padding to avoid header overlap */
-    padding-top: 2rem; /* Additional padding inside container */
-    transition: margin 0.3s, max-width 0.3s;
-  }
+/* Header */
+.page-header {
+  margin-bottom: 2.5rem;
+}
 
-/* Laptop resolution (1366x768) */
-@media (min-width: 1366px) and (max-width: 1920px) {
-  .staff-account-container {
-    margin-left: calc(150px + (100vw - 150px - 700px) / 2);
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.025em;
+}
+
+.page-header p {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+/* Grid */
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+/* Card Styling */
+.settings-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.settings-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+}
+
+.card-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: #f8fafc;
+}
+
+.icon-wrapper {
+  background: #ffffff;
+  padding: 0.75rem;
+  border-radius: 12px;
+  color: #1e293b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-text h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1e293b;
+}
+
+.header-text span {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.card-body {
+  padding: 2.5rem 2rem;
+}
+
+/* Profile Content */
+.profile-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-item label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.info-item p {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Security Form */
+.modern-security-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.form-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.form-input-group.full-width {
+  width: 100%;
+}
+
+.form-input-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.modern-security-form input {
+  width: 100%;
+  box-sizing: border-box; /* Ensure padding doesn't affect width */
+  padding: 0.75rem 2.8rem 0.75rem 1rem; /* Extra right padding for the icon */
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: #1e293b;
+}
+
+.modern-security-form input:focus {
+  outline: none;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+}
+
+.form-footer {
+  margin-top: 0.5rem;
+}
+
+.modern-save-btn {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 0.875rem 1.75rem;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%; /* Make button consistent with inputs */
+}
+
+.modern-save-btn:hover {
+  background: #334155;
+  transform: translateY(-1px);
+}
+
+.modern-save-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Button Loading State */
+.btn-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Sidebar Offset */
+@media (min-width: 1366px) {
+  .account-management-wrapper {
+    max-width: 1100px;
+    margin-left: calc(260px + (100vw - 260px - 1100px) / 2);
     margin-right: auto;
-    max-width: 700px;
   }
 }
 
-/* Desktop but smaller than 1366px */
-@media (max-width: 1365px) and (min-width: 1201px) {
-  .staff-account-container {
-    margin-left: calc(150px + (100vw - 150px - 700px) / 2);
-    margin-right: auto;
-    max-width: 700px;
+/* Responsive */
+@media (max-width: 1024px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Laptop specific adjustments for 1366x768 and similar resolutions */
-@media (min-width: 1280px) and (max-width: 1440px) {
-  .staff-account-container {
-    margin-left: calc(150px + (100vw - 150px - 700px) / 2);
-    margin-right: auto;
-    max-width: 700px;
-  }
-}
-  
-  .staff-account-container h2 {
-    margin-bottom: 1.5rem;
-    margin-top: 0;
-    font-size: 1.8rem;
-    color: #1d1d1d;
-    text-align: center;
-    padding-top: 1rem; /* Add padding above header */
+@media (max-width: 768px) {
+  .profile-info-grid, .form-row {
+    grid-template-columns: 1fr;
   }
   
-  .staff-account-info {
-    margin-bottom: 2rem;
-    line-height: 1.6;
-  }
-  
-  .staff-account-info p {
-    margin: 0.5rem 0;
-    font-size: 1rem;
-    color: #333;
-  }
-  
-  .staff-account-separator {
-    margin: 2rem 0;
-    border: none;
-    height: 1px;
-    background: #eee;
-  }
-  
-  /* Password Section Styles */
-  .password-section {
-    max-width: 400px;
-    margin: 0 auto;
+  .card-body {
     padding: 1.5rem;
-    background: #f8f9fa;
-    border-radius: 10px;
   }
   
-  .staff-account-subheading {
-    font-size: 1.4rem;
-    margin-bottom: 1.5rem;
-    color: #333;
-    text-align: center;
+  .card-header {
+    padding: 1.25rem 1.5rem;
   }
   
-  .staff-account-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
+  .account-management-wrapper {
+    margin-top: 4.5rem;
+    padding: 0 1rem;
   }
-  
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .staff-account-form label {
-    font-weight: 500;
-    font-size: 0.95rem;
-    color: #333;
-  }
-  
-  .staff-account-form input {
-    padding: 0.8rem 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  
-  .staff-account-form input:focus {
-    border-color: #1d71f2;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(29, 113, 242, 0.1);
-  }
-  
-  .staff-account-form button {
-    margin-top: 0.5rem;
-    padding: 0.85rem;
-    background: #1d71f2;
-    color: white;
-    font-weight: 600;
-    font-size: 1rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s;
-    width: 100%;
-  }
-  
-  .staff-account-form button:hover {
-    background: #155dcb;
-  }
-  
-  .staff-account-message {
-    color: crimson;
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-top: -0.5rem;
-  }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .staff-account-container {
-      margin: 5rem 1rem 2rem 1rem !important;
-      padding: 1.5rem;
-      padding-top: 1.5rem;
-    }
-  
-    .password-section {
-      padding: 1.25rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .staff-account-container {
-      margin: 5rem 1rem 2rem 1rem !important;
-      padding: 1.25rem 1rem;
-      padding-top: 1.25rem;
-    }
-  
-    .staff-account-container h2 {
-      font-size: 1.5rem;
-      padding-top: 0.5rem; /* Adjust padding for smaller screens */
-    }
-  
-    .password-section {
-      padding: 1rem;
-    }
-  
-    .staff-account-form input {
-      font-size: 1rem;
-      padding: 0.75rem;
-    }
-  
-    .staff-account-form button {
-      font-size: 0.95rem;
-    }
-  }
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #64748b;
+}
+
+.shimmer {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f1f5f9;
+  border-top-color: #0f172a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

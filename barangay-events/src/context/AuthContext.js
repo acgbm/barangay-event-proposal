@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
             setUser(currentUser);
             setRole(userData?.role || "staff");
             
-            // Request notification permission
+            // Request notification permission (this will only prompt if permission is 'default')
             const permission = await requestNotificationPermission();
             if (permission) {
               console.log('✅ Notifications enabled');

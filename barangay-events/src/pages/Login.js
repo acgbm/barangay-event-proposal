@@ -20,16 +20,46 @@ const Login = () => {
   const [acceptingUser, setAcceptingUser] = useState(null); // user object for accepting terms
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [pendingLoginData, setPendingLoginData] = useState(null); // {user, userData, role, navigateTo, successMessage}
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lockoutTime, setLockoutTime] = useState(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
   const auth = getAuth();
 
+  // Handle lockout countdown
+  useEffect(() => {
+    let timer;
+    if (lockoutTime) {
+      timer = setInterval(() => {
+        const remaining = lockoutTime - Date.now();
+        if (remaining <= 0) {
+          setLockoutTime(null);
+          setLoginAttempts(0);
+        }
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lockoutTime]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (lockoutTime) {
+      const remainingSeconds = Math.ceil((lockoutTime - Date.now()) / 1000);
+      Swal.fire("Wait", `Too many attempts. Try again in ${remainingSeconds} seconds.`, "warning");
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const userCredential = await login(email, password);
       const user = userCredential.user;
+
+      // Reset attempts on success
+      setLoginAttempts(0);
+      setLockoutTime(null);
 
       // Fetch user data from Firestore
       const userDocRef = doc(db, "users", user.uid);
@@ -47,12 +77,14 @@ const Login = () => {
 
       // Block disabled accounts
       if (isDisabled) {
+        setIsLoading(false);
         Swal.fire("Error", "This account has been disabled.", "error");
         return;
       }
 
       // Block unverified users (except admins)
       if (!isVerified && role !== "admin") {
+        setIsLoading(false);
         Swal.fire("Error", "Please verify your email before logging in.", "error");
         return;
       }
@@ -84,6 +116,7 @@ const Login = () => {
         setShowTermsModal(true);
         setAcceptingUser({ user, userDocRef });
         setPendingLoginData({ role, navigateTo, successMessage });
+        setIsLoading(false);
         return;
       }
 
@@ -94,11 +127,22 @@ const Login = () => {
         timer: 1500,
         showConfirmButton: false,
       }).then(() => {
+        setIsLoading(false);
         navigate(navigateTo);
       });
 
     } catch (err) {
-      Swal.fire("Error", "Invalid username or password", "error");
+      setIsLoading(false);
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+
+      if (newAttempts >= 5) {
+        const lockoutDuration = 60 * 1000; // 1 minute lockout
+        setLockoutTime(Date.now() + lockoutDuration);
+        Swal.fire("Locked Out", "Too many failed attempts. You are locked out for 1 minute.", "error");
+      } else {
+        Swal.fire("Error", `Invalid email or password. Attempts remaining: ${5 - newAttempts}`, "error");
+      }
     }
   };
 
@@ -321,7 +365,30 @@ const Login = () => {
               <span className="forgot-password" onClick={() => setShowForgotPassword(true)}>
                 Forgot Password?
               </span>
-              <button type="submit" className="login-button">Sign in</button>
+              <button 
+                type="submit" 
+                className="login-button" 
+                disabled={isLoading || !!lockoutTime}
+                style={{ 
+                  opacity: (isLoading || !!lockoutTime) ? 0.7 : 1,
+                  cursor: (isLoading || !!lockoutTime) ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px"
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="button-spinner"></span>
+                    Logging in...
+                  </>
+                ) : lockoutTime ? (
+                  "Locked Out"
+                ) : (
+                  "Sign in"
+                )}
+              </button>
             </form>
           ) : (
             <div className="forgot-password-form">

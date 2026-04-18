@@ -225,7 +225,7 @@
   background: rgba(248, 250, 252, 0.9);
   font-weight: 600;
   color: #475569;
-  text-transform: uppercase;
+  text-transform: none; /* Changed from uppercase to none */
   letter-spacing: 0.05em;
   font-size: 0.8rem;
 }

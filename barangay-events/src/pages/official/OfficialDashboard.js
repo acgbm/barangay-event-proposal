@@ -428,7 +428,7 @@ const OfficialDashboard = () => {
                         onClick={() => handleViewDetails(proposal)}
                         className="action-btn view-details-btn"
                       >
-                        View Details
+                        Details
                       </button>
                     </td>
                   </tr>
