@@ -35,7 +35,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   width: 100%;
 }
 
@@ -47,8 +47,50 @@
   letter-spacing: -0.02em;
 }
 
+.header-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.search-filter-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-bar input {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 240px;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.role-filter-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.role-filter-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 .add-user-btn {
-  background: var(--primary);
+  background: #263043;
   color: white;
   border: none;
   padding: 10px 18px;
@@ -64,8 +106,8 @@
 }
 
 .add-user-btn:hover {
-  background: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  background: #1e2635;
+  box-shadow: 0 4px 12px rgba(38, 48, 67, 0.2);
 }
 
 /* Table Design */
@@ -303,9 +345,7 @@
 
 .modal-footer {
   padding: 16px 24px 24px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+  display: block;
 }
 
 .edit-profile-btn, .save-account-button {
@@ -374,7 +414,7 @@
 }
 
 .create-account-button {
-  background: var(--primary);
+  background: #263043;
   color: white;
   border: none;
   padding: 12px;
@@ -382,6 +422,10 @@
   font-weight: 600;
   cursor: pointer;
   width: 100%;
+}
+
+.create-account-button:hover {
+  background: #1e2635;
 }
 
 /* Pagination */

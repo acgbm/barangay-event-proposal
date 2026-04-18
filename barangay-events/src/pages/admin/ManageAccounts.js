@@ -18,6 +18,8 @@ const ManageAccounts = () => {
   const [dob, setDob] = useState("");
   const [phone, setPhone] = useState("");
   const [accounts, setAccounts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
@@ -291,10 +293,18 @@ const ManageAccounts = () => {
   };
   
   // Pagination logic
+  const filteredAccounts = accounts.filter((user) => {
+    const matchesSearch = 
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
   const indexOfLastAccount = currentPage * accountsPerPage;
   const indexOfFirstAccount = indexOfLastAccount - accountsPerPage;
-  const currentAccounts = accounts.slice(indexOfFirstAccount, indexOfLastAccount);
-  const totalPages = Math.ceil(accounts.length / accountsPerPage);
+  const currentAccounts = filteredAccounts.slice(indexOfFirstAccount, indexOfLastAccount);
+  const totalPages = Math.ceil(filteredAccounts.length / accountsPerPage);
 
   // Helper for today's date in yyyy-mm-dd
   const today = new Date().toISOString().split('T')[0];
@@ -335,9 +345,33 @@ const ManageAccounts = () => {
     <div className="manage-accounts">
       <div className="manage-header">
         <h2>Manage Accounts</h2>
-        <button className="add-user-btn" onClick={() => setShowCreateModal(true)}>
-          + Add User
-        </button>
+      </div>
+
+      <div className="header-actions">
+        <div className="search-filter-group">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="filter-group">
+            <select 
+              value={roleFilter} 
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="role-filter-select"
+            >
+              <option value="all">All Roles</option>
+              <option value="staff">Staff</option>
+              <option value="official">Official</option>
+            </select>
+          </div>
+          <button className="add-user-btn" onClick={() => setShowCreateModal(true)}>
+            + Add User
+          </button>
+        </div>
       </div>
 
       {showCreateModal && (
