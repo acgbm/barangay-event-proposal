@@ -8,7 +8,7 @@
   padding: 24px;
   width: calc(100% - 210px);
   min-height: calc(100vh - 88px);
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 40%);
+  background: white;
   border-radius: 12px;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   box-sizing: border-box;
