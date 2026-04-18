@@ -995,11 +995,11 @@ const AdminProposal = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const handleViewVotes = async (proposal) => {
+  const handleViewVotes = async (proposal, filterType = "all") => {
     try {
       // Fetch fullNames for approve votes
       let approveVoters = [];
-      if (proposal.votes?.approve && proposal.votes.approve.length > 0) {
+      if ((filterType === "all" || filterType === "approve") && proposal.votes?.approve && proposal.votes.approve.length > 0) {
         approveVoters = await Promise.all(
           proposal.votes.approve.map(async (userId) => {
             try {
@@ -1019,7 +1019,7 @@ const AdminProposal = () => {
 
       // Fetch fullNames for reject votes
       let rejectVoters = [];
-      if (proposal.votes?.reject && proposal.votes.reject.length > 0) {
+      if ((filterType === "all" || filterType === "reject") && proposal.votes?.reject && proposal.votes.reject.length > 0) {
         rejectVoters = await Promise.all(
           proposal.votes.reject.map(async (userId) => {
             try {
@@ -1040,13 +1040,14 @@ const AdminProposal = () => {
       // Set votes data with fullNames
       setVotesData({
         ...proposal,
+        filterType,
         approveVoters,
         rejectVoters,
       });
       setShowVotesModal(true);
     } catch (error) {
       console.error("Error viewing votes:", error);
-      setVotesData(proposal);
+      setVotesData({ ...proposal, filterType });
       setShowVotesModal(true);
     }
   };
@@ -1212,11 +1213,10 @@ const AdminProposal = () => {
         <table className="table">
           <thead>
             <tr>
-              <th>Title</th>
+              <th>Event Title</th>
               <th>Date</th>
               <th>Status</th>
-              <th>Votes</th>
-              <th>Actions</th>
+              <th style={{ textAlign: "left" }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1227,21 +1227,12 @@ const AdminProposal = () => {
                 : (normalized.includes("completed") ? "status-completed" : `status-${normalized.replace(/[^a-z0-9]+/g, '-')}`);
               return (
               <tr key={proposal.id}>
-                <td>{proposal.title}</td>
+                <td style={{ fontWeight: 500 }}>{proposal.title}</td>
                 <td>{formatDate(proposal.startDate)} - {formatDate(proposal.finishDate)}</td>
                 <td>
                   <span className={`status-badge ${statusClass}`} style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
                     {proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending")}
                   </span>
-                </td>
-                <td className="votes-cell">
-                  {proposal.votes && (proposal.votes.approve?.length > 0 || proposal.votes.reject?.length > 0) ? (
-                    <button className="votes-button" onClick={() => handleViewVotes(proposal)}>
-                      👍 {proposal.votes.approve?.length ?? 0} | 👎 {proposal.votes.reject?.length ?? 0}
-                    </button>
-                  ) : (
-                    <span className="no-votes-text">No votes yet</span>
-                  )}
                 </td>
                 <td className="actions-cell">
                   <div className="action-buttons">
@@ -1395,14 +1386,14 @@ const AdminProposal = () => {
                 <div className="modal-section">
                   <h3 className="section-title">Voting Summary</h3>
                   <div className="votes-container">
-                    <div className="vote-card approve">
+                    <button className="vote-card approve" onClick={() => handleViewVotes(selectedProposal, "approve")}>
                       <span className="vote-label">Approvals</span>
                       <span className="vote-number">{selectedProposal.votes?.approve?.length ?? 0}</span>
-                    </div>
-                    <div className="vote-card reject">
-                      <span className="vote-label">Rejections</span>
+                    </button>
+                    <button className="vote-card reject" onClick={() => handleViewVotes(selectedProposal, "reject")}>
+                      <span className="vote-label">Declines</span>
                       <span className="vote-number">{selectedProposal.votes?.reject?.length ?? 0}</span>
-                    </div>
+                    </button>
                   </div>
                 </div>
               )}
@@ -1441,7 +1432,7 @@ const AdminProposal = () => {
         <div className="modal-overlay" onClick={handleCloseVotesModal}>
           <div className="modal-content votes-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Votes - {votesData.title}</h2>
+              <h2>{votesData.filterType === "approve" ? "Approvals" : votesData.filterType === "reject" ? "Declines" : "Votes"} - {votesData.title}</h2>
               <button className="modal-close-btn" onClick={handleCloseVotesModal}>
                 ×
               </button>
@@ -1474,10 +1465,10 @@ const AdminProposal = () => {
                     ))}
                   </tbody>
                 </table>
-                {(!votesData.approveVoters || votesData.approveVoters.length === 0) && 
-                 (!votesData.rejectVoters || votesData.rejectVoters.length === 0) && (
+                {((!votesData.approveVoters || votesData.approveVoters.length === 0) && 
+                  (!votesData.rejectVoters || votesData.rejectVoters.length === 0)) && (
                   <div className="no-votes-message">
-                    <p>No votes recorded yet for this proposal.</p>
+                    <p>No {votesData.filterType === "approve" ? "approvals" : votesData.filterType === "reject" ? "declines" : "votes"} recorded yet for this proposal.</p>
                   </div>
                 )}
               </div>
