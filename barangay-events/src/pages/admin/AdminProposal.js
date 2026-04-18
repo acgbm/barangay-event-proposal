@@ -1156,7 +1156,7 @@ const AdminProposal = () => {
       
       {loading && <div className="loading-spinner">Loading proposals...</div>}
       
-      <div className="admin-content-card">
+      <div className="admin-content">
       
       {/* Search, Filter, and Sort Controls */}
       <div className="table-controls">
@@ -1280,7 +1280,7 @@ const AdminProposal = () => {
           Next
         </button>
       </div>
-      </div> {/* End admin-content-card */}
+      </div> {/* End admin-content */}
 
       {/* Modal for Viewing Proposal Details */}
       {showModal && selectedProposal && (

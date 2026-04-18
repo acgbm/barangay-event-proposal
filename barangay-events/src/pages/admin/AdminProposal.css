@@ -74,11 +74,19 @@
 
 /* Content Card Wrapping the Controls and Table */
 .admin-content-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  padding: 24px;
+  /* keep for compatibility but render as neutral container */
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+}
+
+/* New lightweight container used for AdminProposal layout (no card) */
+.admin-content {
+  background: transparent;
+  padding: 0 0 8px 0;
+  border: none;
 }
 
 /* Table Controls (Search, Filter, Sort) */
