@@ -23,6 +23,18 @@ const ReviewProposals = () => {
   const [votedPage, setVotedPage] = useState(1);
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [selectedProposalId, setSelectedProposalId] = useState(null);
+
+  const declineOptions = [
+    "Conflict with another event",
+    "Insufficient budget",
+    "Missing required documents",
+    "Event location unavailable",
+    "Proposal needs more details",
+    "Outside barangay jurisdiction"
+  ];
   
   // Search, filter, and sort states for pending proposals
   const [pendingSearch, setPendingSearch] = useState("");
@@ -155,24 +167,9 @@ const ReviewProposals = () => {
       }
   
       if (voteType === "reject") {
-        const { value: feedback } = await Swal.fire({
-          title: "Decline Proposal",
-          input: "textarea",
-          inputPlaceholder: "Enter feedback for rejection...",
-          showCancelButton: true,
-          confirmButtonText: "Decline",
-          cancelButtonText: "Cancel",
-          confirmButtonColor: "#d33",
-          preConfirm: (feedback) => {
-            if (!feedback.trim()) {
-              Swal.showValidationMessage("Feedback is required to reject the proposal.");
-            }
-            return feedback;
-          },
-        });
-  
-        if (!feedback) return;
-        rejectionFeedback.push({ officialId: userId, feedback });
+        setSelectedProposalId(proposalId);
+        setShowDeclineModal(true);
+        return; 
       }
   
       // Add new vote
@@ -463,6 +460,84 @@ const ReviewProposals = () => {
     setSelectedProposal(null);
   };
 
+  const handleDeclineSubmit = async () => {
+    if (!declineReason.trim()) {
+      Swal.fire({
+        icon: "error",
+        title: "Reason Required",
+        text: "Please provide a reason for declining.",
+      });
+      return;
+    }
+
+    const proposalId = selectedProposalId;
+    try {
+      const proposalRef = doc(db, "proposals", proposalId);
+      const proposalSnap = await getDoc(proposalRef);
+      const proposalData = proposalSnap.data();
+      
+      let votes = proposalData.votes || { approve: [], reject: [] };
+      let rejectionFeedback = proposalData.rejectionFeedback || [];
+
+      // Remove previous vote if any
+      votes.approve = votes.approve.filter((id) => id !== userId);
+      votes.reject = votes.reject.filter((id) => id !== userId);
+      rejectionFeedback = rejectionFeedback.filter((entry) => entry.officialId !== userId);
+
+      // Add reject vote
+      votes.reject.push(userId);
+      rejectionFeedback.push({ officialId: userId, feedback: declineReason });
+
+      const officialsCountFixed = officialsCount > 0 ? officialsCount : 1; 
+      const majorityThreshold = Math.floor(officialsCountFixed / 2) + 1;
+      let newStatus = "Pending";
+
+      if (votes.reject.length >= majorityThreshold) {
+        newStatus = "Rejected";
+        await saveNotificationIfMissing({
+          message: `Proposal "${proposalData.title}" has been declined.`,
+          timestamp: serverTimestamp(),
+          type: "Rejected",
+          status: "Rejected",
+          targetRole: "staff",
+          targetUserId: proposalData.userId || null,
+          proposalId,
+          proposalTitle: proposalData.title || "",
+        });
+      }
+
+      await setDoc(proposalRef, {
+        votes,
+        status: newStatus,
+        rejectionFeedback,
+      }, { merge: true });
+
+      setProposals((prev) =>
+        prev.map((p) =>
+          p.id === proposalId ? { ...p, votes, status: newStatus, rejectionFeedback } : p
+        )
+      );
+
+      Swal.fire({
+        icon: "error",
+        title: "Proposal Declined",
+        text: "Your feedback has been submitted.",
+      });
+
+      setShowDeclineModal(false);
+      setDeclineReason("");
+      setSelectedProposalId(null);
+      if (showModal) setShowModal(false);
+    } catch (error) {
+      console.error("Error submitting decline:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to submit feedback.",
+      });
+    }
+  };
+
   // Search function
   const searchProposals = (proposalsList, searchQuery) => {
     if (!searchQuery.trim()) return proposalsList;
@@ -579,7 +654,7 @@ const ReviewProposals = () => {
   return (
     <div className="review-container" style={{ marginTop: 56 }}>
 
-      <div className="table-wrapper">
+      <div className="table-section">
         <h3>Pending Proposals</h3>
         
         {/* Search, Filter, and Sort Controls for Pending Proposals */}
@@ -687,7 +762,7 @@ const ReviewProposals = () => {
         )}
       </div>
 
-      <div className="table-wrapper">
+      <div className="table-section">
         <h3>Voted Proposals</h3>
         
         {/* Search, Filter, and Sort Controls for Voted Proposals */}
@@ -754,7 +829,8 @@ const ReviewProposals = () => {
                 <tr key={proposal.id}>
                   <td>{proposal.title}</td>
                   <td>
-                    ✅ {proposal.votes?.approve?.length ?? 0} / ❌ {proposal.votes?.reject?.length ?? 0}
+                    <span style={{ color: '#10b981', marginRight: '8px' }}>✓</span> {proposal.votes?.approve?.length ?? 0} 
+                    <span style={{ color: '#ef4444', marginLeft: '8px', marginRight: '8px' }}>✕</span> {proposal.votes?.reject?.length ?? 0}
                   </td>
                   <td>
                     <span className={`status-badge ${statusClass}`}>
@@ -892,6 +968,47 @@ const ReviewProposals = () => {
                   This proposal has been {selectedProposal.status === "Rejected" ? "Declined" : selectedProposal.status}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decline Reason Modal */}
+      {showDeclineModal && (
+        <div className="modal-overlay" onClick={() => setShowDeclineModal(false)}>
+          <div className="modal-content decline-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Decline Proposal</h2>
+              <button className="modal-close-btn" onClick={() => setShowDeclineModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="decline-instruction">Please select a reason or provide detailed feedback for declining this proposal.</p>
+              
+              <div className="decline-options-grid">
+                {declineOptions.map((option, index) => (
+                  <button 
+                    key={index}
+                    className={`decline-option-chip ${declineReason === option ? 'selected' : ''}`}
+                    onClick={() => setDeclineReason(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+
+              <div className="custom-reason-container">
+                <label>Additional Feedback (Optional)</label>
+                <textarea
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                  placeholder="Type your custom reason here or modify the selection..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-decline-btn" onClick={() => setShowDeclineModal(false)}>Cancel</button>
+              <button className="submit-decline-btn" onClick={handleDeclineSubmit}>Confirm Decline</button>
             </div>
           </div>
         </div>
