@@ -9,6 +9,18 @@ import {
   sendVoteReminderByProposalId,
   sendVoteRemindersForAllPending,
 } from "../services/notificationService";
+import { 
+  X, 
+  Send, 
+  Calendar, 
+  Vote, 
+  Users, 
+  UserRound, 
+  UserCheck, 
+  Info,
+  CheckCircle2,
+  AlertCircle
+} from "lucide-react";
 import "./SendReminderModal.css";
 
 const SendReminderModal = ({ isOpen, onClose }) => {
@@ -142,18 +154,24 @@ const SendReminderModal = ({ isOpen, onClose }) => {
     <div className="reminder-modal-overlay" onClick={handleClose}>
       <div className="reminder-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="reminder-modal-header">
-          <h2>📧 Send Reminder</h2>
+          <h2>
+            <Send size={20} className="header-icon" />
+            Send Reminder
+          </h2>
           <button className="reminder-modal-close" onClick={handleClose}>
-            ✕
+            <X size={20} />
           </button>
         </div>
 
         <div className="reminder-modal-body">
           {/* Reminder Type Selection */}
           <div className="reminder-form-group">
-            <label>Reminder Type:</label>
-            <div className="reminder-radio-group">
-              <div className="reminder-radio-option">
+            <label>Reminder Type</label>
+            <div className="reminder-type-cards">
+              <label 
+                className={`reminder-type-card ${reminderType === "event" ? "active" : ""}`}
+                htmlFor="event-reminder"
+              >
                 <input
                   type="radio"
                   id="event-reminder"
@@ -166,9 +184,16 @@ const SendReminderModal = ({ isOpen, onClose }) => {
                   }}
                   disabled={loading}
                 />
-                <label htmlFor="event-reminder">🎉 Event Reminder (Approved events)</label>
-              </div>
-              <div className="reminder-radio-option">
+                <div className="type-card-content">
+                  <Calendar size={24} />
+                  <span>Event Reminder</span>
+                </div>
+              </label>
+
+              <label 
+                className={`reminder-type-card ${reminderType === "vote" ? "active" : ""}`}
+                htmlFor="vote-reminder"
+              >
                 <input
                   type="radio"
                   id="vote-reminder"
@@ -181,105 +206,109 @@ const SendReminderModal = ({ isOpen, onClose }) => {
                   }}
                   disabled={loading}
                 />
-                <label htmlFor="vote-reminder">🗳️ Vote Reminder (Pending proposals)</label>
-              </div>
+                <div className="type-card-content">
+                  <Vote size={24} />
+                  <span>Vote Reminder</span>
+                </div>
+              </label>
             </div>
           </div>
 
           {/* Proposals Selection */}
           <div className="reminder-form-group">
             <label htmlFor="proposal-select">
-              {reminderType === "event" ? "Select Event:" : "Select Proposal:"}
+              {reminderType === "event" ? "Select Approved Event" : "Select Pending Proposal"}
             </label>
-            {loadingProposals ? (
-              <div className="reminder-loading">Loading proposals...</div>
-            ) : proposals.length > 0 ? (
-              <select
-                id="proposal-select"
-                value={selectedProposal}
-                onChange={(e) => setSelectedProposal(e.target.value)}
-                disabled={loading}
-              >
-                <option value="">-- Choose a proposal --</option>
-                {reminderType === "vote" && (
-                  <option value="all-pending">🔔 All Pending Proposals</option>
-                )}
-                {proposals.map((proposal) => (
-                  <option key={proposal.id} value={proposal.id}>
-                    {proposal.title}
-                    {reminderType === "event" && ` (${new Date(proposal.startDate).toLocaleDateString()})`}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div className="reminder-no-proposals">
-                {reminderType === "event" ? "No approved events found" : "No pending proposals found"}
-              </div>
-            )}
+            <div className="select-wrapper">
+              {loadingProposals ? (
+                <div className="reminder-loading">Loading proposals...</div>
+              ) : proposals.length > 0 ? (
+                <select
+                  id="proposal-select"
+                  value={selectedProposal}
+                  onChange={(e) => setSelectedProposal(e.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">Choose a proposal...</option>
+                  {reminderType === "vote" && (
+                    <option value="all-pending">All Pending Proposals</option>
+                  )}
+                  {proposals.map((proposal) => (
+                    <option key={proposal.id} value={proposal.id}>
+                      {proposal.title}
+                      {reminderType === "event" && ` (${new Date(proposal.startDate).toLocaleDateString()})`}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="reminder-no-proposals">
+                  {reminderType === "event" ? "No approved events found" : "No pending proposals found"}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Recipient Type Selection - only for event reminders */}
           {reminderType === "event" && (
             <div className="reminder-form-group">
-              <label>Send reminder to:</label>
-              <div className="reminder-radio-group">
-                <div className="reminder-radio-option">
+              <label>Send reminder to</label>
+              <div className="recipient-selector">
+                <label className={`recipient-option ${recipientType === "all" ? "selected" : ""}`}>
                   <input
                     type="radio"
-                    id="all"
                     name="recipientType"
                     value="all"
                     checked={recipientType === "all"}
                     onChange={(e) => setRecipientType(e.target.value)}
                     disabled={loading}
                   />
-                  <label htmlFor="all">All Participants (Staff & Officials)</label>
-                </div>
-                <div className="reminder-radio-option">
+                  <Users size={18} />
+                  <span>Everyone</span>
+                </label>
+                <label className={`recipient-option ${recipientType === "staff" ? "selected" : ""}`}>
                   <input
                     type="radio"
-                    id="staff"
                     name="recipientType"
                     value="staff"
                     checked={recipientType === "staff"}
                     onChange={(e) => setRecipientType(e.target.value)}
                     disabled={loading}
                   />
-                  <label htmlFor="staff">Staff Only</label>
-                </div>
-                <div className="reminder-radio-option">
+                  <UserRound size={18} />
+                  <span>Staff</span>
+                </label>
+                <label className={`recipient-option ${recipientType === "officials" ? "selected" : ""}`}>
                   <input
                     type="radio"
-                    id="officials"
                     name="recipientType"
                     value="officials"
                     checked={recipientType === "officials"}
                     onChange={(e) => setRecipientType(e.target.value)}
                     disabled={loading}
                   />
-                  <label htmlFor="officials">Officials Only</label>
-                </div>
+                  <UserCheck size={18} />
+                  <span>Officials</span>
+                </label>
               </div>
             </div>
           )}
 
-          {reminderType === "vote" && selectedProposal !== "all-pending" && (
-            <div className="reminder-info">
-              📢 Vote reminders will be sent to all officials
-            </div>
-          )}
-
-          {reminderType === "vote" && selectedProposal === "all-pending" && (
-            <div className="reminder-info">
-              📢 Vote reminders will be sent to all officials for each pending proposal
+          {reminderType === "vote" && selectedProposal !== "" && (
+            <div className="reminder-info-box">
+              <Info size={16} />
+              <p>
+                {selectedProposal === "all-pending" 
+                  ? "Reminders will be sent to all officials for each pending proposal."
+                  : "Vote reminders will be sent to all active officials."}
+              </p>
             </div>
           )}
 
           {/* Message Display */}
           {message && (
-            <div className={`reminder-message reminder-message-${messageType}`}>
-              {messageType === "success" ? "✓ " : "✗ "}
-              {message}
+            <div className={`reminder-status-message ${messageType}`}>
+              {messageType === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+              <span>{message}</span>
             </div>
           )}
         </div>
@@ -287,18 +316,18 @@ const SendReminderModal = ({ isOpen, onClose }) => {
         {/* Modal Footer */}
         <div className="reminder-modal-footer">
           <button
-            className="reminder-btn-cancel"
+            className="btn-text"
             onClick={handleClose}
             disabled={loading}
           >
             Cancel
           </button>
           <button
-            className="reminder-btn-send"
+            className="btn-primary"
             onClick={handleSendReminder}
             disabled={loading || !selectedProposal || proposals.length === 0}
           >
-            {loading ? "Sending..." : "Send Reminder"}
+            {loading ? "Sending..." : "Send Now"}
           </button>
         </div>
       </div>
