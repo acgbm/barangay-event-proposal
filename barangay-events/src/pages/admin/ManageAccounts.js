@@ -344,7 +344,10 @@ const ManageAccounts = () => {
   return (
     <div className="manage-accounts">
       <div className="manage-header">
-        <h2>Manage Accounts</h2>
+        <div className="header-titles">
+          <h2>Manage Accounts</h2>
+          <p className="page-subtitle">Create and manage user accounts for staff and officials.</p>
+        </div>
       </div>
 
       <div className="header-actions">

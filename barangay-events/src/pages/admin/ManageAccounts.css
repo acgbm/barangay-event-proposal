@@ -47,6 +47,19 @@
   letter-spacing: -0.02em;
 }
 
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
 .header-actions {
   display: flex;
   justify-content: flex-start;
