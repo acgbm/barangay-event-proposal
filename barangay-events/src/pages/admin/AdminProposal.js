@@ -1108,26 +1108,16 @@ const AdminProposal = () => {
     return sorted;
   };
 
-  // Determine the color of the status text
+  // Determine the color of the status text (normalized)
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
-        return "#2ecc40"; // green
-      case "Pending":
-        return "#f59e0b"; // yellow
-      case "Rejected":
-        return "#e74c3c"; // red (shown as Declined)
-      case "Declined (Missed Deadline)":
-        return "#e74c3c"; // red
-      case "Cancelled":
-        return "#888"; // gray
-      case "Rescheduled":
-        return "#6c63ff"; // purple/blue
-      case "Completed":
-        return "#2563eb"; // blue
-      default:
-        return "#22223b";
-    }
+    const s = (status || "").toString().toLowerCase();
+    if (s.includes("approved")) return "#065f46"; // green (match other pages)
+    if (s.includes("completed")) return "#065f46"; // Completed should be green like Approved
+    if (s.includes("pending")) return "#f59e0b"; // yellow
+    if (s.includes("rejected") || s.includes("declined") || s.includes("missed deadline")) return "#991b1b"; // red for declined variants
+    if (s.includes("cancelled")) return "#888"; // gray
+    if (s.includes("rescheduled")) return "#6c63ff"; // purple/blue
+    return "#22223b";
   };
 
   // Filter and process proposals
@@ -1230,12 +1220,17 @@ const AdminProposal = () => {
             </tr>
           </thead>
           <tbody>
-            {currentProposals.map((proposal) => (
+            {currentProposals.map((proposal) => {
+              const normalized = (proposal.status || "Pending").toString().toLowerCase();
+              const statusClass = normalized.includes("declined") || normalized.includes("rejected") || normalized.includes("missed deadline")
+                ? "status-declined"
+                : (normalized.includes("completed") ? "status-completed" : `status-${normalized.replace(/[^a-z0-9]+/g, '-')}`);
+              return (
               <tr key={proposal.id}>
                 <td>{proposal.title}</td>
                 <td>{formatDate(proposal.startDate)} - {formatDate(proposal.finishDate)}</td>
                 <td>
-                  <span className="status-badge" style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
+                  <span className={`status-badge ${statusClass}`} style={{ background: getStatusColor(proposal.status)+"22", color: getStatusColor(proposal.status) }}>
                     {proposal.status === "Rejected" ? "Declined" : (proposal.status || "Pending")}
                   </span>
                 </td>
@@ -1260,7 +1255,8 @@ const AdminProposal = () => {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

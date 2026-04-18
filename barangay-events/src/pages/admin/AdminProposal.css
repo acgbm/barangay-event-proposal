@@ -247,6 +247,17 @@
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
+/* Per-status styles for consistency with other pages */
+.status-declined {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
 /* Action Buttons */
 .action-buttons {
   display: flex;
