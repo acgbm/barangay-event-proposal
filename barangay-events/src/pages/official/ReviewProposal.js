@@ -46,6 +46,7 @@ const ReviewProposals = () => {
   const [votedStatusFilter, setVotedStatusFilter] = useState("all"); // all, approved, rejected, declined
   const [votedSortBy, setVotedSortBy] = useState("date"); // date, title, status, votes
   const [votedSortOrder, setVotedSortOrder] = useState("desc"); // asc, desc
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const proposalsPerPage = 5;
 
@@ -103,6 +104,8 @@ const ReviewProposals = () => {
   }, []);
 
   const handleVote = async (proposalId, voteType) => {
+    if (isSubmitting) return;
+
     if (!userId) {
       Swal.fire({
         icon: "error",
@@ -113,6 +116,7 @@ const ReviewProposals = () => {
     }
   
     try {
+      setIsSubmitting(true);
       const proposalRef = doc(db, "proposals", proposalId);
       const proposalSnap = await getDoc(proposalRef);
   
@@ -127,7 +131,7 @@ const ReviewProposals = () => {
       // Handle rejection feedback
       let rejectionFeedback = proposalData.rejectionFeedback || [];
       
-      // Check if user has already voted
+        // Check if user has already voted
       if (votes.approve.includes(userId) || votes.reject.includes(userId)) {
         const { isConfirmed } = await Swal.fire({
           title: "Change Vote?",
@@ -140,7 +144,10 @@ const ReviewProposals = () => {
           cancelButtonColor: "#d33",
         });
   
-        if (!isConfirmed) return;
+        if (!isConfirmed) {
+          setIsSubmitting(false);
+          return;
+        }
   
         // Remove previous vote
         votes.approve = votes.approve.filter((id) => id !== userId);
@@ -163,12 +170,16 @@ const ReviewProposals = () => {
           cancelButtonColor: "#d33",
         });
   
-        if (!isConfirmed) return;
+        if (!isConfirmed) {
+          setIsSubmitting(false);
+          return;
+        }
       }
   
       if (voteType === "reject") {
         setSelectedProposalId(proposalId);
         setShowDeclineModal(true);
+        setIsSubmitting(false);
         return; 
       }
   
@@ -287,6 +298,8 @@ const ReviewProposals = () => {
         title: "Error",
         text: "There was an issue submitting your vote. Please try again.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -461,6 +474,8 @@ const ReviewProposals = () => {
   };
 
   const handleDeclineSubmit = async () => {
+    if (isSubmitting) return;
+
     if (!declineReason.trim()) {
       Swal.fire({
         icon: "error",
@@ -472,6 +487,7 @@ const ReviewProposals = () => {
 
     const proposalId = selectedProposalId;
     try {
+      setIsSubmitting(true);
       const proposalRef = doc(db, "proposals", proposalId);
       const proposalSnap = await getDoc(proposalRef);
       const proposalData = proposalSnap.data();
@@ -535,6 +551,8 @@ const ReviewProposals = () => {
         title: "Error",
         text: "Failed to submit feedback.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -938,10 +956,10 @@ const ReviewProposals = () => {
                 <strong>Votes:</strong>
                 <div className="votes-display">
                   <span className="vote-count approve-count">
-                    ✅ Approve: {selectedProposal.votes?.approve?.length ?? 0}
+                    <span style={{ color: '#10b981', marginRight: '6px' }}>✓</span> Approve: {selectedProposal.votes?.approve?.length ?? 0}
                   </span>
                   <span className="vote-count reject-count">
-                    ❌ Decline: {selectedProposal.votes?.reject?.length ?? 0}
+                    <span style={{ color: '#ef4444', marginRight: '6px' }}>✕</span> Decline: {selectedProposal.votes?.reject?.length ?? 0}
                   </span>
                 </div>
               </div>
@@ -952,14 +970,16 @@ const ReviewProposals = () => {
                   <button
                     onClick={() => handleVote(selectedProposal.id, "approve")}
                     className="action-btn approve-btn"
+                    disabled={isSubmitting || selectedProposal.votes?.approve?.includes(userId)}
                   >
-                    Approve
+                    {isSubmitting ? "Processing..." : selectedProposal.votes?.approve?.includes(userId) ? "Already Approved" : "Approve"}
                   </button>
                   <button
                     onClick={() => handleVote(selectedProposal.id, "reject")}
                     className="action-btn reject-btn"
+                    disabled={isSubmitting || selectedProposal.votes?.reject?.includes(userId)}
                   >
-                    Decline
+                    {isSubmitting ? "Processing..." : selectedProposal.votes?.reject?.includes(userId) ? "Already Declined" : "Decline"}
                   </button>
                 </>
               )}
@@ -1008,7 +1028,13 @@ const ReviewProposals = () => {
             </div>
             <div className="modal-footer">
               <button className="cancel-decline-btn" onClick={() => setShowDeclineModal(false)}>Cancel</button>
-              <button className="submit-decline-btn" onClick={handleDeclineSubmit}>Confirm Decline</button>
+              <button 
+                className="submit-decline-btn" 
+                onClick={handleDeclineSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Declining..." : "Confirm Decline"}
+              </button>
             </div>
           </div>
         </div>

@@ -29,11 +29,11 @@
   transition: border 0.2s;
 }
 .events-pro-year-select:focus {
-  border: 1.5px solid #5f6fff;
+  border: 1.5px solid #3b82f6;
 }
 .events-pro-nav-btn {
-  background: #eaeaff;
-  color: #5f6fff;
+  background: #eff6ff;
+  color: #3b82f6;
   border: none;
   border-radius: 8px;
   font-size: 1.18rem;
@@ -44,7 +44,7 @@
   outline: none;
 }
 .events-pro-nav-btn:hover, .events-pro-nav-btn:focus {
-  background: #5f6fff;
+  background: #3b82f6;
   color: #fff;
 }
 /* --- Modern Professional Events Calendar --- */
@@ -111,26 +111,27 @@
 .fc-daygrid-event {
   border-radius: 10px;
   font-size: 1.01rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 6px 14px;
   margin-bottom: 2px;
-  border: none;
-  background: #eaeaff !important;
-  color: #5f6fff !important;
-  box-shadow: 0 2px 8px 0 rgba(80, 112, 255, 0.08);
-  transition: box-shadow 0.2s, background 0.2s;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.15);
+  transition: all 0.2s ease;
 }
 .fc-daygrid-event:hover {
-  background: #5f6fff !important;
+  background: #2563eb !important;
   color: #fff !important;
-  box-shadow: 0 4px 16px 0 rgba(80, 112, 255, 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(59, 130, 246, 0.25);
 }
 .fc-day-today {
-  background: #f3f4fd !important;
+  background: #f8fafc !important;
   border-radius: 12px;
 }
 .fc-daygrid-day.fc-day-today {
-  box-shadow: 0 0 0 2px #5f6fff inset;
+  box-shadow: 0 0 0 2px #3b82f6 inset;
 }
 .fc-col-header-cell {
   background: #f7f8fa;
@@ -212,32 +213,32 @@
 }
 
 .events-pro-upcoming-list::-webkit-scrollbar-thumb {
-  background: #5f6fff;
+  background: #3b82f6;
   border-radius: 10px;
   border: 2px solid #f0f1f3;
 }
 
 .events-pro-upcoming-list::-webkit-scrollbar-thumb:hover {
-  background: #2d3eff;
+  background: #2563eb;
 }
 
 .events-pro-upcoming-list {
-  scrollbar-color: #5f6fff #f0f1f3;
+  scrollbar-color: #3b82f6 #f0f1f3;
   scrollbar-width: thin;
 }
 .events-pro-upcoming-item {
   background: #f6f8fc;
   border-radius: 14px;
-  box-shadow: 0 2px 8px 0 rgba(80, 112, 255, 0.08);
+  box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.08);
   padding: 18px 22px;
   display: flex;
   align-items: flex-start;
   transition: box-shadow 0.2s, background 0.2s;
-  border: 1px solid #eaeaff;
+  border: 1px solid #eff6ff;
 }
 .events-pro-upcoming-item:hover {
-  background: #eaeaff;
-  box-shadow: 0 4px 16px 0 rgba(80, 112, 255, 0.16);
+  background: #eff6ff;
+  box-shadow: 0 4px 16px 0 rgba(59, 130, 246, 0.16);
 }
 .events-pro-upcoming-main {
   flex: 1;
@@ -253,7 +254,7 @@
 }
 .events-pro-upcoming-date {
   font-size: 0.98rem;
-  color: #5f6fff;
+  color: #3b82f6;
   font-weight: 500;
 }
 .events-pro-upcoming-time {
@@ -726,14 +727,14 @@
   border: none;
 }
 .fc-day-today {
-  background: #eaeaff !important;
+  background: #eff6ff !important;
   border-radius: 12px;
 }
 .fc-daygrid-day.fc-day-today {
-  box-shadow: 0 0 0 2px #5f6fff inset;
+  box-shadow: 0 0 0 2px #3b82f6 inset;
 }
 .fc-timegrid-slot-label {
-  color: #5f6fff;
+  color: #3b82f6;
   font-weight: 700;
   font-size: 1.01em;
 }
@@ -749,10 +750,11 @@
   padding: 12px 18px;
   border-radius: 16px;
   font-size: 1.08rem;
+  color: #ffffff !important;
 }
 .fc-timegrid-event.fc-event-primary {
-  background: #eaeaff !important;
-  color: #5f6fff !important;
+  background: #3b82f6 !important;
+  color: #ffffff !important;
 }
 .fc-timegrid-event.fc-event-warning {
   background: #fff7e6 !important;
@@ -769,16 +771,16 @@
 .fc-daygrid-event {
   border-radius: 12px;
   font-size: 1.01rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 6px 14px;
   margin-bottom: 2px;
-  border: none;
-  background: #eaeaff !important;
-  color: #5f6fff !important;
-  box-shadow: 0 2px 8px 0 rgba(80, 112, 255, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.15);
 }
 .fc-daygrid-event-dot {
-  background: #5f6fff !important;
+  background: #3b82f6 !important;
 }
 .fc-scrollgrid {
   border-radius: 18px;
@@ -788,8 +790,8 @@
   margin-bottom: 1.5rem;
 }
 .fc .fc-button {
-  background: #eaeaff;
-  color: #5f6fff;
+  background: #eff6ff;
+  color: #3b82f6;
   border-radius: 8px;
   border: none;
   font-weight: 600;
@@ -800,7 +802,7 @@
   transition: background 0.2s, color 0.2s;
 }
 .fc .fc-button.fc-button-active, .fc .fc-button:active {
-  background: #5f6fff;
+  background: #3b82f6;
   color: #fff;
 }
 
