@@ -6,9 +6,12 @@ import {
   createUserWithEmailAndPassword,
   deleteUser,
   applyActionCode,
+  updatePassword,
 } from "firebase/auth";
 import emailjs from "emailjs-com";
 import Swal from "sweetalert2"; // Import SweetAlert
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import "./ManageAccounts.css";
 
 const ManageAccounts = () => {
@@ -33,6 +36,13 @@ const ManageAccounts = () => {
   const [editPhone, setEditPhone] = useState("");
   const [editRole, setEditRole] = useState("");
   const [editError, setEditError] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const accountsPerPage = 10;
   const db = getFirestore();
   const auth = getAuth();
@@ -70,6 +80,59 @@ const ManageAccounts = () => {
   const handleCloseEdit = () => {
     setShowEditModal(false);
     setSelectedUser(null);
+  };
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError("");
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters.");
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updatePassword(user, newPassword);
+        setShowPasswordModal(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        Swal.fire({
+          icon: "success",
+          title: "Password Updated",
+          text: "Your password has been changed successfully.",
+        });
+      } else {
+        throw new Error("No user is currently logged in.");
+      }
+    } catch (err) {
+      console.error("Error changing password:", err);
+      let msg = err.message;
+      if (err.code === "auth/requires-recent-login") {
+        msg = "This operation is sensitive and requires recent authentication. Please log out and log back in before changing your password.";
+      }
+      setPasswordError(msg);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to Change Password",
+        text: msg,
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const emailjsConfig = {
@@ -371,8 +434,13 @@ const ManageAccounts = () => {
               <option value="official">Official</option>
             </select>
           </div>
+        </div>
+        <div className="button-group">
           <button className="add-user-btn" onClick={() => setShowCreateModal(true)}>
             + Add User
+          </button>
+          <button className="change-password-btn" onClick={() => setShowPasswordModal(true)}>
+            Change Password
           </button>
         </div>
       </div>
@@ -557,6 +625,74 @@ const ManageAccounts = () => {
                     Save Changes
                   </button>
                   <button type="button" className="cancel-edit-btn" onClick={handleCloseEdit}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={handleClosePasswordModal}>
+          <div className="modal-content password-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Change Admin Password</h2>
+              <button className="modal-close-btn" onClick={handleClosePasswordModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <form onSubmit={handleChangePassword}>
+                <div className="form-group">
+                  <label htmlFor="newPassword">New Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="newPassword"
+                      type={showNewPassword ? "text" : "password"}
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} />
+                    </button>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm New Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                    </button>
+                  </div>
+                </div>
+                {passwordError && <p className="error-text">{passwordError}</p>}
+                <div className="modal-footer">
+                  <button
+                    type="submit"
+                    disabled={isChangingPassword}
+                    className="update-password-button"
+                  >
+                    {isChangingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                  <button type="button" className="cancel-edit-btn" onClick={handleClosePasswordModal}>
                     Cancel
                   </button>
                 </div>
