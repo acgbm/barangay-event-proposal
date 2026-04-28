@@ -338,16 +338,21 @@ export const sendReminderToEventStaff = async (proposalId) => {
     }
 
     const proposal = { id: proposalId, ...proposalSnapshot.data() };
-    const staffId = proposal.userId;
 
-    if (!staffId) {
-      return { success: false, message: "Staff member not found" };
+    // Get all staff members
+    const staffQuery = query(collection(db, "users"), where("role", "==", "staff"));
+    const staffSnapshot = await getDocs(staffQuery);
+    
+    if (staffSnapshot.empty) {
+      return { success: false, message: "No staff members found" };
     }
 
-    const result = await sendEventReminder(proposal, [staffId]);
+    const staffIds = staffSnapshot.docs.map(doc => doc.id);
+
+    const result = await sendEventReminder(proposal, staffIds);
     
     // Also send email
-    const emailResult = await sendEventReminderEmails(proposal, [staffId]);
+    const emailResult = await sendEventReminderEmails(proposal, staffIds);
     
     return { 
       success: result.success && emailResult.success, 
@@ -415,33 +420,38 @@ export const sendReminderToAllParticipants = async (proposalId) => {
 
     const proposal = { id: proposalId, ...proposalSnapshot.data() };
 
-    // Get all officials
-    const officialIds = [];
+    // Get all officials and staff
+    const recipientIds = [];
+    
+    // Fetch officials
     const officialsQuery = query(collection(db, "users"), where("role", "==", "official"));
     const officialsSnapshot = await getDocs(officialsQuery);
+    officialsSnapshot.forEach(doc => recipientIds.push(doc.id));
     
-    officialsSnapshot.forEach(doc => officialIds.push(doc.id));
-    
-    // Add staff member
-    if (proposal.userId && !officialIds.includes(proposal.userId)) {
-      officialIds.push(proposal.userId);
-    }
+    // Fetch staff
+    const staffQuery = query(collection(db, "users"), where("role", "==", "staff"));
+    const staffSnapshot = await getDocs(staffQuery);
+    staffSnapshot.forEach(doc => {
+      if (!recipientIds.includes(doc.id)) {
+        recipientIds.push(doc.id);
+      }
+    });
 
-    if (officialIds.length === 0) {
+    if (recipientIds.length === 0) {
       return { success: false, message: "No recipients found" };
     }
 
-    console.log(`📤 Sending reminder to ${officialIds.length} participants`);
-    const result = await sendEventReminder(proposal, officialIds);
+    console.log(`📤 Sending reminder to ${recipientIds.length} participants`);
+    const result = await sendEventReminder(proposal, recipientIds);
     
     // Also send emails
-    const emailResult = await sendEventReminderEmails(proposal, officialIds);
+    const emailResult = await sendEventReminderEmails(proposal, recipientIds);
     
     return { 
       success: result.success && emailResult.success, 
-      message: `✅ Reminder sent to ${officialIds.length} participant(s)`,
+      message: `✅ Reminder sent to ${recipientIds.length} participant(s)`,
       proposalTitle: proposal.title,
-      recipientCount: officialIds.length,
+      recipientCount: recipientIds.length,
       notificationSent: result.success,
       emailSent: emailResult.success
     };
